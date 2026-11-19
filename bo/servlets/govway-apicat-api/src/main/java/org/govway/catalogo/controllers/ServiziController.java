@@ -97,6 +97,7 @@ import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.core.services.ServizioService.MotivoNonEliminabile;
 import org.govway.catalogo.core.services.TagService;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.core.services.UtenteService;
@@ -108,6 +109,7 @@ import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
+import org.govway.catalogo.services.ApiUnivocitaService;
 import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.servlets.api.ServiziApi;
@@ -300,6 +302,9 @@ public class ServiziController implements ServiziApi {
 
 	@Autowired
 	private RateLimitingService rateLimitingService;
+
+	@Autowired
+	private ApiUnivocitaService apiUnivocitaService;
 
 	@Autowired
 	private RateLimitingAssembler rateLimitingAssembler;
@@ -1235,6 +1240,17 @@ public class ServiziController implements ServiziApi {
 		return checkOnly ? this.service.runTransactionSenzaModifiche(supplier) : this.service.runTransaction(supplier);
 	}
 
+	/**
+	 * Codice di errore che spiega perche` il servizio non e` eliminabile e cosa fare.
+	 */
+	private static ErrorCode toErrorCode(MotivoNonEliminabile motivo) {
+		return switch(motivo) {
+			case ADESIONI -> ErrorCode.SRV_400_NOT_DELETABLE_ADESIONI;
+			case API -> ErrorCode.SRV_400_NOT_DELETABLE_API;
+			case PACKAGE -> ErrorCode.SRV_400_NOT_DELETABLE_PACKAGE;
+		};
+	}
+
 	private static UUID getIdDominio(ServizioEntity entity) {
 		return entity.getDominio() != null ? UUID.fromString(entity.getDominio().getIdDominio()) : null;
 	}
@@ -1334,6 +1350,13 @@ public class ServiziController implements ServiziApi {
 					entity.getNome(), entity.getVersione(), idDominio, configurazione.getServizio().getWorkflow().getStatoArchiviato());
 			if(conflitto.isPresent()) {
 				throw toConflittoServizio(entity.getNome(), entity.getVersione(), idDominio, conflitto.get());
+			}
+
+			// Le api dei servizi archiviati non occupano nome e versione: nel frattempo un altro
+			// servizio puo` averle riusate, e il ripristino le riporterebbe in conflitto.
+			if(entity.getDominio() != null) {
+				this.apiUnivocitaService.checkUnivocitaApiServizio(entity,
+						entity.getDominio().getSoggettoReferente(), entity.isFruizione(), entity.getSoggettoErogatore());
 			}
 		}
 
@@ -2346,19 +2369,20 @@ public class ServiziController implements ServiziApi {
 
 				this.getServizioAuthorization(entity).authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");
-				if (service.isEliminabile(entity)) {
-				    // Cancellazione degli allegati del servizio
-				    AllegatoServizioSpecification spec = new AllegatoServizioSpecification();
-				    spec.setIdServizio(Optional.of(idServizio));
-				    Page<AllegatoServizioEntity> allegati = service.findAllAllegatiServizio(spec, Pageable.unpaged());
-				    for (AllegatoServizioEntity allegato : allegati.getContent()) {
-				        this.service.delete(allegato);
-				    }
-
-				    service.delete(entity);
-				} else {
-				    throw new BadRequestException(ErrorCode.SRV_400_NOT_DELETABLE);
+				Optional<MotivoNonEliminabile> motivo = service.getMotivoNonEliminabile(entity);
+				if (motivo.isPresent()) {
+				    throw new BadRequestException(toErrorCode(motivo.get()));
 				}
+
+				// Cancellazione degli allegati del servizio
+				AllegatoServizioSpecification spec = new AllegatoServizioSpecification();
+				spec.setIdServizio(Optional.of(idServizio));
+				Page<AllegatoServizioEntity> allegati = service.findAllAllegatiServizio(spec, Pageable.unpaged());
+				for (AllegatoServizioEntity allegato : allegati.getContent()) {
+				    this.service.delete(allegato);
+				}
+
+				service.delete(entity);
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.noContent().build();
 			});

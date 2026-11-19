@@ -1,6 +1,14 @@
 2026-11-19  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 475: le API dei servizi archiviati non occupano più nome e versione, come già avviene per i
+	  servizi: un servizio da rifare può riusare le API di quello archiviato, prima rifiutate con 409
+	  API.409. Un servizio archiviato le cui API sono state riusate non può tornare allo stato precedente
+	  (409 API.409). Monitoraggio e allarmi attribuiscono i dati del gateway all'API del servizio non
+	  archiviato. L'eliminazione di un servizio non eliminabile risponde con un codice che ne indica il
+	  motivo e cosa fare: SRV.400.NOT.DELETABLE.ADESIONI, SRV.400.NOT.DELETABLE.API o
+	  SRV.400.NOT.DELETABLE.PACKAGE, al posto di SRV.400.NOT.DELETABLE.
+
 	Issue 474: le statistiche per applicativo, per principal e per token riportano di nuovo le etichette,
 	  prima vuote perché le colonne del CSV di GovWay venivano lette con intestazioni diverse da quelle
 	  prodotte (Applicativo, Principal, Autenticazione, Token Client ID, Token Issuer). La distribuzione

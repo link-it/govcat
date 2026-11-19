@@ -128,8 +128,14 @@ public enum ErrorCode {
     /** Immagine per il servizio non trovata */
     SRV_404_IMAGE("Immagine servizio non trovata"),
 
-    /** Il servizio non è eliminabile */
-    SRV_400_NOT_DELETABLE("Servizio non eliminabile"),
+    /** Il servizio non è eliminabile perché ha adesioni */
+    SRV_400_NOT_DELETABLE_ADESIONI("Servizio non eliminabile: ha adesioni"),
+
+    /** Il servizio non è eliminabile perché ha API */
+    SRV_400_NOT_DELETABLE_API("Servizio non eliminabile: ha API"),
+
+    /** Il package non è eliminabile perché contiene servizi */
+    SRV_400_NOT_DELETABLE_PACKAGE("Package non eliminabile: contiene servizi"),
 
     /** Gruppo già associato al servizio */
     SRV_409_GROUP("Gruppo già associato"),

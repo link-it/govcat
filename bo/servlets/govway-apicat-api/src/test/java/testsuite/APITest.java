@@ -35,6 +35,10 @@ import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.servlets.model.StatoUpdate;
+import java.util.Optional;
+import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.ErrorCode;
@@ -211,6 +215,9 @@ public class APITest {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private ApiService apiService;
 
     private static final String UTENTE_GESTORE = "gestore";
     private static UUID ID_UTENTE_GESTORE;
@@ -521,6 +528,113 @@ public class APITest {
     	ResponseEntity<Servizio> aggiornato = serviziController.updateServizio(servizioIntermediato.getIdServizio(), null, servizioUpdate);
     	assertEquals(HttpStatus.OK, aggiornato.getStatusCode());
     	assertEquals("servizio_intermediato_rinominato", aggiornato.getBody().getNome());
+    }
+
+    private static final String STATO_ARCHIVIATO = "archiviato";
+
+    private void cambiaStatoServizio(Servizio servizio, String stato) {
+    	StatoUpdate statoUpdate = new StatoUpdate();
+    	statoUpdate.setStato(stato);
+    	assertEquals(HttpStatus.OK, serviziController.updateStatoServizio(servizio.getIdServizio(), statoUpdate, false).getStatusCode());
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+    }
+
+    /**
+     * Issue 475: le API di un servizio archiviato non occupano nome e versione, come gia`
+     * avviene per i servizi: chi rifa` il servizio puo` riusarle.
+     */
+    @Test
+    void testCreateApiDiServizioArchiviatoConsentita() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	Servizio nuovo = creaServizio("servizio_nuovo", dominio.getIdDominio(), false, null);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, nuovo).getStatusCode());
+    }
+
+    /**
+     * Issue 475: anche rinominando un'API si possono riusare nome e versione di un servizio archiviato.
+     */
+    @Test
+    void testUpdateApiNomeDiServizioArchiviatoConsentito() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	Servizio nuovo = creaServizio("servizio_nuovo", dominio.getIdDominio(), false, null);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	ResponseEntity<API> api = creaApi("API_Y", 1, nuovo);
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+
+    	assertEquals(HttpStatus.OK, apiController.updateApi(api.getBody().getIdApi(), getApiUpdate("API_X", 1), null).getStatusCode());
+    }
+
+    /**
+     * Issue 475: se nel frattempo un altro servizio ha riusato le sue API, il servizio archiviato
+     * non puo` tornare allo stato precedente: le sue API tornerebbero in conflitto.
+     */
+    @Test
+    void testRipristinoServizioArchiviatoConApiRiusataConflitto() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	Servizio nuovo = creaServizio("servizio_nuovo", dominio.getIdDominio(), false, null);
+    	String statoPrecedente = archiviato.getStato();
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, nuovo).getStatusCode());
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+
+    	StatoUpdate ripristino = new StatoUpdate();
+    	ripristino.setStato(statoPrecedente);
+    	ConflictException e = assertThrows(ConflictException.class,
+    			() -> serviziController.updateStatoServizio(archiviato.getIdServizio(), ripristino, false));
+    	assertEquals(ErrorCode.API_409, e.getErrorCode());
+    }
+
+    /**
+     * Issue 475: senza API riusate il servizio archiviato torna allo stato precedente.
+     */
+    @Test
+    void testRipristinoServizioArchiviatoSenzaConflittoConsentito() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	String statoPrecedente = archiviato.getStato();
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+    	cambiaStatoServizio(archiviato, statoPrecedente);
+
+    	assertEquals(statoPrecedente, serviziController.getServizio(archiviato.getIdServizio()).getBody().getStato());
+    }
+
+    /**
+     * Issue 475: con la stessa API su un servizio archiviato e sul servizio che lo sostituisce, i
+     * dati del gateway (monitoraggio, allarmi) vanno attribuiti all'API del servizio attivo, anche
+     * se quella archiviata e` stata creata prima.
+     */
+    @Test
+    void testFindByNomeVersioneSoggettoPreferisceApiNonArchiviata() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	Servizio nuovo = creaServizio("servizio_nuovo", dominio.getIdDominio(), false, null);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+    	UUID idApiNuova = creaApi("API_X", 1, nuovo).getBody().getIdApi();
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+
+    	UUID idSoggetto = UUID.fromString(this.servizioService.find(nuovo.getIdServizio()).get()
+    			.getDominio().getSoggettoReferente().getIdSoggetto());
+
+    	Optional<ApiEntity> api = this.apiService.findByNomeVersioneSoggetto("API_X", 1, idSoggetto, STATO_ARCHIVIATO);
+    	assertTrue(api.isPresent());
+    	assertEquals(idApiNuova.toString(), api.get().getIdApi());
     }
 
     UUID idApi = null;

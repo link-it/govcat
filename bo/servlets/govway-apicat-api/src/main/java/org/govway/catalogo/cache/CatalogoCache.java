@@ -31,6 +31,7 @@ import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,9 @@ public class CatalogoCache {
 	
 	@Autowired
 	private AdesioneService adesioneService;
+
+	@Autowired
+	private Configurazione configurazione;
 	
 	private Logger logger = LoggerFactory.getLogger(CatalogoCache.class);
 
@@ -113,7 +117,7 @@ public class CatalogoCache {
 			return Optional.empty();
 		}
 		
-		Optional<ApiEntity> cache = this.cacheApi.cache(key, this.apiService.findByNomeVersioneSoggetto(nomeApi, versione, UUID.fromString(soggetto.get().getIdSoggetto())));
+		Optional<ApiEntity> cache = this.cacheApi.cache(key, this.apiService.findByNomeVersioneSoggetto(nomeApi, versione, UUID.fromString(soggetto.get().getIdSoggetto()), this.configurazione.getServizio().getWorkflow().getStatoArchiviato()));
 		this.logger.info("[NO CACHE] getApiEntity erogatore["+erogatore+"] nome["+nomeApi+"] versione["+versione+"]");
 		return cache;
 	}

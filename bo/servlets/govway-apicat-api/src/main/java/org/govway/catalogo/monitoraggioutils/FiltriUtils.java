@@ -174,7 +174,7 @@ public class FiltriUtils {
 				if(apiEntity.isPresent())
 					api = apiEntity.get();
 			} else {
-				Optional<ApiEntity> oApi = this.apiService.findByNomeVersioneSoggetto(nome, versione, UUID.fromString(soggetto.getIdSoggetto()));
+				Optional<ApiEntity> oApi = this.apiService.findByNomeVersioneSoggetto(nome, versione, UUID.fromString(soggetto.getIdSoggetto()), this.configurazione.getServizio().getWorkflow().getStatoArchiviato());
 				if(oApi.isPresent()) {
 					api = oApi.get();
 				} else {

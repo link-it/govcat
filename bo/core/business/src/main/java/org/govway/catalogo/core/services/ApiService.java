@@ -88,8 +88,11 @@ public class ApiService extends AbstractService {
 	 *        intermediato e` false.
 	 * @param idApiEscluse api da non considerare nel confronto (tipicamente quelle del servizio
 	 *        che si sta modificando, che non possono entrare in conflitto con se stesse).
+	 * @param statoArchiviato stato archiviato del workflow dei servizi: le api dei servizi
+	 *        archiviati non occupano nome e versione, come gia` avviene per i servizi. Se null
+	 *        il confronto comprende anche le api dei servizi archiviati.
 	 */
-	public boolean existsApiInConflitto(String nome, Integer versione, UUID idSoggettoReferente, boolean intermediato, UUID idSoggettoErogatore, List<UUID> idApiEscluse) {
+	public boolean existsApiInConflitto(String nome, Integer versione, UUID idSoggettoReferente, boolean intermediato, UUID idSoggettoErogatore, List<UUID> idApiEscluse, String statoArchiviato) {
 		ApiSpecification specification = new ApiSpecification();
 		specification.setNome(Optional.of(nome));
 		specification.setVersione(Optional.of(versione));
@@ -101,6 +104,7 @@ public class ApiService extends AbstractService {
 		}
 
 		specification.setIdApiEscluse(idApiEscluse);
+		specification.setStatoServizioEscluso(Optional.ofNullable(statoArchiviato));
 
 		return this.apiRepo.count(specification) > 0;
 	}
@@ -123,10 +127,17 @@ public class ApiService extends AbstractService {
 	 *
 	 * Il criterio di univocita` delle api distingue i servizi intermediati per ente erogatore,
 	 * quindi questa ricerca puo` restituire piu` di un risultato: in quel caso la scelta e`
-	 * deterministica (prima le api dei servizi non intermediati, poi id crescente) per non
-	 * dipendere dall'ordinamento del database.
+	 * deterministica (prima le api di servizi non archiviati, poi quelle dei servizi non
+	 * intermediati, poi id crescente) per non dipendere dall'ordinamento del database.
+	 *
+	 * Le api dei servizi archiviati non occupano nome e versione: la stessa api puo` quindi
+	 * esistere su un servizio archiviato e sul servizio che lo sostituisce, e il dato del
+	 * gateway va attribuito a quest'ultimo.
+	 *
+	 * @param statoArchiviato stato archiviato del workflow dei servizi; se null non si
+	 *        distinguono le api dei servizi archiviati.
 	 */
-	public Optional<ApiEntity> findByNomeVersioneSoggetto(String nome, Integer versione, UUID soggetto) {
+	public Optional<ApiEntity> findByNomeVersioneSoggetto(String nome, Integer versione, UUID soggetto, String statoArchiviato) {
 		List<ApiEntity> apiList = this.apiRepo.findAll(filterByNomeVersione(nome, versione, soggetto));
 
 		if(apiList.isEmpty()) {
@@ -134,8 +145,18 @@ public class ApiService extends AbstractService {
 		}
 
 		return apiList.stream()
-				.min(Comparator.comparing(ApiService::isIntermediata)
+				.min(Comparator.comparing((ApiEntity api) -> isArchiviata(api, statoArchiviato))
+						.thenComparing(ApiService::isIntermediata)
 						.thenComparing(ApiEntity::getId));
+	}
+
+	/**
+	 * Api archiviata: tutti i servizi a cui e` associata sono nello stato archiviato.
+	 */
+	private static Boolean isArchiviata(ApiEntity api, String statoArchiviato) {
+		return statoArchiviato != null
+				&& !api.getServizi().isEmpty()
+				&& api.getServizi().stream().allMatch(s -> statoArchiviato.equals(s.getStato()));
 	}
 
 	private static Boolean isIntermediata(ApiEntity api) {

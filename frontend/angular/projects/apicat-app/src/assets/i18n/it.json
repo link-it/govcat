@@ -2056,7 +2056,12 @@
 							"ADESIONE": "Il servizio deve essere multi adesione perché il dominio [{{dominio}}] è multi adesione"
 						},
 						"NOT": {
-							"DELETABLE": "Il servizio non è eliminabile",
+							"DELETABLE": {
+								"DEFAULT": "Il servizio non è eliminabile",
+								"ADESIONI": "Il servizio non è eliminabile perché ha adesioni: per non renderlo più disponibile archivialo. Le API di un servizio archiviato non occupano nome e versione e possono essere riusate in un nuovo servizio",
+								"API": "Il servizio non è eliminabile perché ha API: elimina prima le API del servizio",
+								"PACKAGE": "Il package non è eliminabile perché contiene servizi: rimuovi prima i servizi dal package"
+							},
 							"REGISTERED": "Utente non registrato, impossibile recuperare servizi in attesa"
 						},
 						"VISIBILITY": "Visibilità [{{visibilita}}] non consentita per i servizi"

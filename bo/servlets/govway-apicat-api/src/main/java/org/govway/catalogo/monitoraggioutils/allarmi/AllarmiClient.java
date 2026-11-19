@@ -271,7 +271,7 @@ public class AllarmiClient {
 			return Optional.empty();
 		}
 		
-		Optional<ApiEntity> findApi = this.apiService.findByNomeVersioneSoggetto(nome, versione, UUID.fromString(findByNome.get().getIdSoggetto()));
+		Optional<ApiEntity> findApi = this.apiService.findByNomeVersioneSoggetto(nome, versione, UUID.fromString(findByNome.get().getIdSoggetto()), this.configurazione.getServizio().getWorkflow().getStatoArchiviato());
 		if(!findApi.isPresent()) {
 			return Optional.empty();
 		}

@@ -4160,6 +4160,44 @@ public class ServiziTest {
         return adesioniController.createAdesione(adesione).getBody().getIdAdesione();
     }
 
+    /**
+     * Issue 475: un servizio con API non e` eliminabile e l'errore dice di eliminare prima le API.
+     */
+    @Test
+    void testDeleteServizioConApiNonEliminabile() {
+        Servizio servizio = this.getServizioConApi();
+
+        BadRequestException e = assertThrows(BadRequestException.class,
+                () -> serviziController.deleteServizio(servizio.getIdServizio()));
+        assertEquals(ErrorCode.SRV_400_NOT_DELETABLE_API, e.getErrorCode());
+    }
+
+    /**
+     * Issue 475: un servizio con adesioni non e` eliminabile. Le adesioni prevalgono sulle API,
+     * che il servizio ha comunque: eliminare le API non renderebbe il servizio eliminabile.
+     */
+    @Test
+    void testDeleteServizioConAdesioniNonEliminabile() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+        creaAdesione(ctx.idServizio(), "aderente_eliminazione");
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        BadRequestException e = assertThrows(BadRequestException.class,
+                () -> serviziController.deleteServizio(ctx.idServizio()));
+        assertEquals(ErrorCode.SRV_400_NOT_DELETABLE_ADESIONI, e.getErrorCode());
+    }
+
+    /**
+     * Issue 475: un servizio senza API ne' adesioni resta eliminabile.
+     */
+    @Test
+    void testDeleteServizioSenzaApiEliminabile() {
+        Servizio servizio = this.getServizio();
+
+        assertEquals(HttpStatus.NO_CONTENT, serviziController.deleteServizio(servizio.getIdServizio()).getStatusCode());
+    }
+
     @Test
     void testRateLimitingRiepilogoServizio() {
         ServizioRateLimiting ctx = creaServizioConRateLimiting();

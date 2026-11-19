@@ -287,17 +287,44 @@ public class ServizioService extends AbstractService {
 		return this.servizioRepo.getServiziByRichiedente(u.getId());
 	}
 
+	/**
+	 * Motivo per cui un servizio non puo` essere eliminato.
+	 */
+	public enum MotivoNonEliminabile {
+		/** Il servizio ha adesioni, anche archiviate: vanno conservate e il servizio con loro. */
+		ADESIONI,
+		/** Il servizio ha api: vanno eliminate prima del servizio. */
+		API,
+		/** Il package contiene servizi: vanno rimossi prima del package. */
+		PACKAGE
+	}
+
 	public boolean isEliminabile(ServizioEntity servizio) {
+		return getMotivoNonEliminabile(servizio).isEmpty();
+	}
+
+	/**
+	 * Primo motivo per cui il servizio non e` eliminabile, vuoto se e` eliminabile.
+	 *
+	 * Le adesioni hanno la precedenza perche` non si possono rimuovere: indicare per prime le api
+	 * spingerebbe a eliminarle senza poter poi eliminare il servizio.
+	 */
+	public Optional<MotivoNonEliminabile> getMotivoNonEliminabile(ServizioEntity servizio) {
 	    // Verifiche di esistenza via query (SELECT ... LIMIT-like) invece di servizio.getXxx().isEmpty():
 	    // .isEmpty() su collezioni lazy materializza l'intera collezione, e per i servizi con molte adesioni
 	    // questo dominava il tempo di assemblaggio delle liste (~320 ms/elemento per il gestore).
 	    // Nota: isEliminabile e` usato solo dalle viste di lista (ServizioItemAssembler), non da servizi_gruppi,
 	    // e su una pagina (max ~size servizi) le query exists restano poche e veloci.
-	    boolean haAdesioni = this.adesioneRepo.existsByServizioId(servizio.getId());
-	    boolean haApi = this.apiRepo.existsByServizioId(servizio.getId());
-	    boolean haPackageSubServizi = servizio.is_package() && this.packageServizioRepo.existsByPackageId(servizio.getId());
-
-	    return !(haAdesioni || haApi || haPackageSubServizi);
+	    if(this.adesioneRepo.existsByServizioId(servizio.getId())) {
+	        return Optional.of(MotivoNonEliminabile.ADESIONI);
+	    }
+	    if(this.apiRepo.existsByServizioId(servizio.getId())) {
+	        return Optional.of(MotivoNonEliminabile.API);
+	    }
+	    if(servizio.is_package() && this.packageServizioRepo.existsByPackageId(servizio.getId())) {
+	        return Optional.of(MotivoNonEliminabile.PACKAGE);
+	    }
+	    return Optional.empty();
 	}
 
 	public List<ReferenteDominioEntity> findReferentiDominioByUtente(UtenteEntity utente) {

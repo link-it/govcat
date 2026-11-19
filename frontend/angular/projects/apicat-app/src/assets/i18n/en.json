@@ -2056,7 +2056,12 @@
 							"ADESIONE": "The service must allow multiple subscriptions because domain [{{dominio}}] allows multiple subscriptions"
 						},
 						"NOT": {
-							"DELETABLE": "",
+							"DELETABLE": {
+								"DEFAULT": "The service cannot be deleted",
+								"ADESIONI": "The service cannot be deleted because it has subscriptions: archive it to make it no longer available. The APIs of an archived service do not reserve their name and version and can be reused in a new service",
+								"API": "The service cannot be deleted because it has APIs: delete the service APIs first",
+								"PACKAGE": "The package cannot be deleted because it contains services: remove the services from the package first"
+							},
 							"REGISTERED": ""
 						},
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed for services"

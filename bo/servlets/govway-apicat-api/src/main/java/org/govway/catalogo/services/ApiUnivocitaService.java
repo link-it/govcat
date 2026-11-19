@@ -31,6 +31,7 @@ import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,12 +46,19 @@ import org.springframework.stereotype.Service;
  * Servizi intermediati e non intermediati ricadono in namespace distinti: la stessa api (nome,
  * versione, dominio) puo` esistere una volta su un servizio non intermediato e una volta su
  * ciascun servizio intermediato con ente erogatore diverso.
+ *
+ * Le api dei servizi archiviati non occupano nome e versione, come gia` avviene per i servizi:
+ * chi rifa` un servizio puo` riusare le api di quello archiviato. L'univocita` e` verificata di
+ * nuovo quando il servizio archiviato torna in un altro stato.
  */
 @Service
 public class ApiUnivocitaService {
 
 	@Autowired
 	private ApiService apiService;
+
+	@Autowired
+	private Configurazione configurazione;
 
 	/**
 	 * Verifica l'univocita` di nome/versione nel namespace del servizio indicato.
@@ -62,7 +70,8 @@ public class ApiUnivocitaService {
 	/**
 	 * Verifica che tutte le api del servizio siano univoche nel namespace indicato: serve quando
 	 * la modifica del servizio (dominio, flag di intermediazione o ente erogatore) le sposta in un
-	 * namespace diverso da quello in cui erano state create.
+	 * namespace diverso da quello in cui erano state create, e quando il servizio esce dallo
+	 * stato archiviato e le sue api tornano a occupare nome e versione.
 	 *
 	 * Le api del servizio sono escluse dal confronto, perche` non possono entrare in conflitto con
 	 * se stesse.
@@ -96,7 +105,9 @@ public class ApiUnivocitaService {
 		SoggettoEntity erogatore = intermediato ? soggettoErogatore : null;
 		UUID idSoggettoErogatore = erogatore != null ? UUID.fromString(erogatore.getIdSoggetto()) : null;
 
-		if(!this.apiService.existsApiInConflitto(nome, versione, idSoggettoReferente, intermediato, idSoggettoErogatore, idApiEscluse)) {
+		String statoArchiviato = this.configurazione.getServizio().getWorkflow().getStatoArchiviato();
+
+		if(!this.apiService.existsApiInConflitto(nome, versione, idSoggettoReferente, intermediato, idSoggettoErogatore, idApiEscluse, statoArchiviato)) {
 			return;
 		}
 
