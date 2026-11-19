@@ -856,7 +856,6 @@
     [adesione]="adesione"
     [environment]="AmbienteEnum.Collaudo"
     [grant]="grant"
-    [ruoliReferenteProfilo]="_ruoliReferenteProfilo"
     [config]="adesioniClientsConfig"
     [singleColumn]="singleColumn"
     [isEdit]="isEdit"
@@ -940,7 +939,6 @@
     [adesione]="adesione"
     [environment]="AmbienteEnum.Produzione"
     [grant]="grant"
-    [ruoliReferenteProfilo]="_ruoliReferenteProfilo"
     [config]="adesioniClientsConfig"
     [singleColumn]="singleColumn"
     [isEdit]="isEdit"
@@ -1502,8 +1500,7 @@
                   <!-- Lista pulsanti di cambio stato (analogo al menu
                        di `ui-workflow`): stato_successivo + stati_ulteriori.
                        Ogni pulsante e` gated dal mapper
-                       `_isWorkflowActionEnabled` (combina grant
-                       per-adesione + ruoli_referente del profilo). -->
+                       `_isWorkflowActionEnabled` (ruoli del grant). -->
                   @if (_hasAnyWorkflowAction() && _rifiutoOpen) {
                     <app-wizard-rifiuto-form class="d-block mt-3"
                       [oggetto]="_oggettoRifiuto"

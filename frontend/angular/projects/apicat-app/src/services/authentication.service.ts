@@ -636,12 +636,13 @@ export class AuthenticationService {
     if (!state) { return false; }
     if (state === 'archiviato') { return false; }
 
-    // Stakeholder bypass: amm.org e referenti (servizio/dominio/adesione,
-    // inclusi tecnici) possono entrare in edit mode indipendentemente da
-    // `stato_successivo.ruoli_abilitati` (che governa solo le transizioni
-    // di workflow). Il solo ruolo operatore API non basta: servono i ruoli
-    // del grant. I `dati_non_modificabili` restano applicati per campo via
-    // `canEditField`.
+    // Stakeholder bypass: i referenti (servizio/dominio/adesione, inclusi
+    // tecnici e l'amministratore dell'organizzazione erogatrice, che ha
+    // `referente_superiore`) possono entrare in edit mode indipendentemente
+    // da `stato_successivo.ruoli_abilitati` (che governa solo le transizioni
+    // di workflow). Il ruolo nell'organizzazione di sessione non basta:
+    // servono i ruoli del grant. I `dati_non_modificabili` restano applicati
+    // per campo via `canEditField`.
     const stakeholders = [
       GrantRole.Referente, GrantRole.ReferenteTecnico,
       GrantRole.ReferenteSuperiore, GrantRole.ReferenteTecnicoSuperiore,
@@ -650,9 +651,7 @@ export class AuthenticationService {
       'referente_adesione', 'referente_tecnico_adesione',
       'utente_organizzazione'
     ];
-    const isStakeholder = grant.some((r: string) => stakeholders.includes(r))
-      || this.isAmministratoreOrganizzazione();
-    if (isStakeholder) { return true; }
+    if (grant.some((r: string) => stakeholders.includes(r))) { return true; }
 
     // Fallback workflow-based (es. richiedente): edit consentito
     // solo se l'utente puo` transizionare allo `stato_successivo` e

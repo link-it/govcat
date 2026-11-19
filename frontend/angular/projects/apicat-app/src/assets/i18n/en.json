@@ -2686,6 +2686,8 @@
 			"referente_servizio": "Service referent",
 			"utente_organizzazione": "Organization user",
 			"amministratore_organizzazione": "Organization administrator",
+			"amministratore_organizzazione_aderente": "Subscriber organization administrator",
+			"amministratore_organizzazione_erogatrice": "Provider organization administrator",
 			"operatore_api": "API operator",
 			"referente_tecnico": "Technical referent",
 			"referente_tecnico_adesione": "Membership technical contact",

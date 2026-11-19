@@ -229,10 +229,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     roleTab: string = 'tutti';
     // Issue 229 evolutiva 2 — allineamento al nuovo enum
-    // `RuoloReferente` BE. Includiamo i nuovi ruoli per-org
-    // `amministratore_organizzazione` / `operatore_api` (BE li
-    // ignora silenziosamente sul filtro `ruolo_referente` ma sono
-    // ammessi dall'enum). NB: `utente_organizzazione` NON deve
+    // `RuoloReferente` BE. Con `amministratore_organizzazione` il BE
+    // restituisce i servizi di cui l'organizzazione di sessione e`
+    // titolare (in ogni stato); `operatore_api` e` ammesso dall'enum
+    // ma ignorato dal filtro. NB: `utente_organizzazione` NON deve
     // comparire qui — appartiene a `RuoloUtenteEnum` (ruolo
     // globale) e Spring restituisce 400 se inviato come
     // `ruolo_referente`.

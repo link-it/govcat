@@ -2686,6 +2686,8 @@
 			"referente_servizio": "Referente servizio",
 			"utente_organizzazione": "Utente organizzazione",
 			"amministratore_organizzazione": "Amministratore organizzazione",
+			"amministratore_organizzazione_aderente": "Amministratore organizzazione aderente",
+			"amministratore_organizzazione_erogatrice": "Amministratore organizzazione erogatrice",
 			"operatore_api": "Operatore API",
 			"referente_tecnico": "Referente tecnico",
 			"referente_tecnico_adesione": "Referente tecnico adesione",

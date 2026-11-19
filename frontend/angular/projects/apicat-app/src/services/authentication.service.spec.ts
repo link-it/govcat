@@ -677,10 +677,11 @@ describe('AuthenticationService', () => {
       expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['referente_superiore'])).toBe(true);
     });
 
-    it('should not let an API operator without roles in the grant edit', () => {
+    it('should not let an API operator or an organization admin without roles in the grant edit', () => {
       vi.spyOn(service, 'isOperatoreApi').mockReturnValue(true);
-      vi.spyOn(service, 'isAmministratoreOrganizzazione').mockReturnValue(false);
+      vi.spyOn(service, 'isAmministratoreOrganizzazione').mockReturnValue(true);
       expect(service.canEdit('servizio', 'servizio', 'pubblicato', [])).toBe(false);
+      expect(service.canEdit('adesione', 'adesione', 'pubblicato', [])).toBe(false);
     });
 
     it('should add referente when referente_tecnico is in grant', () => {

@@ -17,6 +17,10 @@
 2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 471: l'amministratore dell'organizzazione modifica servizi e adesioni solo se ha i ruoli nel
+	  grant (referente_superiore per l'erogatrice); il wizard adesione non somma più i ruoli globali del
+	  profilo; nella lista adesioni le linguette referente distinguono il lato erogatore e aderente.
+
 	Issue 472: rimosso il filtro sul ruolo referente (ruoli-servizio.ts): monitoraggio, gestione e menu
 	  del servizio usano direttamente i ruoli del grant; il solo ruolo operatore API dell'organizzazione
 	  non abilita più la modifica di servizi e adesioni né dei client dell'adesione.

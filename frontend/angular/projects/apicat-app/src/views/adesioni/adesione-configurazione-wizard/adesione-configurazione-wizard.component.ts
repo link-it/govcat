@@ -36,6 +36,7 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { ErrorViewCardComponent } from '@app/components/error-view-card/error-view-card.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { GrantRole } from '@app/services/grant-roles.const';
 import { NavigationService } from '@app/services/navigation.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -242,10 +243,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
     grant: Grant | null = null;
-    /** Ruoli referente dell'utente esposti da `GET /profilo/ruoli`
-        (es. ['referente_servizio', 'referente_dominio']). Usati da
-        `canChangeStatoMapper` per abilitare il cambio stato. */
-    _ruoliReferenteProfilo: string[] = [];
     updateMapper: string = '';
 
     isDominioEsterno: boolean = false;
@@ -760,23 +757,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                 const _configErogaz: Observable<any> = this.configService.getConfig('adesioniErogaz');
                 const _apiConfig: Observable<any> = this.configService.getConfig('api');
                 const _referentiConfig: Observable<any> = this.configService.getConfig('referenti');
-                // Carichiamo i ruoli referente dell'utente (`/profilo/ruoli`):
-                // sono utilizzati da `canChangeStatoMapper` per abilitare il
-                // cambio stato a referenti servizio/dominio. Fail-open: se
-                // l'endpoint fallisce (es. gestore/coordinatore) usiamo array
-                // vuoto e il check ricade sul solo `isGestore()`.
-                const _ruoliProfilo: Observable<any> = this.apiService.getList('profilo/ruoli').pipe(
-                    catchError(() => of({ ruolo: '', ruoli_referente: [] }))
-                );
 
-                const combined = forkJoin([_grant, _configClients, _configErogaz, _apiConfig, _referentiConfig, _ruoliProfilo]);
+                const combined = forkJoin([_grant, _configClients, _configErogaz, _apiConfig, _referentiConfig]);
                 combined.subscribe(result => {
                     this.grant = result[0];
                     this.adesioniClientsConfig = result[1];
                     this.adesioniErogazConfig = result[2];
                     this.apiConfig = result[3];
                     this.referentiConfig = result[4];
-                    this._ruoliReferenteProfilo = (result[5]?.ruoli_referente as string[]) || [];
 
                     console.log('grant', this.grant);
 
@@ -1069,13 +1057,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return (idx === -1) ? null : workflow.cambi_stato[idx];
     }
 
-    /** Ruoli combinati: grant per-adesione + ruoli_referente del
-     *  profilo. Allineato al pattern di `canEditMapper`. */
-    private _combinedRuoli(): string[] {
-        return [
-            ...(this.grant?.ruoli || []),
-            ...(this._ruoliReferenteProfilo || [])
-        ];
+    /** Ruoli dell'utente sull'adesione (grant). */
+    private _ruoliGrant(): string[] {
+        return this.grant?.ruoli || [];
     }
 
     /** Abilitazione di un'azione di cambio stato (mirror del mapper
@@ -1092,7 +1076,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             'adesione',
             this.adesione.stato,
             type,
-            this._combinedRuoli(),
+            this._ruoliGrant(),
             statusName,
             this._requiredProfiles()
         );
@@ -1133,7 +1117,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return this.authenticationService.canArchiviare(
             'adesione',
             this.adesione.stato,
-            this._combinedRuoli()
+            this._ruoliGrant()
         );
     }
 
@@ -1693,19 +1677,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     /**
      * Vero se l'utente puo' cambiare lo stato dell'adesione via
      * `<ui-workflow>` (azioni del workflow). Oltre al gestore,
-     * abilitati i referenti (servizio/dominio, tecnici e non)
-     * valutati sui ruoli referente del profilo utente
-     * (`GET /profilo/ruoli` → `ruoli_referente`, caricato in init).
+     * abilitati i referenti del servizio o del dominio (tecnici e non)
+     * e l'amministratore dell'organizzazione erogatrice, che il grant
+     * dell'adesione riporta come `referente_superiore`.
      */
     canChangeStatoMapper = (update: string): boolean => {
         if (this.authenticationService.isGestore()) { return true; }
-        const referentiRoles = [
-            'referente_servizio',
-            'referente_tecnico_servizio',
-            'referente_dominio',
-            'referente_tecnico_dominio'
-        ];
-        return this._ruoliReferenteProfilo.some((r: string) => referentiRoles.includes(r));
+        const referentiRoles: string[] = [GrantRole.ReferenteSuperiore, GrantRole.ReferenteTecnicoSuperiore];
+        return this._ruoliGrant().some((r: string) => referentiRoles.includes(r));
     }
 
     /**
@@ -2264,18 +2243,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     canEditMapper = (): boolean => {
-        // Combina il grant per-adesione con i `ruoli_referente` del
-        // profilo: il grant BE puo` non riportare i referenti contestuali
-        // (es. `referente_tecnico_servizio`) ma il profilo si`.
-        const ruoli = [
-            ...(this.grant?.ruoli || []),
-            ...(this._ruoliReferenteProfilo || [])
-        ];
-        return this.authenticationService.canEdit('adesione', 'adesione', this.adesione?.stato, ruoli);
+        return this.authenticationService.canEdit('adesione', 'adesione', this.adesione?.stato, this._ruoliGrant());
     }
 
     hasActions() {
-        const _grant: any = this.grant || [];
+        const _grant: string[] = this._ruoliGrant();
         // Issue #322: il gate `profili` vincola anche il gestore -> prima del bypass.
         const _reqProfiles = this._requiredProfiles();
         if (this.adesione && !this.authenticationService.isTransitionAllowedForProfiles('adesione', this.adesione.stato, 'stato_successivo', _reqProfiles)) { return false; }
