@@ -21,8 +21,12 @@ package org.govway.catalogo.core.dao.repositories;
 
 import java.util.List;
 
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
@@ -53,5 +57,12 @@ public interface ServizioRepository extends JpaRepositoryImplementation<Servizio
 
     @Query(value = "SELECT COUNT(s) FROM ServizioEntity s WHERE s.dominio.id = ?1 AND s.adesioneDisabilitata = false")
     public long countAdesioneAbilitataByDominioId(Long idDominio);
+
+    // Servizi non archiviati dell'organizzazione (soggetto referente del dominio) di cui l'utente e`
+    // referente, esclusi quelli in fruizione: i referenti che devono avere un ruolo nell'organizzazione
+    @Query(value = "SELECT s FROM ServizioEntity s WHERE s.fruizione = false AND s.stato <> ?3"
+            + " AND s.dominio.soggettoReferente.organizzazione = ?2"
+            + " AND EXISTS (SELECT r FROM ReferenteServizioEntity r WHERE r.servizio = s AND r.referente = ?1)")
+    public Page<ServizioEntity> findConReferenteInOrganizzazione(UtenteEntity referente, OrganizzazioneEntity organizzazione, String statoArchiviato, Pageable pageable);
 
 }

@@ -1,3 +1,19 @@
+2026-11-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 473: un referente che ha perso il ruolo nell'organizzazione non blocca più le modifiche del
+	  servizio o del dominio, prima rifiutate a chiunque, gestore compreso, con 403
+	  AUT.403.REFERENT.NO.ROLE. I referenti già presenti si verificano solo quando la risorsa passa
+	  sotto un'altra organizzazione (servizio spostato su un dominio di un'altra organizzazione, dominio
+	  assegnato a un soggetto di un'altra organizzazione), con errore 422
+	  VAL.422.REFERENTI.ORGANIZZAZIONE che li elenca; con force il gestore sposta comunque il servizio.
+	  Togliere il ruolo o l'associazione a un utente referente di servizi, domini o adesioni
+	  dell'organizzazione risponde 409 ORG.409.UTENTE.REFERENTE con il numero e l'elenco dei riferimenti,
+	  e va confermato con il nuovo parametro force. Il referente non più valido è evidenziato con il
+	  nuovo campo ruolo_non_valido negli elenchi dei referenti di servizi, domini e adesioni. Gli errori
+	  sui referenti non ammessi indicano nome e cognome dell'utente; in creazione del servizio un
+	  referente non associato all'organizzazione dà AUT.403.ORG.MISSING invece di AUT.403.RESOURCE.
+
 2026-11-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

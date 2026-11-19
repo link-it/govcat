@@ -923,6 +923,8 @@ paths:
       - "Organizzazioni"
       description: "Aggiorna il ruolo di un utente nell'organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
       operationId: "updateRuoloUtenteOrganizzazione"
+      parameters:
+      - $ref: "#/components/parameters/force_referente_query_optional"
       requestBody:
         description: "Nuovo ruolo dell'utente nell'organizzazione"
         content:
@@ -944,6 +946,8 @@ paths:
           $ref: "#/components/responses/403Forbidden"
         "404":
           $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
@@ -955,6 +959,8 @@ paths:
       - "Organizzazioni"
       description: "Rimuove l'associazione di un utente dall'organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
       operationId: "removeUtenteOrganizzazione"
+      parameters:
+      - $ref: "#/components/parameters/force_referente_query_optional"
       responses:
         "204":
           description: "Associazione rimossa con successo"
@@ -966,6 +972,8 @@ paths:
           $ref: "#/components/responses/403Forbidden"
         "404":
           $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
@@ -10805,6 +10813,9 @@ components:
           $ref: "#/components/schemas/ItemUtente"
         tipo:
           $ref: "#/components/schemas/TipoReferenteEnum"
+        ruolo_non_valido:
+          description: "Presente e true quando l'utente non è più associato all'organizzazione della risorsa (organizzazione del soggetto referente del dominio per servizi e domini, del soggetto aderente per le adesioni) o non vi ha più almeno il ruolo di operatore API: il referente resta, ma non potrebbe essere aggiunto di nuovo e va sostituito. Assente quando il referente è valido o il vincolo non si applica (servizi in fruizione, domini di organizzazioni intermediate)."
+          type: boolean
     ReferenteCreate:
       type: "object"
       required:
@@ -12196,6 +12207,13 @@ components:
       name: "force"
       in: "query"
       description: "indica se forzare l'aggiornamento anche se l'operazione è semanticamente errata"
+      required: false
+      schema:
+        type: boolean
+    force_referente_query_optional:
+      name: "force"
+      in: "query"
+      description: "Conferma l'operazione anche se l'utente è referente di servizi, domini o adesioni dell'organizzazione e, senza il ruolo di operatore API o di amministratore, non sarebbe più un referente valido. Senza conferma l'operazione risponde 409 (ORG.409.UTENTE.REFERENTE) con il numero e l'elenco dei riferimenti."
       required: false
       schema:
         type: boolean

@@ -37,14 +37,12 @@ import org.govway.catalogo.core.dao.specifications.ReferenteDominioSpecification
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
-import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
-import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.DominiApi;
 import org.govway.catalogo.servlets.model.Dominio;
@@ -97,9 +95,6 @@ public class DominiController implements DominiApi {
 
 	@Autowired
 	private org.govway.catalogo.core.services.UtenteService utenteService;
-
-	@Autowired
-	private org.govway.catalogo.core.services.OrganizzazioneService organizzazioneService;
 
 
 	private Logger logger = LoggerFactory.getLogger(DominiController.class);
@@ -301,9 +296,10 @@ public class DominiController implements DominiApi {
 					}
 				});
 
+				OrganizzazioneEntity organizzazioneReferentiPrecedente = CoreAuthorization.getOrganizzazioneReferenti(entity).orElse(null);
 				this.dettaglioAssembler.toEntity(dominioUpdate, entity);
 
-				this.checkReferenti(entity);
+				this.checkReferentiCambioOrganizzazione(entity, organizzazioneReferentiPrecedente);
 
 				this.service.save(entity);
 				Dominio model = this.dettaglioAssembler.toModel(entity);
@@ -365,54 +361,21 @@ public class DominiController implements DominiApi {
 		}
 	}
 	
-	private void checkReferenti(DominioEntity dominioEntity) {
-
-		OrganizzazioneEntity organizzazione = dominioEntity.getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isIntermediata()) {
-			return;
-		}
-		
-		
-		for(ReferenteDominioEntity referenteEntity: dominioEntity.getReferenti()) {
-			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
-
-			if(!admin && !this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-						Map.of("orgNome", organizzazione.getNome(),
-								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-			}
-
-			if(!admin && !this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-						Map.of("orgNome", organizzazione.getNome(),
-								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-			}
-
-		}
+	/**
+	 * In modifica i referenti gia` presenti si verificano solo se il dominio passa sotto un'altra
+	 * organizzazione (soggetto referente di un'altra organizzazione): le altre modifiche non toccano
+	 * i referenti e non vanno bloccate da un referente che nel frattempo ha perso il ruolo (Issue 473).
+	 */
+	private void checkReferentiCambioOrganizzazione(DominioEntity dominioEntity, OrganizzazioneEntity organizzazionePrecedente) {
+		CoreAuthorization.getOrganizzazioneReferenti(dominioEntity)
+			.filter(organizzazione -> organizzazionePrecedente == null || !organizzazionePrecedente.getId().equals(organizzazione.getId()))
+			.ifPresent(organizzazione -> this.coreAuthorization.checkReferentiNuovaOrganizzazione(
+					dominioEntity.getReferenti().stream().map(ReferenteDominioEntity::getReferente).toList(), organizzazione));
 	}
 
-
 	private void checkReferente(ReferenteDominioEntity referenteEntity) {
-		OrganizzazioneEntity organizzazione = referenteEntity.getDominio().getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isIntermediata()) {
-			return;
-		}
-
-		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
-			return;
-		}
-
-		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
-
-		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
+		CoreAuthorization.getOrganizzazioneReferenti(referenteEntity.getDominio())
+			.ifPresent(organizzazione -> this.coreAuthorization.checkReferente(referenteEntity.getReferente(), organizzazione));
 	}
 
 

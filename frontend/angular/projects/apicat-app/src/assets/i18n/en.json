@@ -1671,7 +1671,7 @@
 						"ORG": {
 							"ADHESION": "Organization [{{nomeOrganizzazione}}] does not match for membership",
 							"MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
-							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization",
+							"MISSING": "User [{{nomeUtente}} {{cognomeUtente}}] is not associated with organization [{{orgNome}}] and cannot be its referent",
 							"NOT": {
 								"ADERENTE": "Organization [{{nomeOrganizzazione}}] is not enabled as an adherent",
 								"REFERENTE": "Organization [{{nomeOrganizzazione}}] is not enabled as a service referent"
@@ -1682,7 +1682,7 @@
 								"ELIGIBLE": "User [{{nomeUtente}} {{cognomeUtente}}] not eligible as referent"
 							},
 							"NO": {
-								"ROLE": "User [{{userIdUtente}}] does not have a sufficient role in organization [{{orgNome}}]: at least the API Operator role is required"
+								"ROLE": "User [{{nomeUtente}} {{cognomeUtente}}] does not have at least the API Operator role in organization [{{orgNome}}] and cannot be its referent"
 							}
 						},
 						"RATE": {
@@ -1927,7 +1927,10 @@
 						"DEFAULT": "Organization [{{nome}}] already exists",
 						"ADERENTE": "Adhering subject constrained, cannot modify",
 						"REFERENT": "Referent [{{nomeUtente}} {{cognomeUtente}}] of type [{{tipoReferente}}] already exists for domain [{{nomeDominio}}]",
-						"USER": "User [{{nomeUtente}} {{cognomeUtente}}] is already associated to organization [{{nomeOrganizzazione}}]"
+						"USER": "User [{{nomeUtente}} {{cognomeUtente}}] is already associated to organization [{{nomeOrganizzazione}}]",
+						"UTENTE": {
+							"REFERENTE": "User [{{nomeUtente}} {{cognomeUtente}}] is referent in organization [{{nomeOrganizzazione}}] of {{numeroServizi}} services, {{numeroDomini}} domains and {{numeroAdesioni}} subscriptions: without the API Operator or Administrator role they will no longer be a valid referent. Confirm the operation to proceed anyway"
+						}
 					}
 				},
 				"PRF": {
@@ -2219,6 +2222,9 @@
 						},
 						"COMPLEX": "Semantically invalid complex entity update",
 						"DEFAULT": "Semantically invalid request",
+						"REFERENTI": {
+							"ORGANIZZAZIONE": "Referents [{{referenti}}] are not associated with organization [{{orgNome}}] with at least the API Operator role: replace them or assign them the role before moving the resource to the organization"
+						},
 						"SKIP": {
 							"COLLAUDO": "Skip testing not allowed for service [{{servizio}}]"
 						}

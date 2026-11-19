@@ -88,6 +88,12 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 			dettaglio.setUtente(utentePublicAssembler.toModel(referente));
 		}
 
+		// Referente che nel frattempo ha perso associazione o ruolo nell'organizzazione (Issue 473)
+		if (CoreAuthorization.getOrganizzazioneReferenti(entity.getDominio())
+				.filter(org -> !coreAuth.isReferenteValido(referente, org)).isPresent()) {
+			dettaglio.setRuoloNonValido(true);
+		}
+
 		return dettaglio;
 	}
 

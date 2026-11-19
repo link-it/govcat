@@ -22,6 +22,7 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -32,6 +33,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.govway.catalogo.InfoProfilo;
@@ -67,6 +69,15 @@ import org.govway.catalogo.servlets.model.UtenteOrganizzazione;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneAdd;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneUpdate;
+import org.govway.catalogo.servlets.model.TipoReferenteEnum;
+import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.model.Servizio;
+import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.Dominio;
+import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.controllers.ServiziController;
+import org.govway.catalogo.controllers.DominiController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1046,7 +1057,7 @@ public class OrganizzazioniTest {
         upd.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
 
         ResponseEntity<UtenteOrganizzazione> response = controller.updateRuoloUtenteOrganizzazione(
-                org.getIdOrganizzazione(), utente.getIdUtente(), upd);
+                org.getIdOrganizzazione(), utente.getIdUtente(), null, upd);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE,
@@ -1063,7 +1074,7 @@ public class OrganizzazioniTest {
 
         assertThrows(NotFoundException.class, () -> {
             controller.updateRuoloUtenteOrganizzazione(
-                    org.getIdOrganizzazione(), utente.getIdUtente(), upd);
+                    org.getIdOrganizzazione(), utente.getIdUtente(), null, upd);
         });
     }
 
@@ -1081,7 +1092,7 @@ public class OrganizzazioniTest {
         upd.setRuoloOrganizzazione(null);
 
         ResponseEntity<UtenteOrganizzazione> response = controller.updateRuoloUtenteOrganizzazione(
-                org.getIdOrganizzazione(), utente.getIdUtente(), upd);
+                org.getIdOrganizzazione(), utente.getIdUtente(), null, upd);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(null, response.getBody().getRuoloOrganizzazione());
@@ -1098,7 +1109,7 @@ public class OrganizzazioniTest {
         controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add);
 
         ResponseEntity<Void> response = controller.removeUtenteOrganizzazione(
-                org.getIdOrganizzazione(), utente.getIdUtente());
+                org.getIdOrganizzazione(), utente.getIdUtente(), null);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
@@ -1113,7 +1124,7 @@ public class OrganizzazioniTest {
 
         assertThrows(NotFoundException.class, () -> {
             controller.removeUtenteOrganizzazione(
-                    org.getIdOrganizzazione(), utente.getIdUtente());
+                    org.getIdOrganizzazione(), utente.getIdUtente(), null);
         });
     }
 
@@ -1311,8 +1322,141 @@ public class OrganizzazioniTest {
         CommonUtils.getSessionUtente("assoc.amm.rm", securityContext, authentication, utenteService);
 
         ResponseEntity<Void> response = controller.removeUtenteOrganizzazione(
-                org.getIdOrganizzazione(), operatore.getIdUtente());
+                org.getIdOrganizzazione(), operatore.getIdUtente(), null);
 
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    // ============================================================
+    // Issue 473: ruolo tolto o associazione rimossa a un referente
+    // ============================================================
+
+    @Autowired
+    private DominiController dominiController;
+
+    @Autowired
+    private ServiziController serviziController;
+
+    private record OrgConReferente(Organizzazione org, Utente referente, Dominio dominio, Servizio servizio) {}
+
+    /**
+     * Organizzazione con un utente operatore API referente tecnico di un dominio e di un servizio
+     * dell'organizzazione (il gestore e` il referente del servizio).
+     */
+    private OrgConReferente preparaOrgConReferente(String suffisso) {
+        Organizzazione org = creaOrgPerAssoc("org-" + suffisso);
+
+        SoggettoCreate sc = new SoggettoCreate();
+        sc.setNome("sog-" + suffisso);
+        sc.setIdOrganizzazione(org.getIdOrganizzazione());
+        sc.setReferente(true);
+        sc.setSkipCollaudo(true);
+        Soggetto soggetto = soggettiController.createSoggetto(sc).getBody();
+
+        DominioCreate dc = CommonUtils.getDominioCreate();
+        dc.setNome("dom-" + suffisso);
+        dc.setSkipCollaudo(true);
+        dc.setIdSoggettoReferente(soggetto.getIdSoggetto());
+        Dominio dominio = dominiController.createDominio(dc).getBody();
+
+        Utente referente = creaUtentePerAssoc("ref." + suffisso);
+        UtenteOrganizzazioneAdd add = new UtenteOrganizzazioneAdd();
+        add.setIdUtente(referente.getIdUtente());
+        add.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add);
+
+        dominiController.createReferenteDominio(dominio.getIdDominio(), referenteCreate(referente.getIdUtente(), TipoReferenteEnum.REFERENTE_TECNICO));
+
+        UUID idGestore = UUID.fromString(CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService).utente.getIdUtente());
+        ServizioCreate srv = CommonUtils.getServizioCreate();
+        srv.setNome("srv-" + suffisso);
+        srv.setSkipCollaudo(true);
+        srv.setIdDominio(dominio.getIdDominio());
+        srv.setReferenti(List.of(referenteCreate(idGestore, TipoReferenteEnum.REFERENTE),
+                referenteCreate(referente.getIdUtente(), TipoReferenteEnum.REFERENTE_TECNICO)));
+        Servizio servizio = serviziController.createServizio(srv).getBody();
+
+        return new OrgConReferente(org, referente, dominio, servizio);
+    }
+
+    private ReferenteCreate referenteCreate(UUID idUtente, TipoReferenteEnum tipo) {
+        ReferenteCreate rc = new ReferenteCreate();
+        rc.setIdUtente(idUtente);
+        rc.setTipo(tipo);
+        return rc;
+    }
+
+    @Test
+    public void testUpdateRuoloUtenteOrganizzazione_RuoloTolto_ReferenteConflict() {
+        OrgConReferente ctx = preparaOrgConReferente("473-upd");
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> controller.updateRuoloUtenteOrganizzazione(
+                ctx.org().getIdOrganizzazione(), ctx.referente().getIdUtente(), null, new UtenteOrganizzazioneUpdate()));
+
+        assertEquals(ErrorCode.ORG_409_UTENTE_REFERENTE, ex.getErrorCode());
+        Map<String, String> params = ex.getParameters();
+        assertEquals(ctx.referente().getNome(), params.get("nomeUtente"));
+        assertEquals(ctx.referente().getCognome(), params.get("cognomeUtente"));
+        assertEquals("org-473-upd", params.get("nomeOrganizzazione"));
+        assertEquals("1", params.get("numeroServizi"));
+        assertEquals("1", params.get("numeroDomini"));
+        assertEquals("0", params.get("numeroAdesioni"));
+        assertEquals("srv-473-upd v" + ctx.servizio().getVersione(), params.get("servizi"));
+        assertEquals("dom-473-upd", params.get("domini"));
+        assertEquals("", params.get("adesioni"));
+
+        // Il ruolo non e` cambiato
+        Utente letto = utentiController.getUtente(ctx.referente().getIdUtente()).getBody();
+        assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API, letto.getOrganizzazioni().get(0).getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testUpdateRuoloUtenteOrganizzazione_RuoloTolto_ReferenteConForce() {
+        OrgConReferente ctx = preparaOrgConReferente("473-upd-force");
+
+        ResponseEntity<UtenteOrganizzazione> response = controller.updateRuoloUtenteOrganizzazione(
+                ctx.org().getIdOrganizzazione(), ctx.referente().getIdUtente(), true, new UtenteOrganizzazioneUpdate());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody().getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testUpdateRuoloUtenteOrganizzazione_RuoloReferenteMantenuto_NessunConflict() {
+        OrgConReferente ctx = preparaOrgConReferente("473-upd-amm");
+
+        // Da operatore API ad amministratore: resta un referente valido, nessuna conferma
+        UtenteOrganizzazioneUpdate upd = new UtenteOrganizzazioneUpdate();
+        upd.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        ResponseEntity<UtenteOrganizzazione> response = controller.updateRuoloUtenteOrganizzazione(
+                ctx.org().getIdOrganizzazione(), ctx.referente().getIdUtente(), null, upd);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE, response.getBody().getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testUpdateRuoloUtenteOrganizzazione_RuoloGiaAssente_NessunConflict() {
+        OrgConReferente ctx = preparaOrgConReferente("473-upd-gia");
+        controller.updateRuoloUtenteOrganizzazione(ctx.org().getIdOrganizzazione(), ctx.referente().getIdUtente(),
+                true, new UtenteOrganizzazioneUpdate());
+
+        // Il ruolo era gia` assente: l'operazione non cambia nulla per i referenti
+        ResponseEntity<UtenteOrganizzazione> response = controller.updateRuoloUtenteOrganizzazione(
+                ctx.org().getIdOrganizzazione(), ctx.referente().getIdUtente(), null, new UtenteOrganizzazioneUpdate());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testRemoveUtenteOrganizzazione_Referente_ConflictEConForce() {
+        OrgConReferente ctx = preparaOrgConReferente("473-rm");
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> controller.removeUtenteOrganizzazione(
+                ctx.org().getIdOrganizzazione(), ctx.referente().getIdUtente(), false));
+        assertEquals(ErrorCode.ORG_409_UTENTE_REFERENTE, ex.getErrorCode());
+
+        ResponseEntity<Void> response = controller.removeUtenteOrganizzazione(
+                ctx.org().getIdOrganizzazione(), ctx.referente().getIdUtente(), true);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

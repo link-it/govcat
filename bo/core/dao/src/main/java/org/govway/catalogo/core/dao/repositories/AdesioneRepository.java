@@ -23,7 +23,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -79,5 +81,10 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
     @Query(value = SELECT_FRUITORI + WHERE_FRUITORI + "AND a.stato NOT IN ?4",
             countQuery = COUNT_FRUITORI + WHERE_FRUITORI + "AND a.stato NOT IN ?4")
     Page<AdesioneEntity> findByServizioNonArchiviateNotInStati(Long idServizio, String statoArchiviato, String pattern, Collection<String> stati, Pageable pageable);
+
+    // Adesioni non archiviate dell'organizzazione (soggetto aderente) di cui l'utente e` referente
+    @Query(value = "SELECT a FROM AdesioneEntity a WHERE a.stato <> ?3 AND a.soggetto.organizzazione = ?2"
+            + " AND EXISTS (SELECT r FROM ReferenteAdesioneEntity r WHERE r.adesione = a AND r.referente = ?1)")
+    public Page<AdesioneEntity> findConReferenteInOrganizzazione(UtenteEntity referente, OrganizzazioneEntity organizzazione, String statoArchiviato, Pageable pageable);
 
 }

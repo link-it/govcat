@@ -190,6 +190,9 @@ public enum ErrorCode {
     /** Utente gia' associato all'organizzazione */
     ORG_409_USER("Utente gia' associato all'organizzazione"),
 
+    /** Utente referente di servizi, domini o adesioni dell'organizzazione: il cambio di ruolo va confermato */
+    ORG_409_UTENTE_REFERENTE("Utente referente di servizi, domini o adesioni dell'organizzazione"),
+
     // ==================== DOMINI ====================
 
     /** Dominio non trovato */
@@ -695,6 +698,9 @@ public enum ErrorCode {
 
     /** Profilo non compatibile con il profilo di interoperabilità GovWay dell'API */
     VAL_422_PROFILO_GOVWAY("Profilo non compatibile con il profilo di interoperabilità GovWay dell'API"),
+
+    /** Referenti non validi per l'organizzazione sotto cui passa la risorsa */
+    VAL_422_REFERENTI_ORGANIZZAZIONE("Referenti non validi per l'organizzazione di destinazione"),
 
     // ==================== WORKFLOW ====================
 

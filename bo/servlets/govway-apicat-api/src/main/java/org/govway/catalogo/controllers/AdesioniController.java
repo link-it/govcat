@@ -69,7 +69,6 @@ import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
-import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -2813,47 +2812,20 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	/**
-	 * Valida che tutti i referenti di un'adesione (sia REFERENTE che REFERENTE_TECNICO)
-	 * siano associati all'organizzazione del soggetto aderente. Gestori esentati.
+	 * Valida che tutti i referenti di un'adesione (sia REFERENTE che REFERENTE_TECNICO) possano
+	 * essere referenti per l'organizzazione del soggetto aderente. Gestori esentati.
 	 */
 	private void checkReferenti(AdesioneEntity adesione) {
 		OrganizzazioneEntity organizzazione = adesione.getSoggetto().getOrganizzazione();
-		for (ReferenteAdesioneEntity ref : adesione.getReferenti()) {
-			if (this.coreAuthorization.isAdmin(ref.getReferente())) {
-				continue;
-			}
-			if (!this.organizzazioneService.isAssociatoA(ref.getReferente(), organizzazione)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-						Map.of("orgNome", organizzazione.getNome(),
-								"userIdUtente", ref.getReferente().getIdUtente()));
-			}
-			if (!this.organizzazioneService.hasRuoloInOrganizzazione(ref.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-						Map.of("orgNome", organizzazione.getNome(),
-								"userIdUtente", ref.getReferente().getIdUtente()));
-			}
-		}
+		adesione.getReferenti().forEach(r -> this.coreAuthorization.checkReferente(r.getReferente(), organizzazione));
 	}
 
 	/**
-	 * Valida che il singolo referente (REFERENTE o REFERENTE_TECNICO) sia associato
-	 * all'organizzazione del soggetto aderente. Gestori esentati.
+	 * Valida che il singolo referente (REFERENTE o REFERENTE_TECNICO) possa essere referente per
+	 * l'organizzazione del soggetto aderente. Gestori esentati.
 	 */
 	private void checkReferente(ReferenteAdesioneEntity referenteEntity) {
-		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
-			return;
-		}
-		OrganizzazioneEntity organizzazione = referenteEntity.getAdesione().getSoggetto().getOrganizzazione();
-		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
-		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
+		this.coreAuthorization.checkReferente(referenteEntity.getReferente(), referenteEntity.getAdesione().getSoggetto().getOrganizzazione());
 	}
 
 }

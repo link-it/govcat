@@ -1671,7 +1671,7 @@
 						"ORG": {
 							"ADHESION": "Organizzazione [{{nomeOrganizzazione}}] non corrisponde per l'adesione",
 							"MISMATCH": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] associato all'organizzazione [{{userOrgNome}}]",
-							"MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione",
+							"MISSING": "L'utente [{{nomeUtente}} {{cognomeUtente}}] non è associato all'organizzazione [{{orgNome}}] e non può esserne referente",
 							"NOT": {
 								"ADERENTE": "L'organizzazione [{{nomeOrganizzazione}}] non è abilitata come aderente",
 								"REFERENTE": "L'organizzazione [{{nomeOrganizzazione}}] non è abilitata come referente di servizi"
@@ -1682,7 +1682,7 @@
 								"ELIGIBLE": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato come referente"
 							},
 							"NO": {
-								"ROLE": "Utente [{{userIdUtente}}] senza un ruolo sufficiente nell'organizzazione [{{orgNome}}]: è richiesto almeno il ruolo Operatore API"
+								"ROLE": "L'utente [{{nomeUtente}} {{cognomeUtente}}] non ha nell'organizzazione [{{orgNome}}] almeno il ruolo di Operatore API e non può esserne referente"
 							}
 						},
 						"RATE": {
@@ -1927,7 +1927,10 @@
 						"DEFAULT": "Organizzazione [{{nome}}] già esistente",
 						"ADERENTE": "Soggetto aderente vincolato, impossibile modificare",
 						"REFERENT": "Referente [{{nomeUtente}} {{cognomeUtente}}] di tipo [{{tipoReferente}}] già presente per il dominio [{{nomeDominio}}]",
-						"USER": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già associato all'organizzazione [{{nomeOrganizzazione}}]"
+						"USER": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già associato all'organizzazione [{{nomeOrganizzazione}}]",
+						"UTENTE": {
+							"REFERENTE": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è referente nell'organizzazione [{{nomeOrganizzazione}}] di {{numeroServizi}} servizi, {{numeroDomini}} domini e {{numeroAdesioni}} adesioni: senza il ruolo di Operatore API o di Amministratore non sarà più un referente valido. Confermare l'operazione per procedere comunque"
+						}
 					}
 				},
 				"PRF": {
@@ -2219,6 +2222,9 @@
 						},
 						"COMPLEX": "Update entità complessa non valida semanticamente",
 						"DEFAULT": "Richiesta non valida semanticamente",
+						"REFERENTI": {
+							"ORGANIZZAZIONE": "I referenti [{{referenti}}] non sono associati all'organizzazione [{{orgNome}}] con almeno il ruolo di Operatore API: sostituirli o assegnare loro il ruolo prima di spostare la risorsa nell'organizzazione"
+						},
 						"SKIP": {
 							"COLLAUDO": "Skip collaudo non consentito per il servizio [{{servizio}}]"
 						}

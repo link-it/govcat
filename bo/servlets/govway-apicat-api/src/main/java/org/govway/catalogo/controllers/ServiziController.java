@@ -82,7 +82,6 @@ import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
-import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
@@ -448,32 +447,28 @@ public class ServiziController implements ServiziApi {
 		return realForce;
 	}
 	
+	/**
+	 * In creazione: i referenti indicati nella richiesta devono poter essere referenti del servizio.
+	 */
 	private void checkReferenti(ServizioEntity servizioEntity) {
+		CoreAuthorization.getOrganizzazioneReferenti(servizioEntity).ifPresent(organizzazione ->
+			servizioEntity.getReferenti().forEach(r -> this.coreAuthorization.checkReferente(r.getReferente(), organizzazione)));
+	}
 
-		OrganizzazioneEntity organizzazione = servizioEntity.getDominio().getSoggettoReferente().getOrganizzazione();
-		if(servizioEntity.isFruizione()) {
-			return;
-		}
-		
-		for(ReferenteServizioEntity referenteEntity: servizioEntity.getReferenti()) {
-
-			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
-
-			if(!admin && !this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE,
-						Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
-			}
-
-			if(!admin && !this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-						Map.of("orgNome", organizzazione.getNome(),
-								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-			}
-		}
+	/**
+	 * In modifica i referenti gia` presenti si verificano solo se il servizio passa sotto un'altra
+	 * organizzazione (spostamento su un dominio di un'altra organizzazione, o da fruizione a
+	 * erogazione): le altre modifiche non toccano i referenti e non vanno bloccate da un referente
+	 * che nel frattempo ha perso il ruolo nell'organizzazione (Issue 473).
+	 */
+	private void checkReferentiCambioOrganizzazione(ServizioEntity servizioEntity, OrganizzazioneEntity organizzazionePrecedente) {
+		CoreAuthorization.getOrganizzazioneReferenti(servizioEntity)
+			.filter(organizzazione -> organizzazionePrecedente == null || !organizzazionePrecedente.getId().equals(organizzazione.getId()))
+			.ifPresent(organizzazione -> this.coreAuthorization.checkReferentiNuovaOrganizzazione(
+					servizioEntity.getReferenti().stream().map(ReferenteServizioEntity::getReferente).toList(), organizzazione));
 	}
 
 	private void checkReferente(ReferenteServizioEntity referenteEntity) {
-
 
 		if(referenteEntity.getServizio().is_package()) {
 			for(PackageServizioEntity componente: referenteEntity.getServizio().getComponenti()) {
@@ -483,28 +478,8 @@ public class ServiziController implements ServiziApi {
 			}
 		}
 
-		OrganizzazioneEntity organizzazione = referenteEntity.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
-		if(referenteEntity.getServizio().isFruizione()) {
-			return;
-		}
-
-		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
-			return;
-		}
-
-		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
-
-		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
-
-
+		CoreAuthorization.getOrganizzazioneReferenti(referenteEntity.getServizio())
+			.ifPresent(organizzazione -> this.coreAuthorization.checkReferente(referenteEntity.getReferente(), organizzazione));
 	}
 
 
@@ -1179,6 +1154,7 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
+				OrganizzazioneEntity organizzazioneReferentiPrecedente = CoreAuthorization.getOrganizzazioneReferenti(entity).orElse(null);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -1221,11 +1197,12 @@ public class ServiziController implements ServiziApi {
 
 				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
+				// Con force il gestore puo` spostare il servizio anche con referenti non validi
+				// nella nuova organizzazione, da sistemare poi (sono evidenziati nella scheda)
 				if(!isForce(force, grant.getRuoli())) {
 					this.getServizioAuthorization(entity).authorizeModifica(entity, lstClassiDato);
+					this.checkReferentiCambioOrganizzazione(entity, organizzazioneReferentiPrecedente);
 				}
-
-				this.checkReferenti(entity);
 
 				this.service.save(entity);
 				Servizio model = this.dettaglioAssembler.toModel(entity);

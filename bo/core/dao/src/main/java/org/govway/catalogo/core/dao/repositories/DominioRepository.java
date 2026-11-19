@@ -20,8 +20,18 @@
 package org.govway.catalogo.core.dao.repositories;
 
 import org.govway.catalogo.core.orm.entity.DominioEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
 public interface DominioRepository extends JpaRepositoryImplementation<DominioEntity, Long> {
+
+    // Domini dell'organizzazione (soggetto referente) di cui l'utente e` referente
+    @Query(value = "SELECT d FROM DominioEntity d WHERE d.soggettoReferente.organizzazione = ?2"
+            + " AND EXISTS (SELECT r FROM ReferenteDominioEntity r WHERE r.dominio = d AND r.referente = ?1)")
+    public Page<DominioEntity> findConReferenteInOrganizzazione(UtenteEntity referente, OrganizzazioneEntity organizzazione, Pageable pageable);
 
 }

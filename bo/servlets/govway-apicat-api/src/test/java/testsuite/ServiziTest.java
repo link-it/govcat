@@ -42,6 +42,7 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.API;
@@ -129,6 +130,7 @@ import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
@@ -148,6 +150,8 @@ import org.govway.catalogo.servlets.model.TipoServizioGruppo;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneUpdate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
@@ -4468,5 +4472,197 @@ public class ServiziTest {
                 .flatMap(err -> err.getCampi().stream())
                 .map(Campo::getNomeCampo)
                 .toList();
+    }
+
+    // =========================================================================
+    // Issue 473: referente senza ruolo nell'organizzazione
+    // =========================================================================
+
+    private Utente creaOperatoreApi(String principal, UUID... idOrganizzazioni) {
+        UtenteCreate uc = CommonUtils.getUtenteCreate();
+        uc.setPrincipal(principal);
+        uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        List<UtenteOrganizzazioneCreate> associazioni = new ArrayList<>();
+        for (UUID idOrganizzazione : idOrganizzazioni) {
+            UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
+            assoc.setIdOrganizzazione(idOrganizzazione);
+            assoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+            associazioni.add(assoc);
+        }
+        uc.setOrganizzazioni(associazioni);
+        return controllerUtenti.createUtente(uc).getBody();
+    }
+
+    /** Servizio sul dominio creato da getDominio(), con il gestore referente e l'utente referente tecnico. */
+    private Servizio creaServizioConReferenteTecnico(Dominio dominio, Utente referenteTecnico) {
+        ServizioCreate sc = CommonUtils.getServizioCreate();
+        sc.setSkipCollaudo(true);
+        sc.setIdSoggettoErogatore(idSoggetto);
+        sc.setIdDominio(dominio.getIdDominio());
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        ReferenteCreate tecnico = new ReferenteCreate();
+        tecnico.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        tecnico.setIdUtente(referenteTecnico.getIdUtente());
+        sc.setReferenti(List.of(referente, tecnico));
+        return serviziController.createServizio(sc).getBody();
+    }
+
+    private UUID creaOrganizzazione(String suffisso) {
+        OrganizzazioneCreate oc = CommonUtils.getOrganizzazioneCreate();
+        oc.setNome("org-" + suffisso);
+        oc.setIntermediata(false);
+        return organizzazioniController.createOrganizzazione(oc).getBody().getIdOrganizzazione();
+    }
+
+    /** Dominio (con soggetto referente) di una nuova organizzazione. */
+    private Dominio creaDominioInNuovaOrganizzazione(String suffisso) {
+        return creaDominioInOrganizzazione(creaOrganizzazione(suffisso), suffisso);
+    }
+
+    private Dominio creaDominioInOrganizzazione(UUID idOrg, String suffisso) {
+        SoggettoCreate sc = new SoggettoCreate();
+        sc.setSkipCollaudo(true);
+        sc.setNome("sog-" + suffisso);
+        sc.setIdOrganizzazione(idOrg);
+        sc.setAderente(true);
+        sc.setReferente(true);
+        UUID idSog = soggettiController.createSoggetto(sc).getBody().getIdSoggetto();
+
+        DominioCreate dc = CommonUtils.getDominioCreate();
+        dc.setNome("dom-" + suffisso);
+        dc.setSkipCollaudo(true);
+        dc.setIdSoggettoReferente(idSog);
+        return dominiController.createDominio(dc).getBody();
+    }
+
+    private ServizioUpdate toServizioUpdate(Servizio servizio, UUID idDominio) {
+        IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+        identificativo.setNome(servizio.getNome());
+        identificativo.setVersione(servizio.getVersione());
+        identificativo.setIdDominio(idDominio);
+        identificativo.setIdSoggettoErogatore(idSoggetto);
+        identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+        identificativo.setAdesioneDisabilitata(false);
+        identificativo.setMultiAdesione(true);
+        identificativo.setTipo(TipoServizio.API);
+        identificativo.setPackage(false);
+
+        DatiGenericiServizioUpdate datiGenerici = new DatiGenericiServizioUpdate();
+        datiGenerici.setDescrizione("descrizione aggiornata");
+        datiGenerici.setDescrizioneSintetica("descrizione sintetica");
+
+        ServizioUpdate servizioUpdate = new ServizioUpdate();
+        servizioUpdate.setIdentificativo(identificativo);
+        servizioUpdate.setDatiGenerici(datiGenerici);
+        return servizioUpdate;
+    }
+
+    /** Toglie (con conferma) il ruolo nell'organizzazione all'utente, come gestore. */
+    private void togliRuolo(UUID idOrganizzazione, Utente utente) {
+        organizzazioniController.updateRuoloUtenteOrganizzazione(idOrganizzazione, utente.getIdUtente(),
+                true, new UtenteOrganizzazioneUpdate());
+    }
+
+    private Referente getReferente(UUID idServizio, Utente utente) {
+        return serviziController.listReferentiServizio(idServizio, null, null, 0, 10, null).getBody().getContent().stream()
+                .filter(r -> utente.getIdUtente().equals(r.getUtente().getIdUtente()))
+                .findFirst().orElseThrow();
+    }
+
+    @Test
+    public void testUpdateServizioConReferenteSenzaRuoloConsentito() {
+        Dominio dominio = this.getDominio();
+        Utente tecnico = creaOperatoreApi("ref.473.srv.upd", idOrganizzazione);
+        Servizio servizio = creaServizioConReferenteTecnico(dominio, tecnico);
+        assertNull(getReferente(servizio.getIdServizio(), tecnico).isRuoloNonValido());
+
+        togliRuolo(idOrganizzazione, tecnico);
+
+        // La modifica non tocca i referenti: non e` bloccata dal referente rimasto senza ruolo
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null,
+                toServizioUpdate(servizio, dominio.getIdDominio()));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("descrizione aggiornata", response.getBody().getDescrizione());
+
+        // Nella scheda il referente e` evidenziato come non piu` valido; il gestore resta valido
+        assertEquals(Boolean.TRUE, getReferente(servizio.getIdServizio(), tecnico).isRuoloNonValido());
+        Referente gestore = serviziController.listReferentiServizio(servizio.getIdServizio(), null, TipoReferenteEnum.REFERENTE, 0, 10, null)
+                .getBody().getContent().iterator().next();
+        assertNull(gestore.isRuoloNonValido());
+    }
+
+    @Test
+    public void testUpdateServizioSpostamentoAltraOrganizzazioneReferentiNonValidi() {
+        Dominio dominio = this.getDominio();
+        Utente tecnico = creaOperatoreApi("ref.473.srv.sposta", idOrganizzazione);
+        Servizio servizio = creaServizioConReferenteTecnico(dominio, tecnico);
+        Dominio dominioAltraOrg = creaDominioInNuovaOrganizzazione("473-srv-sposta");
+
+        RichiestaNonValidaSemanticamenteException ex = assertThrows(RichiestaNonValidaSemanticamenteException.class,
+                () -> serviziController.updateServizio(servizio.getIdServizio(), null, toServizioUpdate(servizio, dominioAltraOrg.getIdDominio())));
+        assertEquals(ErrorCode.VAL_422_REFERENTI_ORGANIZZAZIONE, ex.getErrorCode());
+        assertEquals("org-473-srv-sposta", ex.getParameters().get("orgNome"));
+        // Il gestore e` sempre un referente valido: e` elencato solo il referente tecnico
+        assertEquals(tecnico.getNome() + " " + tecnico.getCognome(), ex.getParameters().get("referenti"));
+    }
+
+    @Test
+    public void testUpdateServizioSpostamentoAltraOrganizzazioneConForce() {
+        Dominio dominio = this.getDominio();
+        Utente tecnico = creaOperatoreApi("ref.473.srv.force", idOrganizzazione);
+        Servizio servizio = creaServizioConReferenteTecnico(dominio, tecnico);
+        Dominio dominioAltraOrg = creaDominioInNuovaOrganizzazione("473-srv-force");
+
+        // Con force il gestore sposta comunque il servizio; il referente resta evidenziato
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), true,
+                toServizioUpdate(servizio, dominioAltraOrg.getIdDominio()));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(Boolean.TRUE, getReferente(servizio.getIdServizio(), tecnico).isRuoloNonValido());
+    }
+
+    @Test
+    public void testUpdateServizioSpostamentoAltraOrganizzazioneReferentiValidi() {
+        Dominio dominio = this.getDominio();
+        UUID idAltraOrg = creaOrganizzazione("473-srv-sposta-ok");
+        Dominio dominioAltraOrg = creaDominioInOrganizzazione(idAltraOrg, "473-srv-sposta-ok");
+        Utente tecnico = creaOperatoreApi("ref.473.srv.sposta.ok", idOrganizzazione, idAltraOrg);
+        Servizio servizio = creaServizioConReferenteTecnico(dominio, tecnico);
+
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null,
+                toServizioUpdate(servizio, dominioAltraOrg.getIdDominio()));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testCreateServizioReferenteNonAssociatoOrgMissing() {
+        Dominio dominio = this.getDominio();
+        Utente esterno = creaUtente473NonAssociato("ref.473.srv.esterno");
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> creaServizioConReferenteTecnico(dominio, esterno));
+        assertEquals(ErrorCode.AUT_403_ORG_MISSING, ex.getErrorCode());
+        assertEquals(esterno.getNome(), ex.getParameters().get("nomeUtente"));
+        assertEquals(esterno.getCognome(), ex.getParameters().get("cognomeUtente"));
+    }
+
+    @Test
+    public void testCreateServizioReferenteSenzaRuoloNoRole() {
+        Dominio dominio = this.getDominio();
+        Utente tecnico = creaOperatoreApi("ref.473.srv.norole", idOrganizzazione);
+        togliRuolo(idOrganizzazione, tecnico);
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> creaServizioConReferenteTecnico(dominio, tecnico));
+        assertEquals(ErrorCode.AUT_403_REFERENT_NO_ROLE, ex.getErrorCode());
+        assertEquals(tecnico.getNome(), ex.getParameters().get("nomeUtente"));
+    }
+
+    private Utente creaUtente473NonAssociato(String principal) {
+        UtenteCreate uc = CommonUtils.getUtenteCreate();
+        uc.setPrincipal(principal);
+        uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        return controllerUtenti.createUtente(uc).getBody();
     }
 }

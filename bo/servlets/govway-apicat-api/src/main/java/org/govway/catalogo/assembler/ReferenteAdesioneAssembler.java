@@ -93,6 +93,12 @@ public class ReferenteAdesioneAssembler extends RepresentationModelAssemblerSupp
 			dettaglio.setUtente(utentePublicAssembler.toModel(referente));
 		}
 
+		// Referente che nel frattempo ha perso associazione o ruolo nell'organizzazione (Issue 473)
+		if (CoreAuthorization.getOrganizzazioneReferenti(entity.getAdesione())
+				.filter(org -> !coreAuth.isReferenteValido(referente, org)).isPresent()) {
+			dettaglio.setRuoloNonValido(true);
+		}
+
 		return dettaglio;
 	}
 
