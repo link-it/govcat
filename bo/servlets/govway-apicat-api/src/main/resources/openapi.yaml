@@ -10170,7 +10170,7 @@ components:
             $ref: "#/components/schemas/RuoloReferenteEnum"
     RuoloReferenteEnum:
       type: "string"
-      description: "Ruolo di referente ricoperto dall'utente"
+      description: "Ruolo di referente ricoperto dall'utente. I valori amministratore_organizzazione_erogatrice e amministratore_organizzazione_aderente sono ammessi solo come filtro ruolo_referente e distinguono il lato dell'organizzazione di sessione; in ruoli_referente l'amministratore e` riportato sempre come amministratore_organizzazione."
       enum:
         - referente_dominio
         - referente_tecnico_dominio
@@ -10181,6 +10181,8 @@ components:
         - richiedente_servizio
         - richiedente_adesione
         - amministratore_organizzazione
+        - amministratore_organizzazione_erogatrice
+        - amministratore_organizzazione_aderente
         - operatore_api
     RuoloUtenteEnum:
       type: "string"
@@ -12539,7 +12541,7 @@ components:
     ruolo_referente_servizio_query_optional:
       name: "ruolo_referente"
       in: "query"
-      description: "Ruoli ricoperti dall'utente nei servizi da recuperare. Utilizzabile solo con miei_servizi=true. Non sono ammessi ruoli di adesione."
+      description: "Ruoli ricoperti dall'utente nei servizi da recuperare. Utilizzabile solo con miei_servizi=true. Non sono ammessi ruoli di adesione, compreso amministratore_organizzazione_aderente. amministratore_organizzazione e amministratore_organizzazione_erogatrice selezionano i servizi di cui l'organizzazione di sessione e` titolare."
       required: false
       schema:
         type: array
@@ -12548,7 +12550,7 @@ components:
     ruolo_referente_adesione_query_optional:
       name: "ruolo_referente"
       in: "query"
-      description: "Ruoli ricoperti dall'utente nelle adesioni da recuperare."
+      description: "Ruoli ricoperti dall'utente nelle adesioni da recuperare. Con l'organizzazione di sessione amministrata dall'utente, amministratore_organizzazione_erogatrice seleziona le adesioni ai servizi dell'organizzazione, amministratore_organizzazione_aderente le adesioni dell'organizzazione, amministratore_organizzazione entrambe."
       required: false
       schema:
         type: array

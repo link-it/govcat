@@ -54,6 +54,7 @@ import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
@@ -1298,6 +1299,52 @@ public class MatricePermessiMultiOrgTest {
 		organizationContext.setRuoloOrganizzazione(null);
 		autenticaCome(sc.referenteAderente().getPrincipal());
 		assertThrows(NotAuthorizedException.class, () -> cambiaStatoAdesione(idAdesione, "autorizzato_collaudo"));
+	}
+
+	@Test
+	public void testAmmOrg_FiltroRuoloReferentePerLato() {
+		ScenarioAmmOrg sc = preparaScenarioAmmOrg("471-lato", VisibilitaServizioEnum.PUBBLICO);
+		UUID idServizio = sc.servizio().getIdServizio();
+		pubblicaInCollaudo(idServizio);
+		UUID idAdesione = creaAdesione(idServizio, sc.soggettoAderente(), sc.referenteAderente()).getIdAdesione();
+
+		// ruoli inviati dalle linguette "Referente servizio / dominio" e "Referente adesione" della console
+		List<RuoloReferenteEnum> linguettaReferenteServizio = List.of(RuoloReferenteEnum.REFERENTE_DOMINIO,
+				RuoloReferenteEnum.REFERENTE_TECNICO_DOMINIO, RuoloReferenteEnum.REFERENTE_SERVIZIO,
+				RuoloReferenteEnum.REFERENTE_TECNICO_SERVIZIO, RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_EROGATRICE,
+				RuoloReferenteEnum.OPERATORE_API);
+		List<RuoloReferenteEnum> linguettaReferenteAdesione = List.of(RuoloReferenteEnum.REFERENTE_ADESIONE,
+				RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE, RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE,
+				RuoloReferenteEnum.OPERATORE_API);
+
+		// amministratore dell'erogatrice: l'adesione e` sul suo lato erogatore
+		autenticaCome(sc.ammErogatrice());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		assertTrue(contieneAdesione(listAdesioni(List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE), null), idAdesione));
+		assertTrue(contieneAdesione(listAdesioni(List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_EROGATRICE), null), idAdesione));
+		assertFalse(contieneAdesione(listAdesioni(List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE), null), idAdesione));
+		assertTrue(contieneAdesione(listAdesioni(linguettaReferenteServizio, null), idAdesione));
+		assertFalse(contieneAdesione(listAdesioni(linguettaReferenteAdesione, null), idAdesione));
+
+		// sui servizi il lato erogatore equivale ad amministratore_organizzazione, il lato aderente e` un ruolo di adesione
+		assertTrue(contieneServizio(listServizi(null, true, List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_EROGATRICE), null),
+				sc.servizio().getNome()));
+		assertThrows(BadRequestException.class,
+				() -> listServizi(null, true, List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE), null));
+
+		// amministratore dell'aderente: l'adesione e` sul suo lato aderente
+		autenticaCome(sc.ammAderente());
+		simulaContestoSessione(sc.orgAderente(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		assertTrue(contieneAdesione(listAdesioni(List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE), null), idAdesione));
+		assertTrue(contieneAdesione(listAdesioni(List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE), null), idAdesione));
+		assertFalse(contieneAdesione(listAdesioni(List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_EROGATRICE), null), idAdesione));
+		assertTrue(contieneAdesione(listAdesioni(linguettaReferenteAdesione, null), idAdesione));
+		assertFalse(contieneAdesione(listAdesioni(linguettaReferenteServizio, null), idAdesione));
+
+		// senza contesto organizzazione i valori per lato non selezionano nulla
+		organizationContext.setIdOrganizzazione(null);
+		organizationContext.setRuoloOrganizzazione(null);
+		assertFalse(contieneAdesione(listAdesioni(List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE), null), idAdesione));
 	}
 
 	@Test

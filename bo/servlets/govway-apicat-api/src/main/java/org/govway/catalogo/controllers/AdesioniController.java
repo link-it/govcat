@@ -969,6 +969,18 @@ public class AdesioniController implements AdesioniApi {
 													.or(AdesioneSpecificationUtils.byOrganizzazioneErogatrice(idOrg)))
 											.orElse(null);
 									break;
+								case AMMINISTRATORE_ORGANIZZAZIONE_EROGATRICE:
+									// Solo il lato erogatore: adesioni ai servizi dell'organizzazione di sessione
+									specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()
+											.map(AdesioneSpecificationUtils::byOrganizzazioneErogatrice)
+											.orElse(null);
+									break;
+								case AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE:
+									// Solo il lato aderente: adesioni dell'organizzazione di sessione
+									specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()
+											.map(AdesioneSpecificationUtils::byOrganizzazioneAderente)
+											.orElse(null);
+									break;
 								default:
 									break;
 							}

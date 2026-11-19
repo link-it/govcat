@@ -1533,7 +1533,8 @@ public class ServiziController implements ServiziApi {
 						if(ruoloReferente != null && !ruoloReferente.isEmpty()) {
 							// Validazione: i ruoli di adesione non sono ammessi per il filtro servizi
 							for(RuoloReferenteEnum r : ruoloReferente) {
-								if(r == RuoloReferenteEnum.REFERENTE_ADESIONE || r == RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE || r == RuoloReferenteEnum.RICHIEDENTE_ADESIONE) {
+								if(r == RuoloReferenteEnum.REFERENTE_ADESIONE || r == RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE || r == RuoloReferenteEnum.RICHIEDENTE_ADESIONE
+										|| r == RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE) {
 									throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 								}
 							}
@@ -1560,6 +1561,7 @@ public class ServiziController implements ServiziApi {
 										specRuolo = ServizioSpecificationUtils.byRichiedente(utenteRuolo);
 										break;
 									case AMMINISTRATORE_ORGANIZZAZIONE:
+									case AMMINISTRATORE_ORGANIZZAZIONE_EROGATRICE:
 										// Servizi di cui l'organizzazione di sessione e` titolare
 										// (stessa regola con cui ruoli_referente riporta il ruolo)
 										specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()

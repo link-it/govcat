@@ -70,7 +70,10 @@
 	  riservati o privati, a cui la sua organizzazione ha aderito, ma non autorizza più le adesioni della
 	  propria organizzazione. La visibilità da amministratore, compresa quella già esistente sulle
 	  adesioni dell'organizzazione aderente, vale solo con l'organizzazione in sessione
-	  (X-Organization-Context, o l'unica organizzazione dell'utente).
+	  (X-Organization-Context, o l'unica organizzazione dell'utente). Il filtro ruolo_referente delle
+	  adesioni accetta anche amministratore_organizzazione_erogatrice e
+	  amministratore_organizzazione_aderente, per distinguere le adesioni ai servizi
+	  dell'organizzazione da quelle fatte dall'organizzazione.
 
 	Issue 470: il referente di un dominio può aggiungere e rimuovere i referenti del dominio, come
 	  previsto dalla matrice dei permessi, operando con l'organizzazione del dominio in sessione e
