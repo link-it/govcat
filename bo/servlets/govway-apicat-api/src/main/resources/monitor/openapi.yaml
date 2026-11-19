@@ -1996,8 +1996,16 @@ components:
         - principal
         - valore
       properties:
+        principal:
+          type: string
+          description: Principal con cui il chiamante si è autenticato
+        autenticazione:
+          type: string
+          description: Tipo di autenticazione con cui è stato ottenuto il principal, come riportato da GovWay
         indirizzo:
           type: string
+          deprecated: true
+          description: Deprecato, sostituito da principal di cui riporta lo stesso valore
         valore:
           type: integer
           format: int64

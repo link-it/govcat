@@ -1,6 +1,12 @@
 2026-11-19  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 474: le statistiche per applicativo, per principal e per token riportano di nuovo le etichette,
+	  prima vuote perché le colonne del CSV di GovWay venivano lette con intestazioni diverse da quelle
+	  prodotte (Applicativo, Principal, Autenticazione, Token Client ID, Token Issuer). La distribuzione
+	  per principal ha i nuovi campi principal e autenticazione; il campo indirizzo è deprecato e
+	  riporta il principal finché la console non usa il nuovo campo.
+
 	Issue 473: un referente che ha perso il ruolo nell'organizzazione non blocca più le modifiche del
 	  servizio o del dominio, prima rifiutate a chiunque, gestore compreso, con 403
 	  AUT.403.REFERENT.NO.ROLE. I referenti già presenti si verificano solo quando la risorsa passa
