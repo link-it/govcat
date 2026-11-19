@@ -669,7 +669,18 @@ describe('AuthenticationService', () => {
     });
 
     it('should return false when grant does not match ruoli_abilitati', () => {
-      expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['referente'])).toBe(false);
+      expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['richiedente'])).toBe(false);
+    });
+
+    it('should let the referents of the grant edit even when they cannot change the state', () => {
+      expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['referente'])).toBe(true);
+      expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['referente_superiore'])).toBe(true);
+    });
+
+    it('should not let an API operator without roles in the grant edit', () => {
+      vi.spyOn(service, 'isOperatoreApi').mockReturnValue(true);
+      vi.spyOn(service, 'isAmministratoreOrganizzazione').mockReturnValue(false);
+      expect(service.canEdit('servizio', 'servizio', 'pubblicato', [])).toBe(false);
     });
 
     it('should add referente when referente_tecnico is in grant', () => {
@@ -713,8 +724,8 @@ describe('AuthenticationService', () => {
           }
         }
       };
-      // _ssra will be [], intersection with ['referente'] is [], length 0 -> false
-      expect(service.canEdit('servizio', 'servizio', 'bozza', ['referente'])).toBe(false);
+      // _ssra will be [], intersection with ['richiedente'] is [], length 0 -> false
+      expect(service.canEdit('servizio', 'servizio', 'bozza', ['richiedente'])).toBe(false);
     });
   });
 

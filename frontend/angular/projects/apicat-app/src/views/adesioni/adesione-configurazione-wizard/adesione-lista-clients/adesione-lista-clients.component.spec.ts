@@ -668,6 +668,13 @@ describe('AdesioneListaClientsComponent', () => {
       expect(component._isModifiableMapper()).toBe(false);
     });
 
+    it('should not let an API operator modify the client without the right in the grant', () => {
+      mockAuthService.isOperatoreApi.mockReturnValue(true);
+      component.environment = AmbienteEnum.Collaudo;
+      component.grant = { ruoli: ['richiedente'], collaudo: RightsEnum.Lettura, produzione: RightsEnum.Lettura } as any;
+      expect(component._isModifiableMapper()).toBe(false);
+    });
+
     it('should return false when environment is Collaudo but grant is Lettura', () => {
       component.environment = AmbienteEnum.Collaudo;
       component.grant = {

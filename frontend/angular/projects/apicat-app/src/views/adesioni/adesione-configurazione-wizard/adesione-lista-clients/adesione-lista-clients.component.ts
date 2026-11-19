@@ -500,8 +500,8 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     /**
      * Mapper di modificabilita` del client. Oltre al check su
      * `grant.collaudo`/`grant.produzione === Scrittura` (fallback),
-     * abilitano la modifica: gestore, amm.org, operatore_api e
-     * referenti (servizio/dominio/adesione inclusi tecnici) — questi
+     * abilitano la modifica: gestore, amm.org e referenti
+     * (servizio/dominio/adesione inclusi tecnici) — questi
      * possono "gestire l'adesione al proprio servizio" anche quando il
      * BE non valorizza `Scrittura` nel grant. Lo state-gating
      * (collaudo/produzione effettivamente modificabili) resta
@@ -518,7 +518,6 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         if (this.authenticationService.isGestore(ruoli)) { return true; }
         // Ruoli per-org sull'org di sessione.
         if (this.authenticationService.isAmministratoreOrganizzazione()) { return true; }
-        if (this.authenticationService.isOperatoreApi()) { return true; }
         // Referenti (incluso referente tecnico: per "Gestire adesioni"
         // la matrice include anche i tecnici).
         const referentiManage = [

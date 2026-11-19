@@ -24,13 +24,11 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { AuthenticationService } from '../services/authentication.service';
 import { OpenAPIService } from '../services/openAPI.service';
 import { auditAbilitato } from '../views/servizi/transazioni/audit';
-import { ruoliServizio$ } from '../views/servizi/ruoli-servizio';
 import { configurazioneMonitoraggio$, funzioneMonitoraggioAbilitata } from './funzione-monitoraggio.guard';
 
 /**
  * Accesso alle pagine di monitoraggio di un servizio: monitoraggio abilitato e almeno un ruolo
  * dell'utente sul servizio (grant) incluso in `monitoraggio.ruoli_abilitati`, come per il menu.
- * Il ruolo `referente` vale solo per i referenti del servizio, non per gli operatori API dell'organizzazione.
  * Le rotte con `data.funzione` richiedono anche la funzione abilitata (`<funzione>_abilitate`),
  * quelle con `data.audit` il monitoraggio di audit abilitato.
  */
@@ -55,10 +53,8 @@ export class MonitoraggioGuard implements CanActivate {
           || (route.data?.['audit'] && !auditAbilitato(monitoraggio))) {
           return of(_negato);
         }
-        const _idUtente = this.authenticationService.getUser()?.id_utente;
         return this.apiService.getDetails('servizi', _idServizio, 'grant').pipe(
-          switchMap((grant: any) => ruoliServizio$(this.apiService, _idServizio, grant?.ruoli, _idUtente)),
-          map((ruoli: string[]) => this.authenticationService.canMonitoraggio(ruoli, monitoraggio) ? true : _negato)
+          map((grant: any) => this.authenticationService.canMonitoraggio(grant?.ruoli || [], monitoraggio) ? true : _negato)
         );
       }),
       catchError(() => of(_negato))

@@ -65,7 +65,6 @@ import { RATE_LIMITING_PERIODI, RATE_LIMITING_PERIODO_LABEL, RateLimiting, RateL
 import { RATE_LIMITING_MOCK_API, quoteMock, rateLimitingMockAttivo } from '../rate-limiting.mock';
 import { ServizioApiDetailsComponent } from '@app/views/servizi/servizio-api-details/servizio-api-details.component';
 import { ServizioApiEditComponent } from '@app/views/servizi/servizio-api-edit/servizio-api-edit.component';
-import { ruoliServizio$ } from '@app/views/servizi/ruoli-servizio';
 
 import {
     STEP_WIZARD_SERVIZIO_FALLBACK,
@@ -127,7 +126,6 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     // Getter: la configurazione puo` non essere ancora caricata alla creazione del componente (reload/link diretto).
     get generalConfig(): any { return Tools.Configurazione || null; }
     _grant: Grant | null = null;
-    _ruoliServizio: string[] = [];
 
     _spin: boolean = true;
     _changingStatus: boolean = false;
@@ -362,7 +360,6 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                         this.loadGruppi();
                         this.loadServizioApi();
                         this._loadServizioDisclaimers();
-                        this._loadRuoliServizio(grant);
                         this._spin = false;
                     },
                     error: (error: any) => { Tools.OnError(error); this._spin = false; }
@@ -1455,16 +1452,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     _canMonitoraggioMapper = (): boolean => {
-        return this.authenticationService.canMonitoraggio(this._ruoliServizio);
-    }
-
-    /** Ruoli per il monitoraggio (vedi `ruoliServizio$`). */
-    _loadRuoliServizio(grant: Grant | null) {
-        this._ruoliServizio = [];
-        ruoliServizio$(this.apiService, `${this.id}`, grant?.ruoli, this.authenticationService.getUser()?.id_utente).subscribe((ruoli: string[]) => {
-            this._ruoliServizio = ruoli;
-            this._updateData = new Date().getTime().toString();
-        });
+        return this.authenticationService.canMonitoraggio(this._grant?.ruoli);
     }
 
     /** Abilita/disabilita le azioni in base ai permessi (come servizio-details). */

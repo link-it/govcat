@@ -27,13 +27,7 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { Grant } from '@app/model/grant';
 
 import { MonitorDropdwnComponent } from '../monitor-dropdown/monitor-dropdown.component';
-import { ruoliServizio$ } from '../../ruoli-servizio';
 import { QUERY_PARAM_AMBIENTE } from '../../ambiente-servizio';
-
-interface PermessiServizio {
-    grant: Grant | null;
-    ruoli: string[];
-}
 
 /** Menu del servizio (comunicazioni, monitoraggio, gestione e vetrina) per le pagine collegate al servizio, come in vetrina. */
 @Component({
@@ -69,31 +63,32 @@ export class ServizioMonitorMenuComponent {
 
     private readonly idServizio = computed<string | null>(() => this.servizio()?.id_servizio || null);
 
-    private readonly permessi = toSignal(
-        toObservable(this.idServizio).pipe(switchMap((id: string | null) => this._loadPermessi(id))),
+    /** Ruoli dell'utente sul servizio (grant), `null` finché non sono caricati. */
+    private readonly ruoli = toSignal(
+        toObservable(this.idServizio).pipe(switchMap((id: string | null) => this._loadRuoli(id))),
         { initialValue: null }
     );
 
     readonly comunicazioni = computed<boolean>(() => {
-        const _permessi = this.permessi();
-        return !!_permessi && this.authenticationService.canManagementComunicazioni('servizio', 'servizio', this.servizio()?.stato, _permessi.grant?.ruoli);
+        const _ruoli = this.ruoli();
+        return !!_ruoli && this.authenticationService.canManagementComunicazioni('servizio', 'servizio', this.servizio()?.stato, _ruoli);
     });
 
     readonly monitoraggio = computed<boolean>(() => {
-        const _permessi = this.permessi();
-        return !!_permessi && this.authenticationService.canMonitoraggio(_permessi.ruoli);
+        const _ruoli = this.ruoli();
+        return !!_ruoli && this.authenticationService.canMonitoraggio(_ruoli);
     });
 
     readonly gestione = computed<boolean>(() => {
-        const _permessi = this.permessi();
-        if (!_permessi) { return false; }
+        const _ruoli = this.ruoli();
+        if (!_ruoli) { return false; }
         return this.servizio()?.package
-            ? this.authenticationService.isGestore(_permessi.grant?.ruoli)
-            : this.authenticationService.canManagement('servizio', 'servizio', this.servizio()?.stato, _permessi.ruoli);
+            ? this.authenticationService.isGestore(_ruoli)
+            : this.authenticationService.canManagement('servizio', 'servizio', this.servizio()?.stato, _ruoli);
     });
 
     /** Con i permessi caricati c'è almeno la voce della vetrina. */
-    readonly visibile = computed<boolean>(() => !!this.permessi());
+    readonly visibile = computed<boolean>(() => !!this.ruoli());
 
     onAction(event: any) {
         const _id = this.idServizio();
@@ -118,12 +113,10 @@ export class ServizioMonitorMenuComponent {
         }
     }
 
-    private _loadPermessi(id: string | null): Observable<PermessiServizio | null> {
+    private _loadRuoli(id: string | null): Observable<string[] | null> {
         if (!id) { return of(null); }
         return this.apiService.getDetails('servizi', id, 'grant').pipe(
-            switchMap((grant: Grant) => ruoliServizio$(this.apiService, id, grant?.ruoli, this.authenticationService.getUser()?.id_utente).pipe(
-                map((ruoli: string[]) => ({ grant, ruoli }))
-            )),
+            map((grant: Grant) => grant?.ruoli || []),
             catchError(() => of(null))
         );
     }

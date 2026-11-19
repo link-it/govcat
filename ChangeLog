@@ -14,6 +14,13 @@
 	  produzione (409 ADE.409.STATE.SERVICE.NOT.PRODUCTION), come già imposto dalla console. Modificare
 	  un'adesione senza indicare skip_collaudo lo lascia invariato invece di rispondere 500.
 
+2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 472: rimosso il filtro sul ruolo referente (ruoli-servizio.ts): monitoraggio, gestione e menu
+	  del servizio usano direttamente i ruoli del grant; il solo ruolo operatore API dell'organizzazione
+	  non abilita più la modifica di servizi e adesioni né dei client dell'adesione.
+
 2026-11-19  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

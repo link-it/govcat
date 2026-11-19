@@ -37,13 +37,10 @@ describe('ServizioMonitorMenuComponent', () => {
 
   beforeEach(() => {
     apiService = {
-      getDetails: vi.fn((nome: string, id: string, tipo: string) => of(tipo === 'referenti'
-        ? { content: [{ utente: { id_utente: 'u1' } }] }
-        : { ruoli: ['referente'] })),
+      getDetails: vi.fn().mockReturnValue(of({ ruoli: ['referente'] })),
       getList: vi.fn().mockReturnValue(of({ content: [] }))
     };
     authService = {
-      getUser: vi.fn().mockReturnValue({ id_utente: 'u1' }),
       canManagementComunicazioni: vi.fn().mockReturnValue(true),
       canMonitoraggio: vi.fn((ruoli: string[]) => ruoli.includes('referente')),
       canManagement: vi.fn((m: string, s: string, stato: string, ruoli: string[]) => ruoli.includes('referente')),
@@ -74,8 +71,8 @@ describe('ServizioMonitorMenuComponent', () => {
     expect(component.visibile()).toBe(true);
   });
 
-  it('should hide monitoring and management to an API operator who is not a referent of the service', () => {
-    authService.getUser.mockReturnValue({ id_utente: 'operatore' });
+  it('should hide monitoring and management when the grant has no roles', () => {
+    apiService.getDetails.mockReturnValue(of({ ruoli: [] }));
     authService.canManagementComunicazioni.mockReturnValue(false);
     const component = crea().componentInstance;
     expect(component.monitoraggio()).toBe(false);

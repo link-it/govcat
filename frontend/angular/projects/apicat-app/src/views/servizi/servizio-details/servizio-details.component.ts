@@ -50,7 +50,6 @@ import { NotificationBarComponent } from '../../notifications/notification-bar/n
 import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { motivoSkipCollaudoBloccato } from '../servizio-verifica-stato';
-import { ruoliServizio$ } from '../ruoli-servizio';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 
 declare const saveAs: any;
@@ -268,7 +267,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     modalChoiceRef!: BsModalRef;
 
     _grant: Grant | null = null;
-    _ruoliServizio: string[] = [];
     _updateData: string = '';
 
     _tipiVisibilitaServizio = [
@@ -483,16 +481,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _canMonitoraggioMapper = (): boolean => {
-        return this.authenticationService.canMonitoraggio(this._ruoliServizio);
-    }
-
-    /** Ruoli per il monitoraggio (vedi `ruoliServizio$`). */
-    _loadRuoliServizio(grant: Grant | null) {
-        this._ruoliServizio = [];
-        ruoliServizio$(this.apiService, `${this.id}`, grant?.ruoli, this.authenticationService.getUser()?.id_utente).subscribe((ruoli: string[]) => {
-            this._ruoliServizio = ruoli;
-            this._updateData = new Date().getTime().toString();
-        });
+        return this.authenticationService.canMonitoraggio(this._grant?.ruoli);
     }
 
     _updateOtherLinks() {
@@ -966,7 +955,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                                 }
                                 this._enableDisableSkipCollaudo(this.data.dominio);
                                 this._setAdesioneDominio(this.data.dominio);
-                                this._loadRuoliServizio(grant);
                             } else {
                                 this.router.navigate(['servizi', this.data.id_servizio, 'view']);
                             }

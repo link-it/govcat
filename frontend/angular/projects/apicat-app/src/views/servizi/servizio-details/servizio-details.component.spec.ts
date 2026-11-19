@@ -1180,8 +1180,8 @@ describe('ServizioDetailsComponent', () => {
   // _canMonitoraggioMapper / _canJoinMapper / _canEditMapper / _isGestoreMapper
   // ---------------------------------------------------------------------------
   describe('mapper functions', () => {
-    it('_canMonitoraggioMapper should delegate to authenticationService with the roles on the service', () => {
-      component._ruoliServizio = ['gestore'];
+    it('_canMonitoraggioMapper should delegate to authenticationService with the roles of the grant', () => {
+      component._grant = { ruoli: ['gestore'] } as any;
       mockAuthenticationService.canMonitoraggio.mockReturnValue(true);
       expect(component._canMonitoraggioMapper()).toBe(true);
       expect(mockAuthenticationService.canMonitoraggio).toHaveBeenCalledWith(['gestore']);
