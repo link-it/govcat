@@ -88,6 +88,7 @@ import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '../servizio-ap
 import { ambienteClasseDato } from '../servizio-proprieta-custom';
 import { QUERY_PARAM_AMBIENTE, ambienteServizio, collaudoSaltato } from '../ambiente-servizio';
 import { servizioNonAccessibile } from '../servizio-accessibile';
+import { RuoloOrganizzazioneEnum } from '@app/model/ruoloOrganizzazioneEnum';
 
 export interface Organization {
     id_organizzazione: string;
@@ -272,6 +273,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _maxReferenti: number = 3;
     _showReferents: boolean = true;
+    _canManageReferentiDominio: boolean = false;
 
     _grant: Grant | null = null;
     _ammissibili: string[] = [];
@@ -562,6 +564,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
         this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.loadReferenti();
+        this._checkReferentiDominio();
         this._loadGruppi();
         this._loadAllegati();
         this._loadServiceApi();
@@ -1242,6 +1245,32 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             next: (n: number) => { this._pdndInAttesa = n; },
             error: () => { this._pdndInAttesa = 0; }
         });
+    }
+
+    /** Accesso alla gestione dei referenti del dominio del servizio. Per
+     *  l'operatore API dell'organizzazione del dominio serve l'elenco dei
+     *  referenti (deve esserne il referente). */
+    _checkReferentiDominio() {
+        this._canManageReferentiDominio = false;
+        const dominio: any = this.data?.dominio;
+        if (!dominio?.id_dominio || this.authenticationService.isAnonymous()) { return; }
+        if (this.authenticationService.canManageReferentiDominio(dominio, [])) {
+            this._canManageReferentiDominio = true;
+            return;
+        }
+        const idOrgSessione = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+        if (!idOrgSessione || idOrgSessione !== dominio.soggetto_referente?.organizzazione?.id_organizzazione) { return; }
+        if (this.authenticationService.getCurrentOrganizationRole() !== RuoloOrganizzazioneEnum.OperatoreApi) { return; }
+        this.apiService.getDetails('domini', dominio.id_dominio, 'referenti').subscribe({
+            next: (response: any) => {
+                this._canManageReferentiDominio = this.authenticationService.canManageReferentiDominio(dominio, response?.content || []);
+            },
+            error: () => { this._canManageReferentiDominio = false; }
+        });
+    }
+
+    _gotoReferentiDominio() {
+        this.router.navigate(['/miei-domini', this.data?.dominio?.id_dominio, 'referenti'], { queryParams: { returnUrl: this.router.url } });
     }
 
     /** Rate limiting del servizio: solo per chi lo gestisce e con API erogate dal soggetto del dominio. */

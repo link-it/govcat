@@ -78,6 +78,8 @@ describe('ServizioViewComponent', () => {
     canManagementComunicazioni: vi.fn().mockReturnValue(false),
     getUser: vi.fn().mockReturnValue({ organizzazione: { id_organizzazione: 'org1' } }),
     getCurrentOrganization: vi.fn().mockReturnValue({ id_organizzazione: 'org1' }),
+    getCurrentOrganizationRole: vi.fn().mockReturnValue(null),
+    canManageReferentiDominio: vi.fn().mockReturnValue(false),
     _getClassesNotModifiable: vi.fn().mockReturnValue([])
   } as any;
 
@@ -224,6 +226,51 @@ describe('ServizioViewComponent', () => {
   it('should check isAnonymousMapper', () => {
     mockAuthenticationService.isAnonymous.mockReturnValue(true);
     expect(component.isAnonymousMapper()).toBe(true);
+  });
+
+  describe('referenti del dominio', () => {
+    const dominio = { id_dominio: 'd1', soggetto_referente: { organizzazione: { id_organizzazione: 'org1' } } };
+
+    beforeEach(() => {
+      mockAuthenticationService.isAnonymous.mockReturnValue(false);
+    });
+
+    it('should show the access to the managers without loading the referents', () => {
+      component.data = { dominio } as any;
+      mockAuthenticationService.canManageReferentiDominio.mockReturnValueOnce(true);
+      mockApiService.getDetails.mockClear();
+      component._checkReferentiDominio();
+      expect(component._canManageReferentiDominio).toBe(true);
+      expect(mockApiService.getDetails).not.toHaveBeenCalledWith('domini', 'd1', 'referenti');
+    });
+
+    it('should check the referents for the API operator of the domain organization', () => {
+      component.data = { dominio } as any;
+      const referenti = [{ tipo: 'referente', utente: { id_utente: 'u1' } }];
+      mockAuthenticationService.getCurrentOrganizationRole.mockReturnValueOnce('operatore_api');
+      mockAuthenticationService.canManageReferentiDominio.mockImplementation((_d: any, list: any[]) => list.length > 0);
+      mockApiService.getDetails.mockReturnValueOnce(of({ content: referenti }));
+      component._checkReferentiDominio();
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('domini', 'd1', 'referenti');
+      expect(component._canManageReferentiDominio).toBe(true);
+      mockAuthenticationService.canManageReferentiDominio.mockReturnValue(false);
+    });
+
+    it('should hide the access with another organization in session', () => {
+      component.data = { dominio } as any;
+      mockAuthenticationService.getCurrentOrganization.mockReturnValueOnce({ id_organizzazione: 'org2' });
+      mockApiService.getDetails.mockClear();
+      component._checkReferentiDominio();
+      expect(component._canManageReferentiDominio).toBe(false);
+      expect(mockApiService.getDetails).not.toHaveBeenCalled();
+    });
+
+    it('should open the domain referents with the return url', () => {
+      component.data = { dominio } as any;
+      mockRouter.url = '/servizi/s1/view';
+      component._gotoReferentiDominio();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/miei-domini', 'd1', 'referenti'], { queryParams: { returnUrl: '/servizi/s1/view' } });
+    });
   });
 
   describe('rate limiting (Issue #402)', () => {

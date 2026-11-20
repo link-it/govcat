@@ -137,6 +137,13 @@ export const routes: Routes = [
         loadChildren: () => import('../views/domini/domini.routes').then(m => m.DOMINI_ROUTES)
       },
       {
+        // Referenti del dominio raggiungibili dal referente di dominio
+        // (i comandi sono abilitati dal componente).
+        path: 'miei-domini/:id/referenti',
+        canActivate: [ForbidAnonymousGuard],
+        loadChildren: () => import('../views/domini/dominio-referenti/dominio-referenti.routes').then(m => m.DOMINIO_REFERENTI_ROUTES)
+      },
+      {
         path: 'client',
         canActivate: [GestoreGuard],
         loadChildren: () => import('../views/clients/clients.routes').then(m => m.CLIENTS_ROUTES)

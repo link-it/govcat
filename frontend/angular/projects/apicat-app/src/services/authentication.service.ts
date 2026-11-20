@@ -1056,6 +1056,25 @@ export class AuthenticationService {
     return !!this.getCurrentOrganization()?.aderente;
   }
 
+  /**
+   * Vero se l'utente puo' aggiungere e rimuovere i referenti del dominio:
+   * gestore e coordinatore; con l'organizzazione del dominio in sessione,
+   * l'amministratore dell'organizzazione oppure il referente (non tecnico)
+   * del dominio con ruolo operatore API o amministratore.
+   * `referenti` e' l'elenco di `GET /domini/{id}/referenti`.
+   */
+  canManageReferentiDominio(dominio: any, referenti: any[] = []): boolean {
+    if (this.isGestore() || this.isCoordinatore()) { return true; }
+    const idOrgDominio = dominio?.soggetto_referente?.organizzazione?.id_organizzazione;
+    const idOrgSessione = this.getCurrentOrganization()?.id_organizzazione;
+    if (!idOrgDominio || idOrgDominio !== idOrgSessione) { return false; }
+    const role = this.getCurrentOrganizationRole();
+    if (role === RuoloOrganizzazioneEnum.AmministratoreOrganizzazione) { return true; }
+    if (role !== RuoloOrganizzazioneEnum.OperatoreApi) { return false; }
+    const idUtente = this.getUser()?.id_utente;
+    return !!idUtente && (referenti || []).some((r: any) => r?.tipo === 'referente' && r?.utente?.id_utente === idUtente);
+  }
+
   hasMenuAmministrazione(): boolean {
     const permessi = Tools.Configurazione ? (Tools.Configurazione['amministrazione'] || {}) : {};
     return (Object.keys(permessi).length > 0);

@@ -14,6 +14,14 @@
 	  produzione (409 ADE.409.STATE.SERVICE.NOT.PRODUCTION), come già imposto dalla console. Modificare
 	  un'adesione senza indicare skip_collaudo lo lascia invariato invece di rispondere 500.
 
+2026-11-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 470: il referente di un dominio, con l'organizzazione del dominio in sessione, aggiunge e
+	  rimuove i referenti del dominio dal pulsante "Referenti del dominio" della vista servizio (pagina
+	  /miei-domini/:id/referenti, con ritorno al servizio); Aggiungi e Rimuovi sono mostrati solo a chi
+	  può gestire i referenti, anche nelle pagine del gestore e dell'amministratore.
+
 2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

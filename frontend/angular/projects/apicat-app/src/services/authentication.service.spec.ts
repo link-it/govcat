@@ -1745,5 +1745,48 @@ describe('AuthenticationService', () => {
         expect(service.canCreateAdesione()).toBe(false);
       });
     });
+
+    describe('canManageReferentiDominio', () => {
+      const dominio = { soggetto_referente: { organizzazione: { id_organizzazione: 'org-R' } } };
+      const referenti = [
+        { tipo: 'referente', utente: { id_utente: 'ref' } },
+        { tipo: 'referente_tecnico', utente: { id_utente: 'tec' } }
+      ];
+      const setUser = (id: string, org: any, ruolo: RuoloOrganizzazioneEnum | null) => {
+        service.setCurrentSession({ utente: { id_utente: id, ruolo: 'utente_organizzazione' } });
+        orgContext.setCurrent({ organizzazione: org, ruolo_organizzazione: ruolo });
+      };
+
+      it('should pass for gestori and coordinatori', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'gestore' } });
+        expect(service.canManageReferentiDominio(dominio, [])).toBe(true);
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'coordinatore' } });
+        expect(service.canManageReferentiDominio(dominio, [])).toBe(true);
+      });
+
+      it('should pass for the admin of the domain organization in session', () => {
+        setUser('u', orgSoloReferente, RuoloOrganizzazioneEnum.AmministratoreOrganizzazione);
+        expect(service.canManageReferentiDominio(dominio, [])).toBe(true);
+      });
+
+      it('should pass for the domain referent with the domain organization in session', () => {
+        setUser('ref', orgSoloReferente, RuoloOrganizzazioneEnum.OperatoreApi);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(true);
+      });
+
+      it('should not pass for the technical referent or an API operator not referent', () => {
+        setUser('tec', orgSoloReferente, RuoloOrganizzazioneEnum.OperatoreApi);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(false);
+        setUser('other', orgSoloReferente, RuoloOrganizzazioneEnum.OperatoreApi);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(false);
+      });
+
+      it('should not pass with another organization or no role in session', () => {
+        setUser('ref', orgSoloAderente, RuoloOrganizzazioneEnum.AmministratoreOrganizzazione);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(false);
+        setUser('ref', orgSoloReferente, null);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(false);
+      });
+    });
   });
 });

@@ -175,6 +175,11 @@
                 }
               </button>
             }
+            @if (_canManageReferentiDominio) {
+              <button type="button" class="btnc btnc-default" (click)="_gotoReferentiDominio()">
+                <i class="bi bi-people me-2" aria-hidden="true"></i>{{ 'APP.BUTTON.DomainReferents' | translate }}
+              </button>
+            }
             @if (_canShowRateLimiting()) {
               <button type="button" class="btnc btnc-default" (click)="_openRateLimitingDialog()">
                 <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>{{ 'APP.SERVICES.RATE_LIMITING.Titolo' | translate }}
