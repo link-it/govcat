@@ -118,6 +118,8 @@ describe('ServizioApiDetailsComponent', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // clearAllMocks non ripristina i valori di ritorno impostati dai test precedenti
+    mockApiService.getDetails.mockReturnValue(of(_safeServiceResponse));
     savedConfigurazione = Tools.Configurazione;
     Tools.Configurazione = {
       servizio: {

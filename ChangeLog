@@ -38,6 +38,9 @@
 	  API riusate mostra il messaggio API.409 al posto di un errore generico; la conferma di
 	  archiviazione avvisa che le API tornano riusabili. Nuovo input ariaDisabled di lnk-button.
 
+	Test: lo spec di servizio-api-details ripristina la risposta di default di getDetails prima di ogni
+	  test, eliminando i due errori non gestiti della suite.
+
 2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
