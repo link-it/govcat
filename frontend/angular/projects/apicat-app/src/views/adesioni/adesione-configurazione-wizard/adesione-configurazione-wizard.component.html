@@ -1344,6 +1344,9 @@
         {{ ('APP.ROLE.' + referent.source.tipo) | translate }}
       </span>
     }
+    @if (referent.source?.ruolo_non_valido) {
+      <lnk-ruolo-non-valido></lnk-ruolo-non-valido>
+    }
     @if (deletable) {
       <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
               [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body"

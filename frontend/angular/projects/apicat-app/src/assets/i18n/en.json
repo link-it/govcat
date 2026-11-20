@@ -52,7 +52,10 @@
 				"User": "User",
 				"Role": "Role in organization",
 				"SearchUser": "Search user",
-				"CurrentOrganization": "Current organization"
+				"CurrentOrganization": "Current organization",
+				"ReferenteServizi": "Services",
+				"ReferenteDomini": "Domains",
+				"ReferenteAdesioni": "Subscriptions"
 			},
 			"BUTTON": {
 				"Add": "Add",
@@ -1396,7 +1399,8 @@
 			"VoucherLifespan": "Voucher Lifespan",
 			"Warning": "Warning",
 			"X-Forwarded-For": "X-Forwarded-For",
-			"Yes": "Yes"
+			"Yes": "Yes",
+			"RuoloNonValido": "Invalid role"
 		},
 		"LABEL_HELP": {
 			"ClientAuthForm": {
@@ -2880,7 +2884,8 @@
 			"BUTTON": {
 				"AddAttachment": "Add Attachment",
 				"AddAttachment-generico": "Add generic attachment",
-				"AddAttachment-specifica": "Add specific attachment"
+				"AddAttachment-specifica": "Add specific attachment",
+				"SpostaComunque": "Move anyway"
 			},
 			"FILTER": {
 				"All": "All",
@@ -3501,7 +3506,8 @@
 				"cambio_stato": "State change",
 				"comunicazione": "Communication"
 			},
-			"Version": "Version"
+			"Version": "Version",
+			"RuoloNonValido": "No longer has a valid role in the organization: replace it"
 		},
 		"TRANSACTIONS": {
 			"FILTER": {

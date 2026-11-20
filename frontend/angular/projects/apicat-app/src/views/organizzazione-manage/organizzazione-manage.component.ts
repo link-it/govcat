@@ -36,6 +36,7 @@ import { UtilService } from '@services/utils.service';
 import { Page } from '../../models/page';
 import { ItemOrganizzazione } from '../../model/itemOrganizzazione';
 import { RuoloOrganizzazioneEnum } from '../../model/ruoloOrganizzazioneEnum';
+import { confermaUtenteReferente, isErroreUtenteReferente } from '../organizzazioni/utente-referente-conferma';
 import {
     UtenteOrganizzazioneDialogComponent,
     UtenteOrganizzazioneDialogMode
@@ -591,20 +592,29 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
         });
     }
 
-    private _update(idUtente: string, ruolo: RuoloOrganizzazioneEnum | null): void {
+    private _update(idUtente: string, ruolo: RuoloOrganizzazioneEnum | null, force: boolean = false): void {
         if (!this.id) { return; }
-        this.apiService.putElementRelated(ORG_MODEL, this.id, `${UTENTI_SUB_PATH}/${idUtente}`, { ruolo_organizzazione: ruolo }).subscribe({
+        this.apiService.putElementRelated(ORG_MODEL, this.id, `${UTENTI_SUB_PATH}/${idUtente}`, { ruolo_organizzazione: ruolo }, force ? { params: { force: 'true' } } : undefined).subscribe({
             next: () => this.refresh(),
-            error: (err: any) => Tools.OnError(err)
+            error: (err: any) => this._onErroreUtente(err, force, () => this._update(idUtente, ruolo, true))
         });
     }
 
-    private _remove(idUtente: string): void {
+    private _remove(idUtente: string, force: boolean = false): void {
         if (!this.id) { return; }
-        this.apiService.deleteElementRelated(ORG_MODEL, this.id, `${UTENTI_SUB_PATH}/${idUtente}`).subscribe({
+        this.apiService.deleteElementRelated(ORG_MODEL, this.id, `${UTENTI_SUB_PATH}/${idUtente}`, force ? { params: { force: 'true' } } : undefined).subscribe({
             next: () => this.refresh(),
-            error: (err: any) => Tools.OnError(err)
+            error: (err: any) => this._onErroreUtente(err, force, () => this._remove(idUtente, true))
         });
+    }
+
+    /** Utente referente che perde il ruolo: si ripete l'operazione con `force` solo dopo la conferma. */
+    private _onErroreUtente(err: any, force: boolean, ripeti: () => void): void {
+        if (!force && isErroreUtenteReferente(err)) {
+            confermaUtenteReferente(err, this.modalService, this.translate).subscribe((ok: boolean) => { if (ok) { ripeti(); } });
+            return;
+        }
+        Tools.OnError(err);
     }
 
     // --- Azioni CRUD domini -----------------------------------------------

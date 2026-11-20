@@ -22,6 +22,11 @@
 	  /miei-domini/:id/referenti, con ritorno al servizio); Aggiungi e Rimuovi sono mostrati solo a chi
 	  può gestire i referenti, anche nelle pagine del gestore e dell'amministratore.
 
+	Issue 473: cambio di ruolo o rimozione di un utente referente dell'organizzazione con conferma che
+	  elenca servizi, domini e adesioni interessati, poi ripetuti con force; i referenti senza più un
+	  ruolo valido sono segnalati con "Ruolo non valido" in vista, wizard e liste referenti; il gestore
+	  può spostare comunque un servizio in un dominio di altra organizzazione; nuovo stile lnk-form-error.
+
 2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

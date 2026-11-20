@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ServizioInfoFormComponent } from './servizio-info-form.component';
 
@@ -252,6 +252,41 @@ describe('ServizioInfoFormComponent', () => {
       expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0 } });
       expect(_items.map((d: any) => d.id_dominio)).toEqual(['corrente']);
       vi.useRealTimers();
+    });
+  });
+
+  describe('spostamento in un dominio di un\'altra organizzazione', () => {
+    const errore422 = { error: { detail: 'VAL.422.REFERENTI.ORGANIZZAZIONE', errori: [{ params: { orgNome: 'Ente', referenti: 'Mario Rossi' } }] } };
+
+    beforeEach(() => {
+      component.id = 's1';
+      component._formGroup = new FormGroup({});
+      vi.spyOn(component as any, '_prepareBodyUpdateServizio').mockReturnValue({ identificativo: {} });
+      (component as any).utils = { GetErrorMsg: vi.fn().mockReturnValue('referenti non validi') };
+      mockApiService.putElement = vi.fn();
+    });
+
+    const gestore = (value: boolean) => (component as any).authenticationService.isGestore = vi.fn().mockReturnValue(value);
+
+    it('should offer the gestore to move the service anyway', () => {
+      gestore(true);
+      mockApiService.putElement.mockReturnValueOnce(throwError(() => errore422));
+      component.onSubmit();
+      expect(component._errorMsg).toBe('referenti non validi');
+      expect(component._forzaSpostamento).toBe(true);
+
+      mockApiService.putElement.mockReturnValueOnce(of({ id_servizio: 's1' }));
+      component.onSubmit(true);
+      expect(mockApiService.putElement).toHaveBeenLastCalledWith('servizi', 's1', { identificativo: {} }, { params: { force: 'true' } });
+      expect(component._forzaSpostamento).toBe(false);
+    });
+
+    it('should only show the error to the other users', () => {
+      gestore(false);
+      mockApiService.putElement.mockReturnValueOnce(throwError(() => errore422));
+      component.onSubmit();
+      expect(mockApiService.putElement.mock.calls[0][3]).toBeUndefined();
+      expect(component._forzaSpostamento).toBe(false);
     });
   });
 });

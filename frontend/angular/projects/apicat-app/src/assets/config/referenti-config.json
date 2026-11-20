@@ -5,7 +5,8 @@
       { "field": "utente.cognome", "type": "text" }
     ],
     "secondaryText": [
-      { "field": "tipo", "type": "tag", "options": "type" }
+      { "field": "tipo", "type": "tag", "options": "type", "emptySpace": true },
+      { "field": "ruolo_non_valido", "type": "tag", "options": "ruolo_non_valido", "tooltip": "APP.TOOLTIP.RuoloNonValido" }
     ],
     "metadata": {
       "text": [
@@ -21,7 +22,9 @@
       { "field": "utente.nome", "type": "text", "emptySpace": true },
       { "field": "utente.cognome", "type": "text" }
     ],
-    "secondaryText": [],
+    "secondaryText": [
+      { "field": "ruolo_non_valido", "type": "tag", "options": "ruolo_non_valido", "tooltip": "APP.TOOLTIP.RuoloNonValido" }
+    ],
     "metadata": {
       "text": [
         { "field": "utente.organizzazione.nome", "type": "text" }
@@ -46,6 +49,13 @@
       "values": {
         "referente": { "label": "APP.ROLE.referente", "chipVariant": "warn", "background": "#ae5a1c", "border": "#ae5a1c", "color": "#ffffff" },
         "referente_tecnico": { "label": "APP.ROLE.referente_tecnico", "chipVariant": "warn", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" }
+      }
+    },
+    "ruolo_non_valido": {
+      "label": "APP.LABEL.RuoloNonValido",
+      "small": true,
+      "values": {
+        "true": { "label": "APP.LABEL.RuoloNonValido", "chipVariant": "warn", "background": "#ae5a1c", "border": "#ae5a1c", "color": "#ffffff" }
       }
     }
   }

@@ -74,6 +74,7 @@ import {
     nomeApiDaServizio
 } from './servizio-wizard.config';
 import { LocaleNumberPipe } from '@app/pipes/locale-number.pipe';
+import { LnkRuoloNonValidoComponent } from '@app/components/lnk-ui/ruolo-non-valido/ruolo-non-valido.component';
 
 declare const saveAs: any;
 
@@ -95,6 +96,7 @@ declare const saveAs: any;
     standalone: true,
     imports: [LocaleNumberPipe, 
         CommonModule,
+        LnkRuoloNonValidoComponent,
         RouterModule,
         ...COMPONENTS_IMPORTS,
         WorkflowComponent,

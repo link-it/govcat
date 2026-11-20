@@ -35,6 +35,7 @@ import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@services/utils.service';
 import { RuoloOrganizzazioneEnum } from '../../../../model/ruoloOrganizzazioneEnum';
 import { UtenteOrganizzazioneDialogComponent, UtenteOrganizzazioneDialogMode } from './utente-organizzazione-dialog.component';
+import { confermaUtenteReferente, isErroreUtenteReferente } from '../../utente-referente-conferma';
 
 const ORG_MODEL = 'organizzazioni';
 const UTENTI_SUB_PATH = 'utenti';
@@ -285,20 +286,33 @@ export class OrganizzazioneUtentiListComponent implements OnInit, OnChanges, OnD
         });
     }
 
-    private _update(idUtente: string, ruolo: RuoloOrganizzazioneEnum | null): void {
+    private _update(idUtente: string, ruolo: RuoloOrganizzazioneEnum | null, force: boolean = false): void {
         if (!this.idOrganizzazione) { return; }
         const body: any = { ruolo_organizzazione: ruolo };
-        this.apiService.putElementRelated(ORG_MODEL, this.idOrganizzazione, `${UTENTI_SUB_PATH}/${idUtente}`, body).subscribe({
+        this.apiService.putElementRelated(ORG_MODEL, this.idOrganizzazione, `${UTENTI_SUB_PATH}/${idUtente}`, body, _forceOptions(force)).subscribe({
             next: () => this.reload(),
-            error: (err: any) => this.error = this.utils.GetErrorMsg(err)
+            error: (err: any) => this._onErrore(err, force, () => this._update(idUtente, ruolo, true))
         });
     }
 
-    private _remove(idUtente: string): void {
+    private _remove(idUtente: string, force: boolean = false): void {
         if (!this.idOrganizzazione) { return; }
-        this.apiService.deleteElementRelated(ORG_MODEL, this.idOrganizzazione, `${UTENTI_SUB_PATH}/${idUtente}`).subscribe({
+        this.apiService.deleteElementRelated(ORG_MODEL, this.idOrganizzazione, `${UTENTI_SUB_PATH}/${idUtente}`, _forceOptions(force)).subscribe({
             next: () => this.reload(),
-            error: (err: any) => this.error = this.utils.GetErrorMsg(err)
+            error: (err: any) => this._onErrore(err, force, () => this._remove(idUtente, true))
         });
     }
+
+    /** Utente referente che perde il ruolo: si ripete l'operazione con `force` solo dopo la conferma. */
+    private _onErrore(err: any, force: boolean, ripeti: () => void): void {
+        if (!force && isErroreUtenteReferente(err)) {
+            confermaUtenteReferente(err, this.modalService, this.translate).subscribe((ok: boolean) => { if (ok) { ripeti(); } });
+            return;
+        }
+        this.error = this.utils.GetErrorMsg(err);
+    }
+}
+
+function _forceOptions(force: boolean): any {
+    return force ? { params: { force: 'true' } } : undefined;
 }

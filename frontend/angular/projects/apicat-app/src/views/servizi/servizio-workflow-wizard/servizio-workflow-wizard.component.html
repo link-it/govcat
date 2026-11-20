@@ -275,6 +275,9 @@
                             @if (ref.tipo) {
                               <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
                             }
+                            @if (ref.ruolo_non_valido) {
+                              <lnk-ruolo-non-valido></lnk-ruolo-non-valido>
+                            }
                             @if (canAddReferente()) {
                               <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteReferente(ref)">
                                 <i class="bi bi-trash text-danger"></i>
@@ -309,6 +312,9 @@
                             </div>
                             @if (ref.tipo) {
                               <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
+                            }
+                            @if (ref.ruolo_non_valido) {
+                              <lnk-ruolo-non-valido></lnk-ruolo-non-valido>
                             }
                           </div>
                         }

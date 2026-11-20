@@ -29,6 +29,7 @@ import { LnkFormErrorComponent } from "@app/components/lnk-ui/form-error/form-er
 import { LnkFormFieldErrorComponent } from "@app/components/lnk-ui/form-field-error/form-field-error.component";
 import { LnkFormLiveSearchComponent } from "@app/components/lnk-ui/form-live-search/form-live-search.component";
 import { LnkFieldPlaintextComponent } from "@app/components/lnk-ui/field-plaintext/field-plaintext.component";
+import { LnkRuoloNonValidoComponent } from "@app/components/lnk-ui/ruolo-non-valido/ruolo-non-valido.component";
 
 export const APP_COMPONENTS_IMPORTS = [
   LnkCardComponent,
@@ -43,5 +44,6 @@ export const APP_COMPONENTS_IMPORTS = [
   LnkFormSelectComponent,
   LnkFormFieldErrorComponent,
   LnkFormLiveSearchComponent,
-  LnkFieldPlaintextComponent
+  LnkFieldPlaintextComponent,
+  LnkRuoloNonValidoComponent
 ] as const;

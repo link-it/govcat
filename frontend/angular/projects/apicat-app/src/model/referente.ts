@@ -35,6 +35,7 @@ import { TipoReferenteEnum } from './tipoReferenteEnum';
 export interface Referente { 
     utente: ItemUtente;
     tipo: TipoReferenteEnum;
+    ruolo_non_valido?: boolean;
 }
 export namespace Referente {
 }

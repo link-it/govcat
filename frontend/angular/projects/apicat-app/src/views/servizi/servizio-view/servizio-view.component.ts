@@ -118,6 +118,7 @@ export interface User {
 export interface Referent {
     utente: User;
     tipo: 'referente' | 'referente_servizio' | 'utente_organizzazione' | 'referente_tecnico' | 'referente_dominio';
+    ruolo_non_valido?: boolean;
 }
 
 export interface ReferentView {
@@ -125,6 +126,8 @@ export interface ReferentView {
     name: string;
     email: string;
     types: string[];
+    /** Ruolo non piu' valido nell'organizzazione per almeno uno dei ruoli. */
+    nonValido?: boolean;
 }
 
 export enum ApiMode {
@@ -763,10 +766,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                             id: cur.utente.id_utente,
                             email: cur.utente.email_aziendale,
                             name: `${cur.utente.nome} ${cur.utente.cognome}`,
-                            types: [cur.tipo !== 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
+                            types: [cur.tipo !== 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo],
+                            nonValido: !!cur.ruolo_non_valido
                         });
                     } else {
                         acc[index].types.push(cur.tipo);
+                        acc[index].nonValido = acc[index].nonValido || !!cur.ruolo_non_valido;
                     }
                     return acc;
                 };
@@ -1531,6 +1536,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 ruolo: this._ruoloLabel(primary),
                 tag: tagForRuolo(primary),
                 ruoliAggiuntivi: (r.types || []).slice(1).map((t: string) => this._ruoloLabel(t, true)),
+                nonValido: !!r.nonValido,
             };
         });
     }

@@ -52,7 +52,10 @@
 				"User": "Utente",
 				"Role": "Ruolo nell'organizzazione",
 				"SearchUser": "Cerca utente",
-				"CurrentOrganization": "Organizzazione corrente"
+				"CurrentOrganization": "Organizzazione corrente",
+				"ReferenteServizi": "Servizi",
+				"ReferenteDomini": "Domini",
+				"ReferenteAdesioni": "Adesioni"
 			},
 			"BUTTON": {
 				"Add": "Aggiungi",
@@ -1396,7 +1399,8 @@
 			"VoucherLifespan": "Durata della validità del voucher (secondi)",
 			"Warning": "Warning",
 			"X-Forwarded-For": "X-Forwarded-For",
-			"Yes": "Si"
+			"Yes": "Si",
+			"RuoloNonValido": "Ruolo non valido"
 		},
 		"LABEL_HELP": {
 			"ClientAuthForm": {
@@ -2880,7 +2884,8 @@
 			"BUTTON": {
 				"AddAttachment": "Aggiungi allegato",
 				"AddAttachment-generico": "Aggiungi allegato generico",
-				"AddAttachment-specifica": "Aggiungi allegato specifica"
+				"AddAttachment-specifica": "Aggiungi allegato specifica",
+				"SpostaComunque": "Sposta comunque"
 			},
 			"FILTER": {
 				"All": "Tutti",
@@ -3501,7 +3506,8 @@
 				"cambio_stato": "Cambio stato",
 				"comunicazione": "Comunicazione"
 			},
-			"Version": "Versione"
+			"Version": "Versione",
+			"RuoloNonValido": "Non ha più un ruolo valido nell'organizzazione: va sostituito"
 		},
 		"TRANSACTIONS": {
 			"FILTER": {

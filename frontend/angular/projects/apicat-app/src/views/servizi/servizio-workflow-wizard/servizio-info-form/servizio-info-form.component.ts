@@ -44,6 +44,9 @@ import { OpzioneIntermediazione, opzioneIntermediazione, opzioniIntermediazione 
 import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
 import { CropPreviewComponent } from '@app/lib/ui/crop-preview/crop-preview.component';
 
+/** Referenti non validi nell'organizzazione di destinazione del servizio. */
+const ERRORE_REFERENTI_ORGANIZZAZIONE = 'VAL.422.REFERENTI.ORGANIZZAZIONE';
+
 /**
  * Form Informazioni Generali del servizio (view + edit) per la FASE 1 del
  * wizard workflow. Porta la logica del form generale di `servizio-details`
@@ -90,6 +93,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     saving: boolean = false;
     _error: boolean = false;
     _errorMsg: string = '';
+    /** Spostamento in un'altra organizzazione rifiutato per i referenti: il gestore puo' forzarlo. */
+    _forzaSpostamento: boolean = false;
     _errors: any[] = [];
     _updateData: string = '';
 
@@ -597,7 +602,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     // Submit
     // -------------------------------------------------------------------------
 
-    onSubmit() {
+    onSubmit(force: boolean = false) {
         this._formGroup.markAllAsTouched();
         if (this._formGroup.invalid) {
             this._error = true;
@@ -608,7 +613,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         this.__resetError();
         const body = this._prepareBodyUpdateServizio(this._formGroup.getRawValue());
         this.saving = true;
-        this.apiService.putElement(this.model, this.id, body).subscribe({
+        this.apiService.putElement(this.model, this.id, body, force ? { params: { force: 'true' } } : undefined).subscribe({
             next: (response: any) => {
                 this.saving = false;
                 this.isEdit = false;
@@ -623,6 +628,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._errors = Tools.filtraErroriComplessi(error.error?.errori);
+                this._forzaSpostamento = !force && this._isGestore() && error?.error?.detail === ERRORE_REFERENTI_ORGANIZZAZIONE;
             }
         });
     }
@@ -678,5 +684,6 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         this._error = false;
         this._errorMsg = '';
         this._errors = [];
+        this._forzaSpostamento = false;
     }
 }

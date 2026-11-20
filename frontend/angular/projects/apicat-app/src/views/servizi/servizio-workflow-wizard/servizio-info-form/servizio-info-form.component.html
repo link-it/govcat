@@ -490,6 +490,11 @@
 
     @if (isEdit && _error) {
       <lnk-form-error [message]="_errorMsg"></lnk-form-error>
+      @if (_forzaSpostamento) {
+        <div class="mt-3 mb-3">
+          <lnk-button [label]="'APP.SERVICES.BUTTON.SpostaComunque'" [ariaLabel]="'APP.SERVICES.BUTTON.SpostaComunque'" [size]="'md'" [danger]="true" [disabled]="saving" (onAction)="onSubmit(true)"></lnk-button>
+        </div>
+      }
     }
 
     @if (isEdit) {
