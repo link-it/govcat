@@ -1,3 +1,12 @@
+2026-11-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 478: il toggle "Salta collaudo" del wizard adesione dipende dal dominio del servizio ed è
+	  bloccato se il servizio non prevede il collaudo; avviso in bozza finché il servizio non è in
+	  produzione e richiesta di produzione disabilitata anche nel menu Cambia stato; lo skip del
+	  servizio risulta non attivabile (nuovo significato di vincola_skip_collaudo); messaggio sul
+	  dominio con skip vincolato da servizi o adesioni; errore del toggle mostrato.
+
 2026-11-20  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

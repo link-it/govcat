@@ -88,8 +88,8 @@ describe('servizio-verifica-stato', () => {
     expect(motivoSkipCollaudoBloccato({ stato: 'bozza' }, { skip_collaudo: false, soggetto_referente: { skip_collaudo: false } })).toBe('APP.MESSAGE.SkipCollaudoSoggettoNonConsente');
     expect(motivoSkipCollaudoBloccato({ stato: 'bozza' }, { skip_collaudo: false, soggetto_referente: { skip_collaudo: true } })).toBe('APP.MESSAGE.SkipCollaudoDominioNonConsente');
     expect(motivoSkipCollaudoBloccato({ stato: 'pubblicato_collaudo' }, consente)).toBe('APP.MESSAGE.SkipCollaudoNonModificabile');
-    expect(motivoSkipCollaudoBloccato({ stato: 'bozza', skip_collaudo: true, vincola_skip_collaudo: true }, consente)).toBe('APP.MESSAGE.SkipCollaudoVincolato');
-    expect(motivoSkipCollaudoBloccato({ stato: 'bozza', skip_collaudo: false, vincola_skip_collaudo: true }, consente)).toBeNull();
+    expect(motivoSkipCollaudoBloccato({ stato: 'bozza', skip_collaudo: false, vincola_skip_collaudo: true }, consente)).toBe('APP.MESSAGE.SkipCollaudoVincolato');
+    expect(motivoSkipCollaudoBloccato({ stato: 'bozza', skip_collaudo: true, vincola_skip_collaudo: true }, consente)).toBeNull();
     expect(motivoSkipCollaudoBloccato({ stato: 'bozza' }, consente)).toBeNull();
     expect(motivoSkipCollaudoBloccato(null, consente)).toBeNull();
   });

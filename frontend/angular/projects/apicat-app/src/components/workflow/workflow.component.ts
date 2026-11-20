@@ -45,6 +45,8 @@ export class WorkflowComponent implements OnInit {
   @Input() config: any = null;
   @Input() workflow: any = null;
   @Input() showStatus: boolean = false;
+  /** Transizioni verso stati di produzione non consentite (adesione con servizio non ancora in produzione). */
+  @Input() produzioneBloccata: boolean = false;
 
   @Output() action: EventEmitter<any> = new EventEmitter();
   
@@ -147,7 +149,15 @@ export class WorkflowComponent implements OnInit {
   }
 
   _isActionEnabledMapper = (type: string, statusName: string = ''): boolean => {
+    if (this.produzioneBloccata && this._destinazione(type, statusName).includes('produzione')) { return false; }
     return this.authenticationService.canChangeStatus(this.module, this.data.stato, type, this.grant?.ruoli, statusName, this._requiredProfiles());
+  }
+
+  private _destinazione(type: string, statusName: string): string {
+    if (statusName) { return statusName; }
+    if (type === 'stato_successivo') { return this._cambioStato?.stato_successivo?.nome || ''; }
+    if (type === 'stato_precedente') { return this._cambioStato?.stato_precedente?.nome || ''; }
+    return '';
   }
 
   _isGestoreMapper = (): boolean => {

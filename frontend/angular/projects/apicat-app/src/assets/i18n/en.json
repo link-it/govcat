@@ -241,7 +241,8 @@
 				"FaseProduzioneBloccata": "To request production, the service must first be published in production.",
 				"FaseProduzioneBloccataShort": "Service not published in production",
 				"FaseCollaudoSaltata": "Testing phase skipped (skip testing enabled).",
-				"FaseSaltata": "Skipped"
+				"FaseSaltata": "Skipped",
+				"SkipCollaudoAttesaProduzione": "Testing is skipped: you can request the production configuration once the service {{servizio}} v{{versione}} is published in production."
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
@@ -2371,7 +2372,8 @@
 				"MaxFileSize": "Maximum size allowed: {{size}} MB",
 				"OnlyImages": "Only files of type are allowed: {{types}}",
 				"MaxDimensions": "Maximum dimensions allowed: {{width}}x{{height}} px"
-			}
+			},
+			"SkipCollaudoDominioVincolato": "It cannot be turned off: services or subscriptions of the domain skip testing."
 		},
 		"NOTIFICATIONS": {
 			"BUTTON": {

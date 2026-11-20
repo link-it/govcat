@@ -2403,13 +2403,19 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         }
     }
 
+    /** Lo skip collaudo dell'adesione e` consentito dal dominio del servizio. */
     get showSkipCollaudo(): boolean {
-        return this.isBozza && this.adesione.servizio.skip_collaudo;
+        return this.isBozza && !!this.adesione?.servizio?.dominio?.skip_collaudo;
     };
 
-    /** Servizio pubblicato senza collaudo: l'adesione non puo` prevedere il collaudo */
+    /** Servizio senza collaudo: l'adesione non puo` prevedere il collaudo */
     get skipCollaudoVincolato(): boolean {
-        return !!this.adesione?.servizio?.stato?.endsWith('_senza_collaudo');
+        return !!this.adesione?.servizio?.skip_collaudo || !!this.adesione?.servizio?.stato?.endsWith('_senza_collaudo');
+    }
+
+    /** Adesione in bozza che salta il collaudo: la produzione attende la pubblicazione in produzione del servizio. */
+    get attesaPubblicazioneProduzione(): boolean {
+        return this.isBozza && !!this.adesione?.skip_collaudo && this._isProduzioneBloccata();
     }
 
     toggleSkipCollaudo() {
@@ -2438,6 +2444,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             },
             error: (error: any) => {
                 this.saveSkipCollaudo = false;
+                Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
             }
         });
     }

@@ -241,7 +241,8 @@
 				"FaseProduzioneBloccata": "Per richiedere la produzione il servizio deve essere prima pubblicato in produzione.",
 				"FaseProduzioneBloccataShort": "Servizio non pubblicato in produzione",
 				"FaseCollaudoSaltata": "Fase di collaudo saltata (salta collaudo attivo).",
-				"FaseSaltata": "Saltata"
+				"FaseSaltata": "Saltata",
+				"SkipCollaudoAttesaProduzione": "Il collaudo è saltato: potrai richiedere la configurazione in produzione quando il servizio {{servizio}} v{{versione}} sarà pubblicato in produzione."
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
@@ -2371,7 +2372,8 @@
 				"MaxFileSize": "Dimensione massima consentita: {{size}} MB",
 				"OnlyImages": "Sono consentiti solo file di tipo: {{types}}",
 				"MaxDimensions": "Dimensioni massime consentite: {{width}}x{{height}} px"
-			}
+			},
+			"SkipCollaudoDominioVincolato": "Non disattivabile: servizi o adesioni del dominio saltano il collaudo."
 		},
 		"NOTIFICATIONS": {
 			"BUTTON": {

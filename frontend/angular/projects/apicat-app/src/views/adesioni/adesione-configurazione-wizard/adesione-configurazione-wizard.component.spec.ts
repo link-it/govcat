@@ -413,22 +413,32 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
 
   // -------- showSkipCollaudo --------
 
-  it('showSkipCollaudo should return true when isBozza and service skip_collaudo', () => {
+  it('showSkipCollaudo should return true when isBozza and the service domain allows skip, even if the service has testing', () => {
     component.isBozza = true;
-    component.adesione = { servizio: { skip_collaudo: true } };
+    component.adesione = { servizio: { skip_collaudo: false, dominio: { skip_collaudo: true } } };
     expect(component.showSkipCollaudo).toBe(true);
   });
 
   it('showSkipCollaudo should return false when not bozza', () => {
     component.isBozza = false;
-    component.adesione = { servizio: { skip_collaudo: true } };
+    component.adesione = { servizio: { skip_collaudo: true, dominio: { skip_collaudo: true } } };
     expect(component.showSkipCollaudo).toBe(false);
   });
 
-  it('showSkipCollaudo should return false when service does not allow skip', () => {
+  it('showSkipCollaudo should return false when the service domain does not allow skip', () => {
     component.isBozza = true;
-    component.adesione = { servizio: { skip_collaudo: false } };
+    component.adesione = { servizio: { skip_collaudo: true, dominio: { skip_collaudo: false } } };
     expect(component.showSkipCollaudo).toBe(false);
+  });
+
+  it('attesaPubblicazioneProduzione should be true only for a draft that skips testing on a service not yet in production', () => {
+    component.isBozza = true;
+    component.adesione = { skip_collaudo: true, servizio: { stato: 'pubblicato_collaudo' } };
+    expect(component.attesaPubblicazioneProduzione).toBe(true);
+    component.adesione.servizio.stato = 'pubblicato_produzione';
+    expect(component.attesaPubblicazioneProduzione).toBe(false);
+    component.adesione = { skip_collaudo: false, servizio: { stato: 'pubblicato_collaudo' } };
+    expect(component.attesaPubblicazioneProduzione).toBe(false);
   });
 
   // -------- _otherActions --------
@@ -695,9 +705,12 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
       skip_collaudo: false,
       stato: 'bozza'
     };
+    const showMessage = vi.spyOn(Tools, 'showMessage').mockImplementation(() => {});
     mockApiService.putElement.mockReturnValue(throwError(() => 'err'));
     component.toggleSkipCollaudo();
     expect(component.saveSkipCollaudo).toBe(false);
+    expect(showMessage).toHaveBeenCalledWith('Error', 'danger', true);
+    showMessage.mockRestore();
   });
 
   it('toggleSkipCollaudo should not change the flag when the service is published without testing', () => {
@@ -713,6 +726,8 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     component.toggleSkipCollaudo();
     expect(mockApiService.putElement).not.toHaveBeenCalled();
     component.adesione.servizio.stato = 'pubblicato_produzione';
+    expect(component.skipCollaudoVincolato).toBe(true);
+    component.adesione.servizio.skip_collaudo = false;
     expect(component.skipCollaudoVincolato).toBe(false);
   });
 

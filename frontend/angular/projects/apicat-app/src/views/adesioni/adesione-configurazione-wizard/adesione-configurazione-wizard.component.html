@@ -51,6 +51,7 @@
               [grant]="grant"
               [config]="config"
               [workflow]="generalConfig.adesione.workflow"
+              [produzioneBloccata]="_isProduzioneBloccata()"
               (action)="onWorkflowAction($event)"
             ></ui-workflow>
           }
@@ -191,6 +192,12 @@
               }
             </div>
           </div>
+          @if (attesaPubblicazioneProduzione) {
+            <div class="lnk-banner is-warn mb-4" role="status">
+              <div class="icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div>
+              <div class="body"><span>{{ 'APP.ADESIONI.MESSAGE.SkipCollaudoAttesaProduzione' | translate:{ servizio: adesione.servizio?.nome, versione: adesione.servizio?.versione } }}</span></div>
+            </div>
+          }
           @if (disclaimersGenerali.length > 0) {
             <div class="adesione-disclaimers mb-4">
               @for (item of disclaimersGenerali; track $index) {

@@ -347,6 +347,9 @@
                   </div>
                 }
                 @if (_isEdit) { <ui-input-help field="skip_collaudo" context="SOGGETTI"></ui-input-help> }
+                @if (_isEdit && skipCollaudoVincolato) {
+                  <p class="form-text text-muted mb-0">{{ 'APP.MESSAGE.SkipCollaudoDominioVincolato' | translate }}</p>
+                }
               </div>
 
               <div class="form-group multi_adesione" [class.mb-0]="!_consentiNonSottoscrivibile">

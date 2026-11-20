@@ -543,10 +543,15 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
       );
   }
 
+  /** Skip attivo non disattivabile: lo usano servizi o adesioni del dominio. */
+  get skipCollaudoVincolato(): boolean {
+    return !!this.dominio?.vincola_skip_collaudo && !!this.dominio?.skip_collaudo;
+  }
+
   _enableDisableSkipCollaudo(soggetto: any) {
     if (soggetto?.skip_collaudo) {
       // Il vincolo impedisce solo di disattivare uno skip già attivo
-      if (this.dominio?.vincola_skip_collaudo && this.dominio?.skip_collaudo) {
+      if (this.skipCollaudoVincolato) {
         this._formGroup.get('skip_collaudo')?.disable();
       } else {
         this._formGroup.get('skip_collaudo')?.enable();

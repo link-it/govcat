@@ -60,6 +60,19 @@ describe('WorkflowComponent', () => {
     expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith('servizi', 'bozza', 'stato_successivo', ['referente_servizio'], '', []);
   });
 
+  it('should block the transitions to production states when produzioneBloccata', () => {
+    mockAuthService.canChangeStatus.mockReturnValue(true);
+    component.module = 'adesione';
+    component.data = { stato: 'bozza' };
+    component._cambioStato = { stato_successivo: { nome: 'richiesto_collaudo' } };
+    component.produzioneBloccata = true;
+    expect(component._isActionEnabledMapper('stati_ulteriori', 'richiesto_produzione_senza_collaudo')).toBe(false);
+    expect(component._isActionEnabledMapper('stato_successivo')).toBe(true);
+    component.produzioneBloccata = false;
+    expect(component._isActionEnabledMapper('stati_ulteriori', 'richiesto_produzione_senza_collaudo')).toBe(true);
+    mockAuthService.canChangeStatus.mockReturnValue(false);
+  });
+
   it('should delegate isGestore to authService', () => {
     component.grant = { ruoli: ['gestore'] } as any;
     component.isGestore();
