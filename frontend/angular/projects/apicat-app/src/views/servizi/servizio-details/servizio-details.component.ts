@@ -57,6 +57,7 @@ import moment from 'moment';
 import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
 import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
 import { CropPreviewComponent } from '@app/lib/ui/crop-preview/crop-preview.component';
+import { motivoNonEliminabile } from '../servizio-non-eliminabile';
 
 @Component({
     selector: 'app-servizio-details',
@@ -862,6 +863,13 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         }
     }
 
+    /** Motivo mostrato sul pulsante di eliminazione disabilitato. */
+    _motivoNonEliminabile(): string {
+        const _isPackage = !!this.data?.package;
+        const _haApiOComponenti = this._apiComponentiCaricati ? (_isPackage ? this.hasComponenti : this.hasApi) : null;
+        return motivoNonEliminabile(_isPackage, _haApiOComponenti);
+    }
+
     _confirmDelection(data: any = null) {
         this.utils._confirmDelection(data, this.__deleteService.bind(this));
     }
@@ -1392,7 +1400,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     onWorkflowAction(event: any) {
         this.__resetError();
-        this.utils.__confirmCambioStatoServizio(event, this.data, this._changeStatus.bind(this));
+        this.utils.__confirmCambioStatoServizio(event, this.data, this._changeStatus.bind(this), true);
     }
 
     _onChangeType(event: any) {
@@ -1719,12 +1727,15 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     apiComponentiLoading: boolean = false;
+    /** API o componenti caricati: servono a spiegare perche' il servizio non e' eliminabile. */
+    _apiComponentiCaricati: boolean = false;
     hasApi: boolean = false;
     hasComponenti: boolean = false;
     packageToolTip: string = '';
 
     _loadApis() {
         this.hasApi = false;
+        this._apiComponentiCaricati = false;
         const reqs: Observable<any>[] = [];
         let aux: any;
         const query: any = { id_servizio: this.id };
@@ -1755,6 +1766,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 const serviceApiAderente = results[1]?.content ?? [];
                 this.apiComponentiLoading = false;
                 this.hasApi = (serviceApiDominio.length + serviceApiAderente.length) > 0;
+                this._apiComponentiCaricati = true;
                 this.enableDisableControlPackage();
                 this._updateOtherLinks();
             },
@@ -1768,10 +1780,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _loadComponenti() {
         this.hasComponenti = false;
+        this._apiComponentiCaricati = false;
         this.apiService.getDetails(this.model, this.id, 'componenti').subscribe({
             next: (response: any) => {
                 this.apiComponentiLoading = false;
                 this.hasComponenti = response.content.length > 0;
+                this._apiComponentiCaricati = true;
                 this.enableDisableControlPackage();
                 this._updateOtherLinks();
             },

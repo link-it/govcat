@@ -1773,7 +1773,7 @@ describe('ServizioDetailsComponent', () => {
       component.onWorkflowAction({ status: 'pubblicato' });
       expect(component._error).toBe(false);
       expect(mockUtilService.__confirmCambioStatoServizio).toHaveBeenCalledWith(
-        { status: 'pubblicato' }, component.data, expect.any(Function)
+        { status: 'pubblicato' }, component.data, expect.any(Function), true
       );
     });
   });

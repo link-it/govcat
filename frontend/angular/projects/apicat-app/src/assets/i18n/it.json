@@ -3507,7 +3507,9 @@
 				"comunicazione": "Comunicazione"
 			},
 			"Version": "Versione",
-			"RuoloNonValido": "Non ha più un ruolo valido nell'organizzazione: va sostituito"
+			"RuoloNonValido": "Non ha più un ruolo valido nell'organizzazione: va sostituito",
+			"ServizioNonEliminabile": "Il servizio non è eliminabile finché ha API o adesioni. Se ha adesioni archivialo: le API di un servizio archiviato possono essere riusate in un nuovo servizio",
+			"PackageNonEliminabile": "Il package non è eliminabile finché contiene servizi o ha adesioni. Se ha adesioni archivialo"
 		},
 		"TRANSACTIONS": {
 			"FILTER": {
@@ -3778,7 +3780,8 @@
 				"AreYouSure": "Vuoi confermare il cambio di stato in '**{{next}}**'?",
 				"AreYouSureBulk": "**Stai per eseguire un'operazione massiva che non potrà essere annullata.**\n\nVuoi confermare il cambio di stato in '**{{next}}**' di '**{{count}}**' adesioni?",
 				"ChangeStatusError": "Errore nel cambio di stato [{{status}}]",
-				"ChangeStatusSuccess": "Cambio di stato effettuato con successo [{{status}}]"
+				"ChangeStatusSuccess": "Cambio di stato effettuato con successo [{{status}}]",
+				"ArchiviazioneApiRiusabili": "Una volta archiviato, nome e versione delle API del servizio tornano disponibili per altri servizi dello stesso dominio: il servizio potrà tornare allo stato precedente solo se nessuno le avrà riusate."
 			},
 			"RIFIUTO": {
 				"Rifiuta": "Rifiuta",

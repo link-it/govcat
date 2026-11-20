@@ -154,6 +154,17 @@
                 (onAction)="_confirmDelection()"
               ></lnk-button>
             </div>
+          } @else if (!_isEdit && !_spin && data) {
+            <div class="btn-group- ms-2 d-inline-block">
+              <lnk-button
+                [type]="'button'"
+                [icon]="'bi bi-trash'"
+                [onlyIcon]="true"
+                [ariaDisabled]="true"
+                [ariaLabel]="('APP.TOOLTIP.DeleteService' | translate) + ': ' + (_motivoNonEliminabile() | translate)"
+                [btnTooltip]="_motivoNonEliminabile()"
+              ></lnk-button>
+            </div>
           }
         }
         @if (_isEdit && !_spin) {

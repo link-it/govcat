@@ -34,6 +34,8 @@ export class LnkButtonComponent implements OnInit {
     @Input() type: string = 'button'; // button | submit
     @Input() label: string = '';
     @Input() disabled: boolean = false;
+    /** Disabilitato ma focalizzabile: il tooltip resta leggibile (es. per spiegare perche` l'azione non e` disponibile). */
+    @Input() ariaDisabled: boolean = false;
     @Input() icon: string | null = null;
     @Input() onlyIcon: boolean = false;
     @Input() forceIcon: boolean = false;
@@ -58,7 +60,11 @@ export class LnkButtonComponent implements OnInit {
     ngOnInit() {
     }
 
-    _onClick() {
+    _onClick(event?: Event) {
+        if (this.ariaDisabled) {
+            event?.preventDefault();
+            return;
+        }
         this.onAction.emit({});
     }
 }

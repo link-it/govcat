@@ -69,6 +69,15 @@
           [btnTooltip]="'APP.TOOLTIP.DeleteService'"
           (onAction)="confirmDeleteServizio()"
         ></lnk-button>
+      } @else if (data) {
+        <lnk-button
+          [type]="'button'"
+          [icon]="'bi bi-trash'"
+          [onlyIcon]="true"
+          [ariaDisabled]="true"
+          [ariaLabel]="('APP.TOOLTIP.DeleteService' | translate) + ': ' + (_motivoNonEliminabile() | translate)"
+          [btnTooltip]="_motivoNonEliminabile()"
+        ></lnk-button>
       }
     </div>
   </div>

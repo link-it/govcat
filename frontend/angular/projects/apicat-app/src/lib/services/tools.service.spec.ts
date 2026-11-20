@@ -733,6 +733,24 @@ describe('WorkflowErrorMsg', () => {
         const result = Tools.WorkflowErrorMsg(error);
         expect(result).toBe('error message');
     });
+
+    it('should translate the backend code when errori has only params', () => {
+        const instant = vi.fn((key: string, params?: any) => {
+            if (key === 'APP.MESSAGE.ERROR.API.409') { return { DEFAULT: '', INTERMEDIATO: '' }; }
+            if (key === 'APP.MESSAGE.ERROR.API.409.DEFAULT') { return `API [${params.nome}/${params.versione}] esiste già`; }
+            return key;
+        });
+        Tools.translate = { instant };
+        const error = { status: 409, error: { detail: 'API.409', errori: [{ params: { nome: 'verifica-arch', versione: '1' }, links: [] }] } };
+        expect(Tools.WorkflowErrorMsg(error)).toBe('API [verifica-arch/1] esiste già');
+    });
+});
+
+describe('filtraErroriComplessi', () => {
+    it('should keep only the entries with data to complete', () => {
+        const complesso = { dato: 'servizio', campi: [{ nome_campo: 'descrizione' }], params: {} };
+        expect(Tools.filtraErroriComplessi([complesso, { params: { nome: 'a' }, links: [] }, { links: [] }])).toEqual([complesso]);
+    });
 });
 
 describe('OnError', () => {

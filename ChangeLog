@@ -33,6 +33,11 @@
 	  troncate e legenda sotto il grafico; il messaggio MON.404.STATS usa il parametro tipo inviato dal
 	  backend al posto di periodo, mai valorizzato.
 
+	Issue 475: il pulsante di eliminazione di un servizio non eliminabile resta visibile, disabilitato,
+	  con il motivo (adesioni, API o servizi del package) nel tooltip; il ripristino da archiviato con
+	  API riusate mostra il messaggio API.409 al posto di un errore generico; la conferma di
+	  archiviazione avvisa che le API tornano riusabili. Nuovo input ariaDisabled di lnk-button.
+
 2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

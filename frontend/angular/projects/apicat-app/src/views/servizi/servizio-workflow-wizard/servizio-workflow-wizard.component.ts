@@ -75,6 +75,7 @@ import {
 } from './servizio-wizard.config';
 import { LocaleNumberPipe } from '@app/pipes/locale-number.pipe';
 import { LnkRuoloNonValidoComponent } from '@app/components/lnk-ui/ruolo-non-valido/ruolo-non-valido.component';
+import { motivoNonEliminabile } from '../servizio-non-eliminabile';
 
 declare const saveAs: any;
 
@@ -1101,6 +1102,13 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     // `data.eliminabile`. Conferma -> DELETE /servizi/:id -> torna alla lista.
     // -------------------------------------------------------------------------
 
+    /** Motivo mostrato sul pulsante di eliminazione disabilitato. */
+    _motivoNonEliminabile(): string {
+        const _isPackage = !!this.data?.package;
+        const _haApi = !_isPackage && this._apiListLoaded ? (this.servizioApiList?.length || 0) > 0 : null;
+        return motivoNonEliminabile(_isPackage, _haApi);
+    }
+
     confirmDeleteServizio() {
         this.utils._confirmDelection(this.data, () => this._deleteServizio());
     }
@@ -1390,7 +1398,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     onWorkflowAction(event: any) {
         this.__resetError();
-        this.utils.__confirmCambioStatoServizio(event, this.data, this._changeStatus.bind(this));
+        this.utils.__confirmCambioStatoServizio(event, this.data, this._changeStatus.bind(this), true);
     }
 
     _changeStatus(event: any, _service: any) {
