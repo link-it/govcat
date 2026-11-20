@@ -70,8 +70,16 @@ import org.springframework.data.domain.Pageable;
 
 public abstract class AbstractServizioAuthorization extends DefaultWorkflowAuthorization<ServizioCreate,ServizioUpdate,ServizioEntity> {
 
+	/** Stati del servizio pubblicato in produzione, con o senza collaudo */
+	private static final Set<String> STATI_PUBBLICATO_PRODUZIONE = Set.of("pubblicato_produzione", "pubblicato_produzione_senza_collaudo");
+
 	public AbstractServizioAuthorization() {
 		super(EntitaEnum.SERVIZIO);
+	}
+
+	/** Indica se il servizio e` pubblicato in produzione, con il percorso con o senza collaudo. */
+	public static boolean isPubblicatoProduzione(ServizioEntity servizio) {
+		return STATI_PUBBLICATO_PRODUZIONE.contains(servizio.getStato());
 	}
 
 	@Autowired

@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.DominiController;
+import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
 import org.govway.catalogo.core.dao.repositories.ServizioRepository;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA;
@@ -65,6 +66,9 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 
 	@Autowired
 	private ServizioRepository servizioRepository;
+
+	@Autowired
+	private AdesioneRepository adesioneRepository;
 
 	@Autowired
 	private Configurazione configurazione;
@@ -165,11 +169,18 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 				Boolean.TRUE.equals(this.configurazione.getServizio().isConsentiNonSottoscrivibile());
 	}
 
+	/**
+	 * Lo skip collaudo del dominio non e` disattivabile se lo usano servizi del dominio o adesioni
+	 * (non archiviate) ai suoi servizi: entrambi lo ricevono dal dominio (Issue 478).
+	 */
 	private boolean isVincolaSkipCollaudo(DominioEntity entity) {
 		// Esistenza via query invece di entity.getServizi().stream().anyMatch(...): quest'ultimo
 		// materializzava tutti i servizi del dominio ad ogni assemblaggio (collo nelle liste, dove
 		// i domini grossi hanno centinaia di servizi e il dominio viene assemblato per ogni elemento).
-		return this.servizioRepository.existsSkipCollaudoByDominioId(entity.getId());
+		return entity.isSkipCollaudo() &&
+				(this.servizioRepository.existsSkipCollaudoByDominioId(entity.getId()) ||
+				this.adesioneRepository.existsSkipCollaudoByDominioIdNonArchiviate(entity.getId(),
+						this.configurazione.getAdesione().getWorkflow().getStatoArchiviato()));
 	}
 
 	private void setSkipCollaudo(Boolean skipCollaudo, DominioEntity entity) {

@@ -2526,6 +2526,12 @@ public class AdesioniController implements AdesioniApi {
 							throw ex;
 						}
 						this.registraErrore(errorIds, errorMessages, v,"Transizione di stato non consentita");
+					} catch(ConflictException ex) {
+						// Servizio non ancora in produzione (Issue 478): errore della singola adesione
+						if(ex.getErrorCode() != ErrorCode.ADE_409_STATE_SERVICE_NOT_PRODUCTION) {
+							throw ex;
+						}
+						this.registraErrore(errorIds, errorMessages, v,"Servizio non ancora pubblicato in produzione");
 					}
 				});
 				response.setNumeroOk(numeroOk.get());

@@ -1192,6 +1192,8 @@ public class WorkflowAdesioniTest {
         entityManager.clear();
     	// Creo l'Adesione
     	this.getAdesione();
+    	// L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+    	this.pubblicaServizioInProduzione();
     	
     	//Gestore
     	this.cambioStatoAdesioneFinoA(STATO_RICHIESTO_IN_PRODUZIONE);
@@ -1256,6 +1258,8 @@ public class WorkflowAdesioniTest {
     	
     	// Creo l'Adesione
     	this.getAdesione();
+    	// L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+    	this.pubblicaServizioInProduzione();
     	
     	//Gestore
     	this.cambioStatoAdesioneFinoA(STATO_AUTORIZZATO_IN_PRODUZIONE);
@@ -1319,6 +1323,8 @@ public class WorkflowAdesioniTest {
     	
     	// Creo l'Adesione
     	this.getAdesione();
+    	// L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+    	this.pubblicaServizioInProduzione();
     	
     	//Gestore
     	this.cambioStatoAdesioneFinoA(STATO_IN_CONFIGURAZIONE_PRODUZIONE);
@@ -1382,6 +1388,8 @@ public class WorkflowAdesioniTest {
     	
     	// Creo l'Adesione
     	this.getAdesione();
+    	// L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+    	this.pubblicaServizioInProduzione();
     	
     	//Gestore
     	this.cambioStatoAdesioneFinoA(STATO_PUBBLICATO_IN_PRODUZIONE);
@@ -1435,6 +1443,15 @@ public class WorkflowAdesioniTest {
      * Restituisce la configurazione dello stato successivo a quello indicato, per poter
      * applicare al volo il vincolo sui profili nei test che seguono.
      */
+    /** Porta il servizio in produzione senza percorrere il workflow, non oggetto di questi test. */
+    private void pubblicaServizioInProduzione() {
+        entityManager.createQuery("UPDATE ServizioEntity s SET s.stato = 'pubblicato_produzione' WHERE s.idServizio = :id")
+                .setParameter("id", idServizio.toString())
+                .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+    }
+
     private ConfigurazioneStato getConfigurazioneStatoSuccessivo(String statoAttuale) {
     	return this.configurazione.getAdesione().getWorkflow().getCambiStato().stream()
     			.filter(c -> c.getStatoAttuale().equals(statoAttuale))

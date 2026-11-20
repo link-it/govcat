@@ -75,6 +75,7 @@ import org.govway.catalogo.servlets.model.DisclaimerContestoEnum;
 import org.govway.catalogo.servlets.model.DisclaimerSeverityEnum;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneIdClient;
+import org.govway.catalogo.servlets.model.AdesioneIdentificativoUpdate;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioniCambioStatoResponse;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
@@ -3755,6 +3756,16 @@ public class AdesioniTest {
     private Servizio servizio;
     private ReferenteCreate newReferente;
     
+    /** Imposta lo stato del servizio senza percorrere il workflow e senza toccarne lo storico. */
+    private void impostaStatoServizio(UUID idServizio, String stato) {
+        entityManager.createQuery("UPDATE ServizioEntity s SET s.stato = :stato WHERE s.idServizio = :id")
+                .setParameter("stato", stato)
+                .setParameter("id", idServizio.toString())
+                .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+    }
+
     private ResponseEntity<Adesione> getInizializza() {
     	Dominio dominio = this.getDominioFull(null);
         servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
@@ -3835,7 +3846,10 @@ public class AdesioniTest {
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
+        // L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+        this.impostaStatoServizio(servizio.getIdServizio(), "pubblicato_produzione");
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
+        this.impostaStatoServizio(servizio.getIdServizio(), STATO_PUBBLICATO_IN_COLLAUDO);
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         //apiController.deleteAPI(api.getIdApi());
         //serviziController.deleteServizio(servizio.getIdServizio());
@@ -3904,7 +3918,10 @@ public class AdesioniTest {
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
+        // L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+        this.impostaStatoServizio(servizio.getIdServizio(), "pubblicato_produzione");
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
+        this.impostaStatoServizio(servizio.getIdServizio(), STATO_PUBBLICATO_IN_COLLAUDO);
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         
         final ReferenteCreate finalReferente = new ReferenteCreate();
@@ -3993,7 +4010,10 @@ public class AdesioniTest {
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
+        // L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+        this.impostaStatoServizio(servizio.getIdServizio(), "pubblicato_produzione");
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
+        this.impostaStatoServizio(servizio.getIdServizio(), STATO_PUBBLICATO_IN_COLLAUDO);
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
@@ -4077,7 +4097,10 @@ public class AdesioniTest {
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
+        // L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+        this.impostaStatoServizio(servizio.getIdServizio(), "pubblicato_produzione");
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
+        this.impostaStatoServizio(servizio.getIdServizio(), STATO_PUBBLICATO_IN_COLLAUDO);
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         
         adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
@@ -7851,6 +7874,146 @@ public class AdesioniTest {
         assertThrows(NotAuthorizedException.class, () -> adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione));
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
         assertFalse(adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione).getBody().isRientra());
+    }
+
+    // ==================== Issue 478: skip collaudo dell'adesione ====================
+
+    /**
+     * Servizio pubblicato in collaudo con i flag skip_collaudo indicati su soggetto referente e dominio
+     * (insieme) e sul servizio. I flag sono impostati direttamente sul DB: il percorso del servizio
+     * non e` oggetto dei test.
+     */
+    private void preparaServizioSkipCollaudo(boolean skipDominio, boolean skipServizio) {
+        Dominio dominio = this.getDominio(null);
+        this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+
+        setSkipCollaudo("SoggettoEntity", "idSoggetto", idSoggetto, skipDominio);
+        setSkipCollaudo("DominioEntity", "idDominio", dominio.getIdDominio(), skipDominio);
+        setSkipCollaudo("ServizioEntity", "idServizio", idServizio, skipServizio);
+    }
+
+    private void setSkipCollaudo(String entita, String campoId, UUID id, boolean skipCollaudo) {
+        entityManager.createQuery("UPDATE " + entita + " e SET e.skipCollaudo = :skip WHERE e." + campoId + " = :id")
+                .setParameter("skip", skipCollaudo)
+                .setParameter("id", id.toString())
+                .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+    }
+
+    private Adesione creaAdesioneSkipCollaudo(Boolean skipCollaudo) {
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+
+        AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setReferenti(List.of(referente));
+        nuovaAdesione.setSkipCollaudo(skipCollaudo);
+        Adesione adesione = adesioniController.createAdesione(nuovaAdesione).getBody();
+        entityManager.flush();
+        entityManager.clear();
+        return adesione;
+    }
+
+    private ResponseEntity<Adesione> aggiornaSkipCollaudoAdesione(Adesione adesione, Boolean skipCollaudo) {
+        AdesioneIdentificativoUpdate identificativo = new AdesioneIdentificativoUpdate();
+        identificativo.setIdServizio(idServizio);
+        identificativo.setIdSoggetto(idSoggetto);
+        identificativo.setSkipCollaudo(skipCollaudo);
+        AdesioneUpdate adesioneUpdate = new AdesioneUpdate();
+        adesioneUpdate.setIdentificativo(identificativo);
+        return adesioniController.updateAdesione(adesione.getIdAdesione(), adesioneUpdate, null);
+    }
+
+    @Test
+    void testCreateAdesioneSkipCollaudoServizioConCollaudo() {
+        // Il dominio consente lo skip: l'adesione puo` saltare il collaudo anche se il servizio lo prevede
+        preparaServizioSkipCollaudo(true, false);
+
+        Adesione adesione = creaAdesioneSkipCollaudo(true);
+
+        assertTrue(adesione.isSkipCollaudo());
+    }
+
+    @Test
+    void testCreateAdesioneSkipCollaudoDominioNonConsente() {
+        preparaServizioSkipCollaudo(false, false);
+
+        ConflictException e = assertThrows(ConflictException.class, () -> creaAdesioneSkipCollaudo(true));
+        assertEquals(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO, e.getErrorCode());
+    }
+
+    @Test
+    void testCreateAdesioneServizioSenzaCollaudo() {
+        // Il servizio senza collaudo impone lo skip alle sue adesioni
+        preparaServizioSkipCollaudo(true, true);
+
+        ConflictException e = assertThrows(ConflictException.class, () -> creaAdesioneSkipCollaudo(false));
+        assertEquals(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO_REQUIRED, e.getErrorCode());
+
+        assertTrue(creaAdesioneSkipCollaudo(true).isSkipCollaudo());
+    }
+
+    @Test
+    void testUpdateAdesioneSkipCollaudo() {
+        preparaServizioSkipCollaudo(true, false);
+        Adesione adesione = creaAdesioneSkipCollaudo(false);
+
+        assertTrue(aggiornaSkipCollaudoAdesione(adesione, true).getBody().isSkipCollaudo());
+        // Flag non indicato: resta invariato
+        assertTrue(aggiornaSkipCollaudoAdesione(adesione, null).getBody().isSkipCollaudo());
+        assertFalse(aggiornaSkipCollaudoAdesione(adesione, false).getBody().isSkipCollaudo());
+    }
+
+    @Test
+    void testUpdateAdesioneSkipCollaudoServizioSenzaCollaudo() {
+        preparaServizioSkipCollaudo(true, true);
+        Adesione adesione = creaAdesioneSkipCollaudo(true);
+
+        ConflictException e = assertThrows(ConflictException.class, () -> aggiornaSkipCollaudoAdesione(adesione, false));
+        assertEquals(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO_REQUIRED, e.getErrorCode());
+    }
+
+    @Test
+    void testUpdateAdesionePregressaSenzaSkipServizioSenzaCollaudo() {
+        // Adesione senza skip nata prima che il servizio diventasse senza collaudo: resta modificabile
+        // finche' non cambiano il flag o il servizio
+        preparaServizioSkipCollaudo(true, false);
+        Adesione adesione = creaAdesioneSkipCollaudo(false);
+        setSkipCollaudo("ServizioEntity", "idServizio", idServizio, true);
+
+        ResponseEntity<Adesione> response = aggiornaSkipCollaudoAdesione(adesione, false);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.getBody().isSkipCollaudo());
+    }
+
+    @Test
+    void testCambioStatoAdesioneProduzioneServizioNonInProduzione() {
+        // Il servizio e` solo in collaudo: l'adesione non puo` entrare in produzione
+        preparaServizioSkipCollaudo(false, false);
+        Adesione adesione = creaAdesioneSkipCollaudo(false);
+        // Adesione gia` pubblicata in collaudo, senza percorrere il workflow: il blocco precede la verifica dei dati
+        entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = :stato WHERE a.idAdesione = :id")
+                .setParameter("stato", STATO_PUBBLICATO_IN_COLLAUDO)
+                .setParameter("id", adesione.getIdAdesione().toString())
+                .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato("richiesto_produzione");
+        ConflictException e = assertThrows(ConflictException.class,
+                () -> adesioniController.updateStatoAdesione(adesione.getIdAdesione(), statoUpdate, null));
+        assertEquals(ErrorCode.ADE_409_STATE_SERVICE_NOT_PRODUCTION, e.getErrorCode());
+
+        // L'archiviazione resta consentita
+        statoUpdate.setStato(STATO_ARCHIVIATO);
+        assertEquals(HttpStatus.OK, adesioniController.updateStatoAdesione(adesione.getIdAdesione(), statoUpdate, null).getStatusCode());
     }
 
 }

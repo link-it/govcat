@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.controllers.ServiziController;
+import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.GruppoEntity;
@@ -79,6 +80,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	@Autowired
 	private ServizioService servizioService;
+
+	@Autowired
+	private AdesioneRepository adesioneRepository;
 
 	@Autowired
 	private ClasseUtenteService classeUtenteService;
@@ -130,7 +134,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		dettaglio.setPackage(entity.is_package());
 
-		dettaglio.setVincolaSkipCollaudo(isVincolaSkipCollaudo(entity));
+		dettaglio.setVincolaSkipCollaudo(isVincolaSkipCollaudo(entity, entity.isSkipCollaudo()));
 		
 		dettaglio.setIdServizio(UUID.fromString(entity.getIdServizio()));
 
@@ -198,14 +202,15 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		// intermediazione o dell'ente erogatore sposta le api del servizio su un altro namespace e
 		// puo` far emergere conflitti (va letto prima di copyProperties, che sovrascrive il flag).
 		NamespaceApi namespaceApiPrecedente = getNamespaceApi(entity);
+		boolean skipCollaudoPrecedente = entity.isSkipCollaudo();
 
 		BeanUtils.copyProperties(src, entity);
 		
 		if(src.isSkipCollaudo() != null) {
-			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
-				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
-				}
+			// Un servizio senza collaudo impone lo skip alle sue adesioni: non lo si attiva se ci sono
+			// adesioni che passano dal collaudo (Issue 478)
+			if(src.isSkipCollaudo() && !skipCollaudoPrecedente && isVincolaSkipCollaudo(entity, false)) {
+				throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
 		}
@@ -326,8 +331,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		entity.setDominio(newDominio);
 		
-		// Il nuovo dominio deve consentire lo skip collaudo gia` attivo sul servizio
-		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
+		// Il nuovo dominio deve consentire lo skip collaudo gia` attivo sul servizio o sulle sue adesioni
+		if(!entity.getDominio().isSkipCollaudo() && (entity.isSkipCollaudo() || hasAdesioniSkipCollaudo(entity))) {
 			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 		}
 		
@@ -391,8 +396,25 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		return entity;
 	}
 	
-	private boolean isVincolaSkipCollaudo(ServizioEntity entity) {
-		return entity.getAdesioni().stream().anyMatch(a -> a.isSkipCollaudo());
+	/**
+	 * Indica se lo skip collaudo del servizio non puo` passare dal valore indicato all'opposto (Issue 478).
+	 * Disattivarlo e` sempre consentito: le adesioni con skip lo ricevono dal dominio, non dal servizio.
+	 * Attivarlo non e` consentito se ci sono adesioni (non archiviate) che passano dal collaudo, perche'
+	 * un servizio senza collaudo impone lo skip alle sue adesioni.
+	 */
+	private boolean isVincolaSkipCollaudo(ServizioEntity entity, boolean skipCollaudo) {
+		return !skipCollaudo && entity.getId() != null &&
+				this.adesioneRepository.existsByServizioIdAndSkipCollaudoNonArchiviate(entity.getId(), false, getStatoArchiviatoAdesione());
+	}
+
+	/** Il servizio ha adesioni (non archiviate) con skip collaudo, che lo ricevono dal suo dominio. */
+	private boolean hasAdesioniSkipCollaudo(ServizioEntity entity) {
+		return entity.getId() != null &&
+				this.adesioneRepository.existsByServizioIdAndSkipCollaudoNonArchiviate(entity.getId(), true, getStatoArchiviatoAdesione());
+	}
+
+	private String getStatoArchiviatoAdesione() {
+		return this.configurazione.getAdesione().getWorkflow().getStatoArchiviato();
 	}
 
 	private void setSkipCollaudo(Boolean skipCollaudo, ServizioEntity entity) {

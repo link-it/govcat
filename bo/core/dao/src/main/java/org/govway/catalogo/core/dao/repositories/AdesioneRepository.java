@@ -63,6 +63,16 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
     @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AdesioneEntity a WHERE a.servizio.id = ?1")
     public boolean existsByServizioId(Long idServizio);
 
+    // Esistenza di adesioni non archiviate del servizio con il flag skip_collaudo indicato (Issue 478):
+    // con skip=false vincola l'attivazione dello skip collaudo sul servizio.
+    @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.skipCollaudo = ?2 AND a.stato <> ?3")
+    public boolean existsByServizioIdAndSkipCollaudoNonArchiviate(Long idServizio, boolean skipCollaudo, String statoArchiviato);
+
+    // Esistenza di adesioni non archiviate con skip_collaudo ai servizi del dominio (Issue 478):
+    // lo skip collaudo dell'adesione e` consentito dal dominio del servizio, che non puo` quindi disattivarlo.
+    @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AdesioneEntity a WHERE a.servizio.dominio.id = ?1 AND a.skipCollaudo = true AND a.stato <> ?2")
+    public boolean existsSkipCollaudoByDominioIdNonArchiviate(Long idDominio, String statoArchiviato);
+
     // Adesioni non archiviate del servizio, con soggetto e organizzazione aderente (riepilogo delle
     // quote di rate limiting assegnate ai fruitori). Il pattern (gia` in maiuscolo, "%" per nessun
     // filtro) si confronta con nome del soggetto, nome dell'organizzazione e id logico.

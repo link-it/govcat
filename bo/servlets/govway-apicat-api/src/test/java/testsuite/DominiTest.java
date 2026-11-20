@@ -48,6 +48,13 @@ import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.controllers.AdesioniController;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
+import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.servlets.model.AdesioneCreate;
+import org.govway.catalogo.servlets.model.Servizio;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.ConflictException;
@@ -145,6 +152,15 @@ public class DominiTest {
 
     @Autowired
     private OrganizzazioneService organizzazioneService;
+
+    @Autowired
+    private AdesioniController adesioniController;
+
+    @Autowired
+    private ServizioService servizioService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final String UTENTE_GESTORE = "gestore";
     private static final String UTENTE_QUALSIASI = "utente_qualsiasi";
@@ -2267,4 +2283,51 @@ public class DominiTest {
         ResponseEntity<Dominio> response = controller.updateDominio(dom.getIdDominio(), toDominioUpdate(dom, sogAltra.getIdSoggetto()));
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
+
+    // ==================== Issue 478: skip collaudo delle adesioni consentito dal dominio ====================
+
+    @Test
+    public void testUpdateDominioDisattivaSkipCollaudoConAdesioniSkip() {
+        // Le adesioni con skip lo ricevono dal dominio anche se il servizio prevede il collaudo
+        ResponseEntity<Organizzazione> organizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setAderente(true);
+        soggettoCreate.setIdOrganizzazione(organizzazione.getBody().getIdOrganizzazione());
+        Soggetto soggetto = soggettiController.createSoggetto(soggettoCreate).getBody();
+
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(soggetto.getIdSoggetto());
+        Dominio dominio = controller.createDominio(dominioCreate).getBody();
+
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setSkipCollaudo(false);
+        servizioCreate.setIdDominio(dominio.getIdDominio());
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
+        servizioCreate.setReferenti(List.of(referente));
+        Servizio servizio = serviziController.createServizio(servizioCreate).getBody();
+
+        ServizioEntity servizioEntity = servizioService.find(servizio.getIdServizio()).orElseThrow();
+        servizioEntity.setStato("pubblicato_collaudo");
+        entityManager.flush();
+        entityManager.clear();
+
+        AdesioneCreate adesione = new AdesioneCreate();
+        adesione.setIdServizio(servizio.getIdServizio());
+        adesione.setIdSoggetto(soggetto.getIdSoggetto());
+        adesione.setSkipCollaudo(true);
+        adesioniController.createAdesione(adesione);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertTrue(controller.getDominio(dominio.getIdDominio()).getBody().isVincolaSkipCollaudo());
+
+        DominioUpdate dominioUpdate = this.getDominioUpdateOpzioniAdesione(dominio, false, false);
+        dominioUpdate.setSkipCollaudo(false);
+        BadRequestException e = assertThrows(BadRequestException.class, () -> controller.updateDominio(dominio.getIdDominio(), dominioUpdate));
+        assertEquals(ErrorCode.GEN_400_SKIP_COLLAUDO, e.getErrorCode());
+    }
+
 }

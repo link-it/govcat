@@ -141,7 +141,7 @@
 				"ScegliCredenziali": "Choose your credentials…",
 				"Service": "Service",
 				"SkipCollaudoTooltip": "Enabling this option makes the subscription skip the testing phase and move directly to production configuration. Production configuration cannot be modified once published.",
-				"SkipCollaudoVincolatoTooltip": "The service is published without testing: the subscription moves directly to production configuration and this option cannot be changed.",
+				"SkipCollaudoVincolatoTooltip": "The service does not include testing: the subscription moves directly to production configuration and this option cannot be changed.",
 				"Subject": "Subject",
 				"UsaClientEsistente": "Use existing client",
 				"WizardShowAllSections": "Show all sections (debug)",
@@ -1598,7 +1598,15 @@
 						"STATE": {
 							"DEFAULT": "Cannot modify membership in current state",
 							"SKIP": {
-								"COLLAUDO": "Skip testing not allowed by service [{{nomeServizio}} v{{versioneServizio}}]"
+								"COLLAUDO": {
+									"DEFAULT": "Skip testing not allowed: the domain [{{nomeDominio}}] of service [{{nomeServizio}} v{{versioneServizio}}] does not allow skipping testing",
+									"REQUIRED": "Skip testing required: service [{{nomeServizio}} v{{versioneServizio}}] does not include testing"
+								}
+							},
+							"SERVICE": {
+								"NOT": {
+									"PRODUCTION": "Service [{{nomeServizio}} v{{versioneServizio}}] is not yet published in production"
+								}
 							},
 							"DISABLED": "Membership disabled for service [{{servizio}}]",
 							"VISIBILITY": "Service [{{servizio}}] visibility does not allow direct memberships",
@@ -1823,7 +1831,7 @@
 						},
 						"REQUEST": "Invalid request",
 						"SKIP": {
-							"COLLAUDO": "Skip testing constrained by parent entity"
+							"COLLAUDO": "Skip testing cannot be changed: constrained by related entities"
 						}
 					},
 					"404": "Resource not found",
@@ -2229,9 +2237,6 @@
 						"DEFAULT": "Semantically invalid request",
 						"REFERENTI": {
 							"ORGANIZZAZIONE": "Referents [{{referenti}}] are not associated with organization [{{orgNome}}] with at least the API Operator role: replace them or assign them the role before moving the resource to the organization"
-						},
-						"SKIP": {
-							"COLLAUDO": "Skip testing not allowed for service [{{servizio}}]"
 						}
 					}
 				},
@@ -2277,7 +2282,7 @@
 			"SkipCollaudoDominioDaSelezionare": "Select the domain: skipping testing depends on the domain.",
 			"SkipCollaudoSoggettoNonConsente": "Not available: the domain's reference subject does not allow skipping testing.",
 			"SkipCollaudoDominioNonConsente": "Not available: the service domain does not allow skipping testing.",
-			"SkipCollaudoVincolato": "Cannot be disabled: some subscriptions to the service skip testing.",
+			"SkipCollaudoVincolato": "Cannot be enabled: some subscriptions to the service go through testing.",
 			"SkipCollaudoNonModificabile": "Editable only while the service is a draft.",
 			"CollaudoNonDisponibileServizio": "Testing not available: the service is published directly in production.",
 			"CollaudoNonDisponibileAdesione": "Testing not available: the subscription is requested directly in production.",

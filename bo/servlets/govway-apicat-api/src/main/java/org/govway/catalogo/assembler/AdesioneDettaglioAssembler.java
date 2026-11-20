@@ -57,7 +57,6 @@ import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
-import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.AdesioneClientCreate;
 import org.govway.catalogo.servlets.model.AdesioneClientProposto;
@@ -265,12 +264,21 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 	}
 
 	public AdesioneEntity toEntity(AdesioneIdentificativoUpdate src, AdesioneEntity entity) {
+		boolean skipCollaudoPrecedente = entity.isSkipCollaudo();
+		ServizioEntity servizioPrecedente = entity.getServizio();
+
 		BeanUtils.copyProperties(src, entity);
 		
 		entity.setIdLogico(src.getIdLogico());
 		entity.setServizio(getServizio(src.getIdServizio()));
 
-		setSkipCollaudo(src.isSkipCollaudo(), entity);
+		// Flag non indicato: resta invariato
+		boolean skipCollaudo = src.isSkipCollaudo() != null ? src.isSkipCollaudo() : skipCollaudoPrecedente;
+		// Le adesioni pregresse senza skip a un servizio senza collaudo restano modificabili:
+		// lo skip obbligatorio si verifica solo se cambiano il flag o il servizio
+		boolean verificaSkipObbligatorio = skipCollaudo != skipCollaudoPrecedente
+				|| !entity.getServizio().equals(servizioPrecedente);
+		setSkipCollaudo(skipCollaudo, entity, verificaSkipObbligatorio);
 
 		SoggettoEntity soggetto = getSoggetto(src.getIdSoggetto());
 
@@ -299,11 +307,22 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 //		return entity;
 //	}
 //	
-	private void setSkipCollaudo(Boolean skipCollaudo, AdesioneEntity entity) {
+	/**
+	 * Lo skip collaudo dell'adesione e` consentito dal dominio del servizio, come per i servizi, ed e`
+	 * imposto dal servizio senza collaudo, che non ha un ambiente di collaudo a cui aderire (Issue 478).
+	 */
+	private void setSkipCollaudo(boolean skipCollaudo, AdesioneEntity entity, boolean verificaSkipObbligatorio) {
 		entity.setSkipCollaudo(skipCollaudo);
 
-		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new ConflictException(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO, java.util.Map.of("nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione()));
+		ServizioEntity servizio = entity.getServizio();
+		if(entity.isSkipCollaudo() && !servizio.getDominio().isSkipCollaudo()) {
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO, java.util.Map.of("nomeDominio", servizio.getDominio().getNome(),
+					"nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
+		}
+
+		if(verificaSkipObbligatorio && !entity.isSkipCollaudo() && servizio.isSkipCollaudo()) {
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO_REQUIRED, java.util.Map.of("nomeServizio", servizio.getNome(),
+					"versioneServizio", servizio.getVersione()));
 		}
 	}
 
@@ -345,7 +364,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setServizio(getServizio(src.getIdServizio()));
 		entity.setSoggetto(getSoggetto(src.getIdSoggetto()));
 
-		setSkipCollaudo(src.isSkipCollaudo(), entity);
+		setSkipCollaudo(Boolean.TRUE.equals(src.isSkipCollaudo()), entity, true);
 
 		check(entity);
 
@@ -401,10 +420,6 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		if(!entity.getSoggetto().isAderente()) {
 			throw new BadRequestException(ErrorCode.SOG_400_NOT_ADERENTE, java.util.Map.of("nomeSoggetto", entity.getSoggetto().getNome()));
-		}
-
-		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422_SKIP_COLLAUDO, java.util.Map.of("servizio", servizioK));
 		}
 	}
 

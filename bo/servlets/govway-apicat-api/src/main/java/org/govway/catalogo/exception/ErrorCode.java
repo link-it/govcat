@@ -394,8 +394,14 @@ public enum ErrorCode {
     /** Referente adesione duplicato */
     ADE_409_REFERENT("Referente adesione duplicato"),
 
-    /** Skip collaudo non consentito dal servizio */
+    /** Skip collaudo non consentito dal dominio del servizio */
     ADE_409_STATE_SKIP_COLLAUDO("Skip collaudo non consentito"),
+
+    /** Skip collaudo obbligatorio: il servizio non prevede il collaudo */
+    ADE_409_STATE_SKIP_COLLAUDO_REQUIRED("Skip collaudo obbligatorio"),
+
+    /** Servizio non ancora pubblicato in produzione: l'adesione non puo` entrare in produzione */
+    ADE_409_STATE_SERVICE_NOT_PRODUCTION("Servizio non pubblicato in produzione"),
 
     /** Adesione disabilitata per il servizio */
     ADE_409_STATE_DISABLED("Adesione disabilitata per il servizio"),
@@ -698,9 +704,6 @@ public enum ErrorCode {
 
     /** API non appartiene al servizio */
     VAL_422_API_SERVICE_MISMATCH("API non appartiene al servizio"),
-
-    /** Skip collaudo non consentito */
-    VAL_422_SKIP_COLLAUDO("Skip collaudo non consentito"),
 
     /** Profilo non compatibile con il profilo di interoperabilità GovWay dell'API */
     VAL_422_PROFILO_GOVWAY("Profilo non compatibile con il profilo di interoperabilità GovWay dell'API"),

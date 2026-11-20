@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
@@ -35,8 +34,6 @@ import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 
 public class PackageAuthorization extends AbstractServizioAuthorization {
-
-	private static final Set<String> STATI_PUBBLICATO_PRODUZIONE = Set.of("pubblicato_produzione", "pubblicato_produzione_senza_collaudo");
 
 	@Override
 	protected void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, ServizioEntity entity, String stato) {
@@ -158,7 +155,7 @@ public class PackageAuthorization extends AbstractServizioAuthorization {
 
 	private boolean passatoInProduzione(ServizioEntity servizio) {
 		// il componente puo' essere arrivato in produzione anche con il percorso senza collaudo
-		return STATI_PUBBLICATO_PRODUZIONE.contains(servizio.getStato());
+		return isPubblicatoProduzione(servizio);
 	}
 
 	@Override

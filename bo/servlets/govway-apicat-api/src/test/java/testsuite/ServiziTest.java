@@ -1965,9 +1965,13 @@ public class ServiziTest {
     }
 
     private UUID creaServizio(String nome) {
+        return creaServizio(nome, true);
+    }
+
+    private UUID creaServizio(String nome, boolean skipCollaudo) {
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setNome(nome);
-        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setSkipCollaudo(skipCollaudo);
         servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
         servizioCreate.setIdDominio(this.idDominio);
 
@@ -4124,7 +4128,7 @@ public class ServiziTest {
      */
     private ServizioRateLimiting creaServizioConRateLimiting() {
         this.getDominio();
-        UUID idServizio = creaServizio("servizio_rate_limiting");
+        UUID idServizio = creaServizio("servizio_rate_limiting", false);
 
         APICreate apiCreate = CommonUtils.getAPICreate();
         apiCreate.setNome("API_RL");
@@ -4279,7 +4283,7 @@ public class ServiziTest {
         profilo.setRateLimiting(regola);
         try {
             this.getDominio();
-            UUID idServizio = creaServizio("servizio_rate_limiting");
+            UUID idServizio = creaServizio("servizio_rate_limiting", false);
             APICreate apiCreate = CommonUtils.getAPICreate();
             apiCreate.setNome("API_RL");
             apiCreate.setIdServizio(idServizio);
@@ -4468,7 +4472,7 @@ public class ServiziTest {
         profilo.setRateLimiting(regola);
         try {
             this.getDominio();
-            UUID idServizio = creaServizio("servizio_rate_limiting");
+            UUID idServizio = creaServizio("servizio_rate_limiting", false);
             APICreate apiCreate = CommonUtils.getAPICreate();
             apiCreate.setNome("API_RL");
             apiCreate.setIdServizio(idServizio);
@@ -4703,4 +4707,102 @@ public class ServiziTest {
         uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         return controllerUtenti.createUtente(uc).getBody();
     }
+
+    // ==================== Issue 478: skip collaudo del servizio e delle adesioni ====================
+
+    /**
+     * Servizio con il flag skip_collaudo indicato, in un dominio che consente lo skip, con un'adesione
+     * per ciascun flag skip_collaudo indicato. Le adesioni sono create a servizio pubblicato in collaudo,
+     * poi il servizio torna in bozza, dove il flag e` modificabile senza i dati obbligatori del collaudo.
+     */
+    private Servizio getServizioSkipCollaudoConAdesioni(boolean skipServizio, boolean... skipAdesioni) {
+        Servizio servizio = this.getServizio();
+        ServizioEntity entity = servizioService.find(servizio.getIdServizio()).orElseThrow();
+        entity.setStato("pubblicato_collaudo");
+        entity.setSkipCollaudo(skipServizio);
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        for(int i = 0; i < skipAdesioni.length; i++) {
+            creaAdesioneSkipCollaudo(servizio.getIdServizio(), "aderente_" + i, skipAdesioni[i]);
+        }
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        servizioService.find(servizio.getIdServizio()).orElseThrow().setStato("bozza");
+        this.entityManager.flush();
+        this.entityManager.clear();
+        return servizio;
+    }
+
+    private UUID creaAdesioneSkipCollaudo(UUID idServizio, String nomeSoggetto, boolean skipCollaudo) {
+        SoggettoCreate soggetto = new SoggettoCreate();
+        soggetto.setNome(nomeSoggetto);
+        soggetto.setIdOrganizzazione(this.idOrganizzazione);
+        soggetto.setAderente(true);
+        soggetto.setReferente(false);
+        UUID idSoggettoAderente = soggettiController.createSoggetto(soggetto).getBody().getIdSoggetto();
+
+        AdesioneCreate adesione = new AdesioneCreate();
+        adesione.setIdServizio(idServizio);
+        adesione.setIdSoggetto(idSoggettoAderente);
+        adesione.setSkipCollaudo(skipCollaudo);
+        return adesioniController.createAdesione(adesione).getBody().getIdAdesione();
+    }
+
+    private ServizioUpdate servizioUpdateSkipCollaudo(Servizio servizio, UUID idDominio, boolean skipCollaudo) {
+        IdentificativoServizioUpdate identificativo = identificativoServizioUpdate(servizio, idDominio);
+        identificativo.setSkipCollaudo(skipCollaudo);
+        ServizioUpdate servizioUpdate = new ServizioUpdate();
+        servizioUpdate.setIdentificativo(identificativo);
+        return servizioUpdate;
+    }
+
+    @Test
+    void testUpdateServizioAttivaSkipCollaudoConAdesioniSenzaSkip() {
+        // Un servizio senza collaudo impone lo skip alle adesioni: non si attiva se qualcuna passa dal collaudo
+        Servizio servizio = getServizioSkipCollaudoConAdesioni(false, true, false);
+        assertTrue(serviziController.getServizio(servizio.getIdServizio()).getBody().isVincolaSkipCollaudo());
+
+        BadRequestException e = assertThrows(BadRequestException.class, () ->
+                serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdateSkipCollaudo(servizio, idDominio, true)));
+        assertEquals(ErrorCode.GEN_400_SKIP_COLLAUDO, e.getErrorCode());
+    }
+
+    @Test
+    void testUpdateServizioAttivaSkipCollaudoConAdesioniSkip() {
+        Servizio servizio = getServizioSkipCollaudoConAdesioni(false, true);
+        assertFalse(serviziController.getServizio(servizio.getIdServizio()).getBody().isVincolaSkipCollaudo());
+
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdateSkipCollaudo(servizio, idDominio, true));
+
+        assertTrue(response.getBody().isSkipCollaudo());
+    }
+
+    @Test
+    void testUpdateServizioDisattivaSkipCollaudoConAdesioniSkip() {
+        // Le adesioni con skip lo ricevono dal dominio: il servizio puo` tornare a prevedere il collaudo
+        Servizio servizio = getServizioSkipCollaudoConAdesioni(true, true);
+        assertFalse(serviziController.getServizio(servizio.getIdServizio()).getBody().isVincolaSkipCollaudo());
+
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdateSkipCollaudo(servizio, idDominio, false));
+
+        assertFalse(response.getBody().isSkipCollaudo());
+    }
+
+    @Test
+    void testUpdateServizioCambioDominioSenzaSkipConAdesioniSkip() {
+        Servizio servizio = getServizioSkipCollaudoConAdesioni(false, true);
+
+        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        dominioCreate.setNome("dominio_senza_skip");
+        dominioCreate.setSkipCollaudo(false);
+        dominioCreate.setIdSoggettoReferente(idSoggetto);
+        UUID idDominioSenzaSkip = dominiController.createDominio(dominioCreate).getBody().getIdDominio();
+
+        BadRequestException e = assertThrows(BadRequestException.class, () ->
+                serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdateSkipCollaudo(servizio, idDominioSenzaSkip, false)));
+        assertEquals(ErrorCode.GEN_400_SKIP_COLLAUDO, e.getErrorCode());
+    }
+
 }

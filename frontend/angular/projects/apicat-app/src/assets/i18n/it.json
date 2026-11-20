@@ -141,7 +141,7 @@
 				"ScegliCredenziali": "Scegli le credenziali…",
 				"Service": "Servizio",
 				"SkipCollaudoTooltip": "Abilitando questa opzione l'adesione salta la fase di collaudo e passa direttamente alla configurazione in produzione. La configurazione in produzione non potrà più essere modificata una volta pubblicata.",
-				"SkipCollaudoVincolatoTooltip": "Il servizio è pubblicato senza collaudo: l'adesione passa direttamente alla configurazione in produzione e l'opzione non può essere modificata.",
+				"SkipCollaudoVincolatoTooltip": "Il servizio non prevede il collaudo: l'adesione passa direttamente alla configurazione in produzione e l'opzione non può essere modificata.",
 				"Subject": "Soggetto",
 				"UsaClientEsistente": "Usa client esistente",
 				"WizardShowAllSections": "Mostra tutte le sezioni (debug)",
@@ -1598,7 +1598,15 @@
 						"STATE": {
 							"DEFAULT": "Impossibile modificare adesione nello stato corrente",
 							"SKIP": {
-								"COLLAUDO": "Skip collaudo non consentito dal servizio [{{nomeServizio}} v{{versioneServizio}}]"
+								"COLLAUDO": {
+									"DEFAULT": "Skip collaudo non consentito: il dominio [{{nomeDominio}}] del servizio [{{nomeServizio}} v{{versioneServizio}}] non consente di saltare il collaudo",
+									"REQUIRED": "Skip collaudo obbligatorio: il servizio [{{nomeServizio}} v{{versioneServizio}}] non prevede il collaudo"
+								}
+							},
+							"SERVICE": {
+								"NOT": {
+									"PRODUCTION": "Il servizio [{{nomeServizio}} v{{versioneServizio}}] non è ancora pubblicato in produzione"
+								}
 							},
 							"DISABLED": "Adesione disabilitata per il servizio [{{servizio}}]",
 							"VISIBILITY": "Visibilità del servizio [{{servizio}}] non consente adesioni dirette",
@@ -1823,7 +1831,7 @@
 						},
 						"REQUEST": "Richiesta non valida",
 						"SKIP": {
-							"COLLAUDO": "Skip collaudo vincolato dall'entità padre"
+							"COLLAUDO": "Skip collaudo non modificabile: vincolato dalle entità collegate"
 						}
 					},
 					"404": "Risorsa [{{risorsa}}] non trovata",
@@ -2229,9 +2237,6 @@
 						"DEFAULT": "Richiesta non valida semanticamente",
 						"REFERENTI": {
 							"ORGANIZZAZIONE": "I referenti [{{referenti}}] non sono associati all'organizzazione [{{orgNome}}] con almeno il ruolo di Operatore API: sostituirli o assegnare loro il ruolo prima di spostare la risorsa nell'organizzazione"
-						},
-						"SKIP": {
-							"COLLAUDO": "Skip collaudo non consentito per il servizio [{{servizio}}]"
 						}
 					}
 				},
@@ -2277,7 +2282,7 @@
 			"SkipCollaudoDominioDaSelezionare": "Seleziona il dominio: la possibilità di saltare il collaudo dipende dal dominio.",
 			"SkipCollaudoSoggettoNonConsente": "Non disponibile: il soggetto referente del dominio non consente di saltare il collaudo.",
 			"SkipCollaudoDominioNonConsente": "Non disponibile: il dominio del servizio non consente di saltare il collaudo.",
-			"SkipCollaudoVincolato": "Non disattivabile: esistono adesioni al servizio che saltano il collaudo.",
+			"SkipCollaudoVincolato": "Non attivabile: esistono adesioni al servizio che passano dal collaudo.",
 			"SkipCollaudoNonModificabile": "Modificabile solo con il servizio in bozza.",
 			"CollaudoNonDisponibileServizio": "Collaudo non disponibile: il servizio è pubblicato direttamente in produzione.",
 			"CollaudoNonDisponibileAdesione": "Collaudo non disponibile: l'adesione è richiesta direttamente in produzione.",

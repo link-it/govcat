@@ -1,3 +1,19 @@
+2026-11-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 478: lo skip collaudo dell'adesione è consentito dal dominio del servizio, come per i servizi:
+	  un servizio con collaudo può avere adesioni che aderiscono solo in produzione, prima rifiutate con
+	  409 ADE.409.STATE.SKIP.COLLAUDO, che ora cita il dominio. Un servizio senza collaudo impone lo
+	  skip alle sue adesioni: creare un'adesione senza skip, o togliere lo skip a un'adesione, risponde
+	  409 ADE.409.STATE.SKIP.COLLAUDO.REQUIRED (le adesioni già presenti restano modificabili). Lo skip
+	  di un servizio non si attiva se ha adesioni che passano dal collaudo e si disattiva anche con
+	  adesioni che lo saltano; quello del dominio non si disattiva se lo usano adesioni ai suoi servizi,
+	  né un servizio con tali adesioni si sposta su un dominio senza skip (400 GEN.400.SKIP.COLLAUDO).
+	  Le adesioni archiviate non contano. Il campo vincola_skip_collaudo del servizio indica ora che lo
+	  skip non è attivabile. Un'adesione entra in produzione solo con il servizio pubblicato in
+	  produzione (409 ADE.409.STATE.SERVICE.NOT.PRODUCTION), come già imposto dalla console. Modificare
+	  un'adesione senza indicare skip_collaudo lo lascia invariato invece di rispondere 500.
+
 2026-11-19  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

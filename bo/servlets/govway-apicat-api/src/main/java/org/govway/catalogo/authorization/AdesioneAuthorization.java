@@ -45,6 +45,7 @@ import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
@@ -747,6 +748,36 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	@Override
 	protected ConfigurazioneWorkflow getWorkflow(AdesioneEntity entity) {
 		return this.configurazione.getAdesione().getWorkflow();
+	}
+
+	@Override
+	public void authorizeCambioStato(AdesioneEntity entity, String statoFinale) {
+		super.authorizeCambioStato(entity, statoFinale);
+		checkServizioPubblicatoProduzione(entity, statoFinale);
+	}
+
+	/**
+	 * Un'adesione entra negli stati di produzione, con o senza collaudo, solo con il servizio pubblicato
+	 * in produzione (Issue 478). Il controllo vale solo all'ingresso in produzione: i passaggi fra stati
+	 * di produzione, l'archiviazione e il ripristino dall'archiviazione restano consentiti.
+	 * Gli stati di produzione seguono la convenzione dei nomi <fase>_produzione[_senza_collaudo].
+	 */
+	private void checkServizioPubblicatoProduzione(AdesioneEntity entity, String statoFinale) {
+		String statoIniziale = entity.getStato();
+		if(!isStatoProduzione(statoFinale) || isStatoProduzione(statoIniziale)
+				|| statoIniziale.equals(getWorkflow(entity).getStatoArchiviato())) {
+			return;
+		}
+
+		ServizioEntity servizio = entity.getServizio();
+		if(!AbstractServizioAuthorization.isPubblicatoProduzione(servizio)) {
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SERVICE_NOT_PRODUCTION,
+					Map.of("nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
+		}
+	}
+
+	private static boolean isStatoProduzione(String stato) {
+		return stato.contains("produzione");
 	}
 
 	/**
