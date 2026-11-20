@@ -839,7 +839,7 @@ describe('StatisticheComponent', () => {
       expect(component.single).toEqual([{ name: 'GET /api', value: 30 }]);
     });
 
-    it('DistribuzioneApplicativo should map nome to single', () => {
+    it('DistribuzioneApplicativo should map nome and soggetto to single', () => {
       const dist = {
         trendReport: false,
         value: 'distribuzione-applicativo',
@@ -850,14 +850,14 @@ describe('StatisticheComponent', () => {
       makeFormValid();
       component._formGroup.get('distribution_type')?.setValue(dist);
 
-      const valori = [{ nome: 'App1', valore: 40, soggetto: 'S1' }];
+      const valori = [{ nome: 'App1', valore: 40, soggetto: 'S1' }, { nome: 'App1', valore: 5, soggetto: 'S2' }, { nome: 'App2', valore: 3 }];
       mockApiService.postMonitor.mockImplementation(() => of({ valori }));
 
       component._onSubmit(component._formGroup.getRawValue());
-      expect(component.single).toEqual([{ name: 'App1', value: 40 }]);
+      expect(component.single).toEqual([{ name: 'App1 (S1)', value: 40 }, { name: 'App1 (S2)', value: 5 }, { name: 'App2', value: 3 }]);
     });
 
-    it('DistribuzioneTokenClientId should map client_id to single', () => {
+    it('DistribuzioneTokenClientId should map applicativo and client_id to single', () => {
       const dist = {
         trendReport: false,
         value: 'distribuzione-token-clientid',
@@ -868,11 +868,11 @@ describe('StatisticheComponent', () => {
       makeFormValid();
       component._formGroup.get('distribution_type')?.setValue(dist);
 
-      const valori = [{ client_id: 'client-123', soggetto: 'S1', applicativo: 'A1', valore: 25 }];
+      const valori = [{ client_id: 'client-123', soggetto: 'S1', applicativo: 'A1', valore: 25 }, { client_id: 'client-456', valore: 2 }];
       mockApiService.postMonitor.mockImplementation(() => of({ valori }));
 
       component._onSubmit(component._formGroup.getRawValue());
-      expect(component.single).toEqual([{ name: 'client-123', value: 25 }]);
+      expect(component.single).toEqual([{ name: 'A1 (client-123)', value: 25 }, { name: 'client-456', value: 2 }]);
     });
 
     it('DistribuzioneIssuer should map issuer to single', () => {
@@ -893,7 +893,7 @@ describe('StatisticheComponent', () => {
       expect(component.single).toEqual([{ name: 'https://issuer.example.com', value: 15 }]);
     });
 
-    it('DistribuzionePrincipal should map indirizzo to single', () => {
+    it('DistribuzionePrincipal should map principal and autenticazione to single', () => {
       const dist = {
         trendReport: false,
         value: 'distribuzione-principal',
@@ -904,11 +904,19 @@ describe('StatisticheComponent', () => {
       makeFormValid();
       component._formGroup.get('distribution_type')?.setValue(dist);
 
-      const valori = [{ indirizzo: 'user@example.com', valore: 35 }];
+      const valori = [
+        { principal: 'user@example.com', autenticazione: 'basic', indirizzo: 'user@example.com', valore: 35 },
+        { principal: 'user@example.com', autenticazione: 'ssl', valore: 4 },
+        { indirizzo: 'old@example.com', valore: 1 }
+      ];
       mockApiService.postMonitor.mockImplementation(() => of({ valori }));
 
       component._onSubmit(component._formGroup.getRawValue());
-      expect(component.single).toEqual([{ name: 'user@example.com', value: 35 }]);
+      expect(component.single).toEqual([
+        { name: 'user@example.com (basic)', value: 35 },
+        { name: 'user@example.com (ssl)', value: 4 },
+        { name: 'old@example.com', value: 1 }
+      ]);
     });
 
     it('DistribuzioneIp should map indirizzo to single', () => {

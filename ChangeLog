@@ -27,6 +27,10 @@
 	  ruolo valido sono segnalati con "Ruolo non valido" in vista, wizard e liste referenti; il gestore
 	  può spostare comunque un servizio in un dominio di altra organizzazione; nuovo stile lnk-form-error.
 
+	Issue 474: le distribuzioni per applicativo, principal e token client id mostrano etichette univoche
+	  (applicativo con soggetto, principal con autenticazione, applicativo con client id); il principal
+	  usa il nuovo campo principal al posto di indirizzo, deprecato.
+
 2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

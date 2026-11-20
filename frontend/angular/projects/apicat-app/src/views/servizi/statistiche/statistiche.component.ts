@@ -122,14 +122,12 @@ interface DistributionOperationItem {
   erogatore: string;
 }
 
-// does not work
 interface DistributionApplicationItem {
   nome: string;
   valore: number;
   soggetto: string;
 }
 
-// does not work
 interface DistributionTokenClientIdItem {
   client_id: string;
   soggetto: string;
@@ -137,15 +135,22 @@ interface DistributionTokenClientIdItem {
   valore: number;
 }
 
-// does not work
 interface DistributionTokenIssuerItem {
   issuer: string;
   valore: number;
 }
 
 interface DistributionPrincipalItem {
-  indirizzo: string;
+  principal: string;
+  autenticazione?: string;
+  /** @deprecated usare principal */
+  indirizzo?: string;
   valore: number;
+}
+
+/** Etichetta della serie con il dettaglio tra parentesi: ngx-charts usa il nome come chiave, valori uguali si sovrappongono. */
+function etichettaConDettaglio(nome: string, dettaglio?: string): string {
+  return dettaglio ? `${nome} (${dettaglio})` : nome;
 }
 
 interface DistributionIpItem {
@@ -1008,15 +1013,13 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
             break;
           }
           case StatisticsUrl.DistribuzioneApplicativo: {
-            // does not work
             const applicationValues = result.valori as DistributionApplicationItem[];
-            this.single = applicationValues.map((v) => ({name: v.nome, value: v.valore}));
+            this.single = applicationValues.map((v) => ({name: etichettaConDettaglio(v.nome, v.soggetto), value: v.valore}));
             break;
           }
           case StatisticsUrl.DistribuzioneTokenClientId: {
-            // possibly multi
             const tokenClientIdValues = result.valori as DistributionTokenClientIdItem[];
-            this.single = tokenClientIdValues.map((v) => ({name: v.client_id, value: v.valore}));
+            this.single = tokenClientIdValues.map((v) => ({name: v.applicativo ? etichettaConDettaglio(v.applicativo, v.client_id) : v.client_id, value: v.valore}));
             break;
           }
           case StatisticsUrl.DistribuzioneIssuer: {
@@ -1026,7 +1029,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
           }
           case StatisticsUrl.DistribuzionePrincipal: {
             const principalValues = result.valori as DistributionPrincipalItem[];
-            this.single = principalValues.map((v) => ({name: v.indirizzo, value: v.valore}));
+            this.single = principalValues.map((v) => ({name: etichettaConDettaglio(v.principal ?? v.indirizzo ?? '', v.autenticazione), value: v.valore}));
             break;
           }
           case StatisticsUrl.DistribuzioneIp: {
