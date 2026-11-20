@@ -1909,7 +1909,7 @@
 						"ALARM": "Allarme [{{idAllarme}}] non trovato",
 						"AUDIT": "Il monitoraggio di audit non è abilitato",
 						"METRIC": "Metrica [{{metrica}}] non trovata",
-						"STATS": "Statistiche non disponibili per il periodo [{{periodo}}]"
+						"STATS": "Monitoraggio non disponibile ({{tipo}}): la funzionalità o il tipo di report richiesto non è abilitato"
 					}
 				},
 				"NoAddCategorie": "Non è stato possibile aggiungere la categoria.",

@@ -992,13 +992,13 @@ describe('StatisticheComponent', () => {
     it('a monitoring error code should be translated with its parameters', () => {
       makeFormValid();
       mockTranslate.instant.mockImplementation((key: string, params?: any) =>
-        key === 'APP.MESSAGE.ERROR.MON.404.STATS' ? `Statistiche non disponibili per il periodo [${params?.periodo}]` : key);
-      const error = { status: 404, error: { detail: 'MON.404.STATS', errori: [{ params: { periodo: 'novembre' } }] } };
+        key === 'APP.MESSAGE.ERROR.MON.404.STATS' ? `Monitoraggio non disponibile (${params?.tipo})` : key);
+      const error = { status: 404, error: { detail: 'MON.404.STATS', errori: [{ params: { tipo: 'statistiche' } }] } };
       mockApiService.postMonitor.mockImplementation(() => throwError(() => error));
 
       component._onSubmit(component._formGroup.getRawValue());
 
-      expect(component._errorMsg).toBe('Statistiche non disponibili per il periodo [novembre]');
+      expect(component._errorMsg).toBe('Monitoraggio non disponibile (statistiche)');
     });
 
     it('error without error.error.message should use error.message', () => {

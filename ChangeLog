@@ -29,7 +29,9 @@
 
 	Issue 474: le distribuzioni per applicativo, principal e token client id mostrano etichette univoche
 	  (applicativo con soggetto, principal con autenticazione, applicativo con client id); il principal
-	  usa il nuovo campo principal al posto di indirizzo, deprecato.
+	  usa il nuovo campo principal al posto di indirizzo, deprecato. Nel grafico a torta etichette non
+	  troncate e legenda sotto il grafico; il messaggio MON.404.STATS usa il parametro tipo inviato dal
+	  backend al posto di periodo, mai valorizzato.
 
 2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

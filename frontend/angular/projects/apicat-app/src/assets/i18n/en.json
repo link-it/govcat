@@ -1909,7 +1909,7 @@
 						"ALARM": "Alarm [{{idAllarme}}] not found",
 						"AUDIT": "Audit monitoring is not enabled",
 						"METRIC": "Metric [{{metrica}}] not found",
-						"STATS": "Statistics not available for period [{{periodo}}]"
+						"STATS": "Monitoring not available: the requested feature or report type is not enabled"
 					}
 				},
 				"NoAddCategorie": "The category could not be added.",

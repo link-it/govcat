@@ -287,6 +287,8 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   showLegend: boolean = true;
   legendTitle: string = 'Legend';
   legendPosition = LegendPosition.Right;
+  /** Legenda del grafico a torta sotto il grafico: a destra le etichette lunghe vengono troncate. */
+  pieLegendPosition = LegendPosition.Below;
   showXAxisLabel: boolean = true;
   tooltipDisabled: boolean = false;
   showText: boolean = true;
