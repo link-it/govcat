@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
@@ -34,15 +35,21 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.RateLimitingPeriodo;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
+import org.govway.catalogo.services.RateLimitingFinalitaService.Finalita;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAdesione;
 import org.govway.catalogo.services.RateLimitingService.QuoteAssegnate;
 import org.govway.catalogo.servlets.model.ItemRateLimitingFruitore;
 import org.govway.catalogo.servlets.model.RateLimitingAdesione;
 import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
+import org.govway.catalogo.servlets.model.RateLimitingAdesioneFinalita;
+import org.govway.catalogo.servlets.model.RateLimitingFinalita;
+import org.govway.catalogo.servlets.model.RateLimitingFinalitaEsitoEnum;
 import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.RateLimitingRiepilogo;
 import org.govway.catalogo.servlets.model.RateLimitingServizio;
 import org.govway.catalogo.servlets.model.RateLimitingServizioApi;
+import org.govway.catalogo.servlets.model.RateLimitingServizioFinalita;
 import org.govway.catalogo.servlets.model.RateLimitingVerifica;
 import org.govway.catalogo.servlets.model.RateLimitingVerificaApi;
 import org.govway.catalogo.servlets.model.RateLimitingVerificaPeriodo;
@@ -198,6 +205,62 @@ public class RateLimitingAssembler {
 							.sfora(residua != null && richiesta != null && richiesta > residua);
 				})
 				.toList();
+	}
+
+	// ==================== FINALITA` PDND ====================
+
+	/** Finalita` del riepilogo del servizio per ambiente, null se il confronto non e` configurato in nessun ambiente. */
+	public RateLimitingServizioFinalita toFinalitaServizio(Map<AmbienteEnum, List<Finalita>> finalita) {
+		if(finalita.isEmpty()) {
+			return null;
+		}
+		RateLimitingServizioFinalita model = new RateLimitingServizioFinalita();
+		Optional.ofNullable(finalita.get(AmbienteEnum.COLLAUDO)).ifPresent(f -> model.setCollaudo(f.stream().map(this::toFinalita).toList()));
+		Optional.ofNullable(finalita.get(AmbienteEnum.PRODUZIONE)).ifPresent(f -> model.setProduzione(f.stream().map(this::toFinalita).toList()));
+		return model;
+	}
+
+	public RateLimitingFinalita toFinalita(Finalita finalita) {
+		Integer quota = finalita.pdnd().quota();
+		return new RateLimitingFinalita()
+				.purposeId(finalita.assegnata().purposeId())
+				.errore(finalita.pdnd().errore())
+				.titolo(finalita.pdnd().titolo())
+				.quota(quota)
+				.stato(finalita.pdnd().stato())
+				.quotaInAttesa(finalita.pdnd().quotaInAttesa())
+				.quotaAssegnata(finalita.assegnata().quotaAssegnata())
+				.numeroAdesioni(finalita.assegnata().numeroAdesioni())
+				.superata(quota != null && finalita.assegnata().quotaAssegnata() > quota);
+	}
+
+	/** Finalita` indicate da un'adesione, con le finalita` lette per identificativo. */
+	public List<RateLimitingAdesioneFinalita> toFinalitaAdesione(List<FinalitaAdesione> finalitaAdesione, Map<String, Finalita> finalita) {
+		return finalitaAdesione.stream()
+				.map(f -> {
+					RateLimitingFinalita model = toFinalita(finalita.get(f.purposeId()));
+					return new RateLimitingAdesioneFinalita()
+							.idApi(f.idApi() != null ? UUID.fromString(f.idApi()) : null)
+							.quotaRichiesta(f.quotaRichiesta())
+							.esito(getEsito(f.quotaRichiesta(), model.getQuota()))
+							.finalita(model);
+				})
+				.toList();
+	}
+
+	/** Quota dell'adesione maggiore di quella della finalita`: errore; minore: da evidenziare. */
+	private RateLimitingFinalitaEsitoEnum getEsito(Long quotaRichiesta, Integer quotaFinalita) {
+		if(quotaFinalita == null) {
+			return RateLimitingFinalitaEsitoEnum.NON_VERIFICABILE;
+		}
+		if(quotaRichiesta == null) {
+			return RateLimitingFinalitaEsitoEnum.QUOTA_ASSENTE;
+		}
+		int confronto = Long.compare(quotaRichiesta, quotaFinalita);
+		if(confronto > 0) {
+			return RateLimitingFinalitaEsitoEnum.SUPERIORE;
+		}
+		return confronto < 0 ? RateLimitingFinalitaEsitoEnum.INFERIORE : RateLimitingFinalitaEsitoEnum.CONFORME;
 	}
 
 	private String getChiave(Long idApi, AmbienteEnum ambiente, RateLimitingPeriodo periodo) {

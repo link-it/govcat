@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.OffsetDateTime;
@@ -98,6 +99,12 @@ import org.govway.catalogo.servlets.model.ClientCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.RateLimitingAdesioneFinalita;
+import org.govway.catalogo.servlets.model.RateLimitingFinalitaErroreEnum;
+import org.govway.catalogo.servlets.model.RateLimitingFinalitaEsitoEnum;
+import org.govway.catalogo.exception.ClientApiException;
+import org.govway.catalogo.pdnd.controllers.IPDNDClient;
+import org.govway.catalogo.services.RateLimitingFinalitaService;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
 import org.govway.catalogo.servlets.model.RateLimitingAdesione;
@@ -7874,6 +7881,102 @@ public class AdesioniTest {
         assertThrows(NotAuthorizedException.class, () -> adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione));
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
         assertFalse(adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione).getBody().isRientra());
+    }
+
+    // ==================== Issue 446: finalita` PDND nel rate limiting ====================
+
+    private static final String FINALITA = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
+
+    @Autowired
+    private RateLimitingFinalitaService rateLimitingFinalitaService;
+
+    private RateLimitingAdesioneFinalita verificaFinalita(UUID idAdesione) {
+        RateLimitingVerifica verifica = adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione).getBody();
+        // Le finalita` non incidono sull'esito della quota totale
+        assertTrue(verifica.isRientra());
+        assertEquals(1, verifica.getFinalita().size());
+        return verifica.getFinalita().get(0);
+    }
+
+    /**
+     * Verifica dell'adesione autorizzata: la quota giornaliera (non quella oraria) e` confrontata con
+     * la finalita` indicata, i cui problemi di lettura non fanno fallire la verifica.
+     */
+    @Test
+    void testRateLimitingFinalitaVerificaAdesione() {
+        AdesioneConApi ctx = creaAdesioneConRateLimiting();
+        UUID idAdesione = ctx.adesione().getIdAdesione();
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(ctx.idApi(), 80, RateLimitingPeriodoEnum.GIORNO), quotaFruitore(ctx.idApi(), 5, RateLimitingPeriodoEnum.ORA)));
+        entityManager.flush();
+        entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = 'pubblicato_collaudo' WHERE a.idAdesione = :id")
+            .setParameter("id", idAdesione.toString())
+            .executeUpdate();
+        entityManager.clear();
+        FinalitaPdndTestUtils.setFinalitaAdesione(entityManager, idAdesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, FINALITA);
+        entityManager.clear();
+
+        // Senza proprieta` della finalita` in configurazione la verifica non cambia
+        assertNull(adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione).getBody().getFinalita());
+
+        IPDNDClient pdnd = mock(IPDNDClient.class);
+        FinalitaPdndTestUtils.Ripristino ripristino = FinalitaPdndTestUtils.configura(this.configurazione, this.rateLimitingFinalitaService, pdnd);
+        try {
+            // Quota oltre la finalita`, con un aumento in attesa di approvazione
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA, "Finalita` dell'aderente", 50, 100);
+            RateLimitingAdesioneFinalita finalita = verificaFinalita(idAdesione);
+            assertNull(finalita.getIdApi());
+            assertEquals(80, finalita.getQuotaRichiesta());
+            assertEquals(RateLimitingFinalitaEsitoEnum.SUPERIORE, finalita.getEsito());
+            assertEquals(FINALITA, finalita.getFinalita().getPurposeId());
+            assertEquals(50, finalita.getFinalita().getQuota());
+            assertEquals(100, finalita.getFinalita().getQuotaInAttesa());
+            assertEquals(80, finalita.getFinalita().getQuotaAssegnata());
+            assertEquals(1, finalita.getFinalita().getNumeroAdesioni());
+            assertTrue(finalita.getFinalita().isSuperata());
+
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA, "Finalita` dell'aderente", 80, null);
+            assertEquals(RateLimitingFinalitaEsitoEnum.CONFORME, verificaFinalita(idAdesione).getEsito());
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA, "Finalita` dell'aderente", 200, null);
+            assertEquals(RateLimitingFinalitaEsitoEnum.INFERIORE, verificaFinalita(idAdesione).getEsito());
+
+            // Finalita` inesistente sulla PDND
+            when(pdnd.getPurpose(UUID.fromString(FINALITA))).thenThrow(new ClientApiException(
+                    new org.govway.catalogo.servlets.pdnd.client.api.impl.ApiException(404, "Not Found")));
+            finalita = verificaFinalita(idAdesione);
+            assertEquals(RateLimitingFinalitaEsitoEnum.NON_VERIFICABILE, finalita.getEsito());
+            assertEquals(RateLimitingFinalitaErroreEnum.NON_TROVATA, finalita.getFinalita().getErrore());
+            assertNull(finalita.getFinalita().getTitolo());
+
+            // Senza quota giornaliera la quota manca, anche se ce n'e` una oraria
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA, "Finalita` dell'aderente", 80, null);
+            adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore(quotaFruitore(ctx.idApi(), 5, RateLimitingPeriodoEnum.ORA)));
+            entityManager.flush();
+            entityManager.clear();
+            finalita = verificaFinalita(idAdesione);
+            assertNull(finalita.getQuotaRichiesta());
+            assertEquals(RateLimitingFinalitaEsitoEnum.QUOTA_ASSENTE, finalita.getEsito());
+            assertEquals(0, finalita.getFinalita().getQuotaAssegnata());
+
+            // Identificativo che non e` un UUID: non si interroga la PDND
+            entityManager.createQuery("UPDATE EstensioneAdesioneEntity e SET e.valore = 'non-un-uuid' WHERE e.nome = :nome")
+                .setParameter("nome", FinalitaPdndTestUtils.PROPRIETA)
+                .executeUpdate();
+            entityManager.clear();
+            assertEquals(RateLimitingFinalitaErroreEnum.NON_VALIDA, verificaFinalita(idAdesione).getFinalita().getErrore());
+
+            // Adesione non ancora autorizzata: nessuna finalita`
+            entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = 'richiesto_collaudo' WHERE a.idAdesione = :id")
+                .setParameter("id", idAdesione.toString())
+                .executeUpdate();
+            entityManager.clear();
+            assertTrue(adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione).getBody().getFinalita().isEmpty());
+
+            // Produzione: proprieta` della finalita` non configurata
+            assertNull(adesioniController.verificaRateLimitingProduzioneAdesione(idAdesione).getBody().getFinalita());
+        } finally {
+            ripristino.esegui();
+        }
     }
 
     // ==================== Issue 478: skip collaudo dell'adesione ====================

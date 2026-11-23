@@ -2741,7 +2741,34 @@
 					"autorizzate": "Autorizzate",
 					"attesa": "In attesa"
 				},
-				"MassimoFruitore": "Max per aderente"
+				"MassimoFruitore": "Max per aderente",
+				"FINALITA": {
+					"Titolo": "Finalità PDND",
+					"Descrizione": "Quota giornaliera delle finalità PDND indicate dalle adesioni autorizzate, confrontata con le quote giornaliere degli aderenti",
+					"Finalita": "Finalità",
+					"QuotaFinalita": "Quota della finalità",
+					"QuotaAssegnata": "Assegnata agli aderenti",
+					"QuotaRichiesta": "Quota giornaliera dell'aderente",
+					"QuotaInAttesa": "Aumento in attesa di approvazione",
+					"Adesioni": "Adesioni",
+					"Condivisa": "Condivisa da {{numero}} adesioni",
+					"Superata": "Le quote degli aderenti superano la quota della finalità",
+					"StatoNonAttivo": "Finalità non attiva sulla PDND",
+					"Nessuna": "Nessuna finalità indicata dalle adesioni autorizzate.",
+					"SoloAvviso": "Solo un avviso: nessun salvataggio viene bloccato.",
+					"ESITO": {
+						"conforme": "Conforme alla finalità",
+						"inferiore": "Inferiore alla quota della finalità",
+						"superiore": "Superiore alla quota della finalità",
+						"quota_assente": "Nessuna quota giornaliera indicata",
+						"non_verificabile": "Finalità non verificabile"
+					},
+					"ERRORE": {
+						"non_valida": "Identificativo della finalità non valido",
+						"non_trovata": "Finalità non trovata sulla PDND",
+						"non_disponibile": "PDND non raggiungibile: finalità non letta"
+					}
+				}
 			},
 			"ATTACHMENTS": {
 				"Title": "Allegati",

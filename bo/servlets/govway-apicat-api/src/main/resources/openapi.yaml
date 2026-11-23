@@ -6438,6 +6438,98 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RateLimitingServizioApi"
+        finalita:
+          $ref: "#/components/schemas/RateLimitingServizioFinalita"
+    RateLimitingServizioFinalita:
+      description: "Finalita` PDND usate dalle adesioni autorizzate del servizio, per ambiente, ordinate per purpose_id. Un ambiente e` assente se la configurazione non indica la proprieta` della finalita` per quell'ambiente (vedi adesione.rate_limiting.finalita); l'oggetto e` assente se non la indica per nessuno."
+      type: "object"
+      properties:
+        collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingFinalita"
+        produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingFinalita"
+    RateLimitingFinalita:
+      description: "Finalita` PDND usata da una o piu` adesioni autorizzate per l'ambiente (vedi stati_autorizzati nella configurazione delle adesioni), con la quota giornaliera letta dalla PDND confrontata con la somma delle quote giornaliere delle adesioni che la usano. E` solo un avviso: nessun salvataggio viene bloccato."
+      type: "object"
+      required:
+        - purpose_id
+        - quota_assegnata
+        - numero_adesioni
+        - superata
+      properties:
+        purpose_id:
+          description: "Identificativo della finalita` indicato nelle adesioni"
+          $ref: "#/components/schemas/String255"
+        errore:
+          $ref: "#/components/schemas/RateLimitingFinalitaErroreEnum"
+        titolo:
+          description: "Titolo della finalita` sulla PDND, assente se la finalita` non e` stata letta"
+          type: "string"
+        quota:
+          description: "Numero massimo di richieste giornaliere della finalita` (versione corrente sulla PDND), assente se la finalita` non e` stata letta"
+          type: "integer"
+          format: "int32"
+        stato:
+          description: "Stato della finalita` sulla PDND (ACTIVE, SUSPENDED, WAITING_FOR_APPROVAL, ARCHIVED, DRAFT), assente se la finalita` non e` stata letta. Uno stato diverso da ACTIVE e` un'anomalia da evidenziare, non incide su superata."
+          type: "string"
+        quota_in_attesa:
+          description: "Numero di richieste giornaliere della versione della finalita` in attesa di approvazione dell'erogatore, assente se non c'e` una richiesta di aumento in attesa"
+          type: "integer"
+          format: "int32"
+        quota_assegnata:
+          description: "Somma delle quote giornaliere delle adesioni autorizzate che usano la finalita`"
+          type: "integer"
+          format: "int64"
+        numero_adesioni:
+          description: "Numero di adesioni autorizzate che usano la finalita`: piu` di una se la finalita` e` condivisa"
+          type: "integer"
+          format: "int32"
+        superata:
+          description: "La quota assegnata supera la quota della finalita` (sempre false se la finalita` non e` stata letta)"
+          type: "boolean"
+    RateLimitingFinalitaErroreEnum:
+      description: "Motivo per cui la finalita` non e` stata letta dalla PDND: identificativo non valido, finalita` non trovata, PDND non raggiungibile o risposta non utilizzabile"
+      type: "string"
+      enum:
+        - non_valida
+        - non_trovata
+        - non_disponibile
+      x-enum-varnames:
+        - NON_VALIDA
+        - NON_TROVATA
+        - NON_DISPONIBILE
+    RateLimitingAdesioneFinalita:
+      description: "Finalita` PDND indicata dall'adesione autorizzata per l'ambiente, con la quota giornaliera dell'adesione confrontata con la quota della finalita`"
+      type: "object"
+      required:
+        - finalita
+        - esito
+      properties:
+        id_api:
+          description: "API a cui si riferisce la finalita`, se la proprieta` e` specifica per API; assente se vale per l'adesione"
+          $ref: "#/components/schemas/IdApi"
+        quota_richiesta:
+          description: "Quota giornaliera dell'adesione: dell'API indicata, o la somma delle API dell'adesione se la finalita` vale per l'adesione; assente se l'adesione non ha quote giornaliere"
+          type: "integer"
+          format: "int64"
+        esito:
+          $ref: "#/components/schemas/RateLimitingFinalitaEsitoEnum"
+        finalita:
+          description: "La finalita` con la situazione complessiva delle adesioni che la usano, compresa questa"
+          $ref: "#/components/schemas/RateLimitingFinalita"
+    RateLimitingFinalitaEsitoEnum:
+      description: "Esito del confronto fra la quota giornaliera dell'adesione e quella della finalita`: conforme se uguale; inferiore se minore, da evidenziare; superiore se maggiore, errore; quota_assente se l'adesione non ha quote giornaliere, da evidenziare; non_verificabile se la finalita` non e` stata letta (vedi errore della finalita`)"
+      type: "string"
+      enum:
+        - conforme
+        - inferiore
+        - superiore
+        - quota_assente
+        - non_verificabile
     ItemRateLimitingFruitore:
       description: "Adesione al servizio con le quote di rate limiting assegnate al fruitore in un ambiente"
       type: "object"
@@ -6463,6 +6555,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RateLimitingAdesioneApi"
+        finalita:
+          description: "Finalita` PDND indicate dall'adesione per l'ambiente, solo se autorizzata; assente se la configurazione non indica la proprieta` della finalita` per l'ambiente (vedi adesione.rate_limiting.finalita)"
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingAdesioneFinalita"
     RateLimitingVerifica:
       description: "Esito della verifica delle quote di rate limiting di un'adesione rispetto alla quota totale residua del servizio in un ambiente"
       type: "object"
@@ -6478,6 +6575,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RateLimitingVerificaApi"
+        finalita:
+          description: "Finalita` PDND indicate dall'adesione per l'ambiente, solo se autorizzata; assente se la configurazione non indica la proprieta` della finalita` per l'ambiente (vedi adesione.rate_limiting.finalita). Non incide su rientra."
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingAdesioneFinalita"
     RateLimitingVerificaApi:
       type: "object"
       required:
@@ -7382,6 +7484,16 @@ components:
       properties:
         stati_autorizzati:
           $ref: "#/components/schemas/ConfigurazioneRateLimitingStatiAutorizzati"
+        finalita:
+          $ref: "#/components/schemas/ConfigurazioneRateLimitingFinalita"
+    ConfigurazioneRateLimitingFinalita:
+      description: "Proprieta` custom delle adesioni che contiene, per ambiente, l'identificativo (purposeId) della finalita` PDND usata dall'aderente. Se indicata, il riepilogo del rate limiting confronta la quota giornaliera delle adesioni autorizzate con la quota della finalita` letta dalla PDND dell'ambiente. Il gruppo deve essere fra le proprieta_custom delle adesioni, con una classe dato dello stesso ambiente; se e` specifico per API la quota confrontata e` quella dell'API, altrimenti la somma delle quote giornaliere delle API dell'adesione. Ambiente assente: confronto non eseguito per l'ambiente. Per renderla obbligatoria prima della configurazione si usa una classe dato collaudo_pdnd o produzione_pdnd fra i dati_obbligatori dello stato in configurazione."
+      type: "object"
+      properties:
+        collaudo:
+          $ref: "#/components/schemas/ConfigurazioneRiferimentoProprietaCustom"
+        produzione:
+          $ref: "#/components/schemas/ConfigurazioneRiferimentoProprietaCustom"
     ConfigurazioneRateLimitingStatiAutorizzati:
       description: "Stati del workflow delle adesioni in cui le quote assegnate al fruitore in un ambiente sono autorizzate, distinte nel riepilogo del rate limiting del servizio. Una lista assente nel file di configurazione e` impostata all'avvio dai nomi degli stati del workflow: per il collaudo gli stati di collaudo da autorizzato in poi e gli stati di produzione con collaudo; per la produzione gli stati di produzione da autorizzato in poi, anche senza collaudo. Lista vuota: nessuno stato."
       type: "object"

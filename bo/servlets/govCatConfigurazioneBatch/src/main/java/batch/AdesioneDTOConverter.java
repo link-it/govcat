@@ -21,6 +21,7 @@ package batch;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import org.govway.catalogo.core.dto.DTOAdesioneAPI;
 import org.govway.catalogo.core.dto.DTOApi;
 import org.govway.catalogo.core.dto.DTOBasicClient;
 import org.govway.catalogo.core.dto.DTOClient;
+import org.govway.catalogo.core.dto.DTOQuotaRateLimiting;
 import org.govway.catalogo.core.dto.DTOSoggetto;
 import org.govway.catalogo.core.dto.HttpsClient;
 import org.govway.catalogo.core.dto.HttpsPdndClient;
@@ -47,6 +49,7 @@ import org.govway.catalogo.core.dto.PdndClient;
 import org.govway.catalogo.core.dto.SignClient;
 import org.govway.catalogo.core.dto.SignPdndClient;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.AdesioneRateLimitingEntity;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
@@ -283,6 +286,8 @@ public class AdesioneDTOConverter {
 		List<DTOAdesioneAPI> adesioneList = buildAdesioneList(client, profilo, authTypeEntity, apiEntity);
 
 		DTOApi apiDto = buildDTOApi(apiEntity, estensioniMap, adesioneList);
+		apiDto.setRateLimiting(getRateLimiting(apiEntity));
+		setFinalita(apiDto, apiEntity);
 		api.add(apiDto);
 
 		adesione.getClient().stream()
@@ -322,6 +327,54 @@ public class AdesioneDTOConverter {
 				.filter(v -> v != null && !v.isBlank())
 				.findAny()
 				.orElse(null);
+	}
+
+	/** Quote dell'aderente per l'API nell'ambiente di configurazione (Issue 446). */
+	private List<DTOQuotaRateLimiting> getRateLimiting(ApiEntity apiEntity) {
+		return adesione.getRateLimiting().stream()
+				.filter(r -> ambienteConfigurazione.equals(r.getAmbiente()) && isStessaApi(r.getApi(), apiEntity))
+				.sorted(Comparator.comparing(AdesioneRateLimitingEntity::getPeriodo))
+				.map(r -> new DTOQuotaRateLimiting(DTOQuotaRateLimiting.PERIODO.valueOf(r.getPeriodo().name()), r.getQuota()))
+				.toList();
+	}
+
+	/**
+	 * Finalità PDND dell'aderente per l'API, dalla proprietà custom indicata in
+	 * adesione.rate_limiting.finalita per l'ambiente (Issue 446): quella specifica per l'API se c'è,
+	 * altrimenti quella dell'adesione. Se la chiave non è configurata il DTO non la riporta e lo
+	 * scenario ricade sulla property del configuratore.
+	 */
+	private void setFinalita(DTOApi apiDto, ApiEntity apiEntity) {
+		RiferimentoProprietaCustom riferimento;
+		try {
+			riferimento = getConfReader().getProprietaFinalitaAdesione(ambienteConfigurazione.toString().toLowerCase());
+		} catch (IOException e) {
+			logger.error("[AdesioneDTOConverter] errore nella lettura di adesione.rate_limiting.finalita", e);
+			riferimento = null;
+		}
+
+		if (riferimento == null) {
+			return;
+		}
+
+		RiferimentoProprietaCustom proprieta = riferimento;
+		List<EstensioneAdesioneEntity> estensioni = adesione.getEstensioni() != null ? adesione.getEstensioni() : List.of();
+		String finalita = estensioni.stream()
+				.filter(e -> ambienteConfigurazione.equals(e.getAmbiente())
+						&& proprieta.nomeGruppo().equals(e.getGruppo()) && proprieta.nomeProprieta().equals(e.getNome())
+						&& e.getValore() != null && !e.getValore().isBlank())
+				.filter(e -> e.getApi() == null || isStessaApi(e.getApi(), apiEntity))
+				// prima quella specifica per l'API
+				.sorted(Comparator.comparing(e -> e.getApi() == null))
+				.map(e -> e.getValore().trim())
+				.findFirst()
+				.orElse(null);
+
+		apiDto.setFinalita(true, finalita);
+	}
+
+	private static boolean isStessaApi(ApiEntity api, ApiEntity altra) {
+		return api == altra || (api.getId() != null && api.getId().equals(altra.getId()));
 	}
 
 	private DTOApi buildDTOApi(ApiEntity apiEntity, Map<String, String> map, List<DTOAdesioneAPI> list) {

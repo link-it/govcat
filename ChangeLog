@@ -1,3 +1,21 @@
+2026-11-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 446: il riepilogo del rate limiting confronta le quote delle adesioni con le finalità PDND.
+	  La nuova chiave adesione.rate_limiting.finalita del configurazione.json indica, per ambiente, la
+	  proprietà custom delle adesioni con il purposeId; per le adesioni autorizzate il backend legge
+	  dalla PDND titolo, stato e chiamate giornaliere della finalità e le confronta con la quota
+	  giornaliera dell'aderente (dell'API, se la proprietà è specifica per API, altrimenti la somma
+	  delle API): maggiore è un errore, minore va evidenziata. Una finalità usata da più adesioni è
+	  superata se la somma delle loro quote ne supera la quota. Gli esiti sono nei nuovi campi
+	  finalita del riepilogo del servizio, della lista dei fruitori e della verifica dell'adesione;
+	  superata e rientra restano invariati. La PDND è interrogata fuori dalla transazione, una volta
+	  per finalità e con una cache (pdnd.finalita.cache.*); se non risponde o non trova la finalità
+	  l'esito è non verificabile, senza errori. Il batch (scenario mTLS fruizioni PDND) configura su
+	  GovWay una policy per ogni periodo delle quote di rate limiting dell'adesione, prima ignorate,
+	  e legge la finalità dalla stessa chiave del configurazione.json; le property del configuratore
+	  .rateLimiting e .purposeId restano come ripiego e sono deprecate.
+
 2026-11-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

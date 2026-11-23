@@ -19,6 +19,7 @@
  */
 package configuratore;
 
+import java.util.List;
 import java.util.Map;
 
 import org.govway.catalogo.core.dto.DTOAdesione;
@@ -27,6 +28,7 @@ import org.govway.catalogo.core.dto.DTOAdesioneAPI;
 import org.govway.catalogo.core.dto.DTOApi;
 import org.govway.catalogo.core.dto.DTOApi.PROTOCOLLO;
 import org.govway.catalogo.core.dto.DTOApi.RUOLO;
+import org.govway.catalogo.core.dto.DTOQuotaRateLimiting;
 import org.govway.catalogo.core.dto.DTOSoggetto;
 
 
@@ -163,6 +165,21 @@ public class GruppoServizio {
 	
 	public Map<String, String> getEstensioni() {
 		return this.api.getEstensioni();
+	}
+
+	/** Quote dell'aderente per l'API nell'ambiente di configurazione, una per periodo. */
+	public List<DTOQuotaRateLimiting> getRateLimiting() {
+		return this.api.getRateLimiting();
+	}
+
+	/** Vedi {@link DTOApi#isFinalitaConfigurata()}. */
+	public boolean isFinalitaConfigurata() {
+		return this.api.isFinalitaConfigurata();
+	}
+
+	/** Finalità PDND dell'aderente per l'API, se configurata in adesione.rate_limiting.finalita. */
+	public String getFinalita() {
+		return this.api.getFinalita();
 	}
 	
 	 @Override

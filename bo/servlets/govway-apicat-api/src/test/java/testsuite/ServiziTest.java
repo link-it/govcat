@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Files;
@@ -96,6 +97,16 @@ import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingFinalita;
+import org.govway.catalogo.servlets.model.ConfigurazioneRiferimentoProprietaCustom;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprieta;
+import org.govway.catalogo.servlets.model.RateLimitingAdesioneFinalita;
+import org.govway.catalogo.servlets.model.RateLimitingFinalita;
+import org.govway.catalogo.servlets.model.RateLimitingFinalitaErroreEnum;
+import org.govway.catalogo.servlets.model.RateLimitingFinalitaEsitoEnum;
+import org.govway.catalogo.pdnd.controllers.IPDNDClient;
+import org.govway.catalogo.services.RateLimitingFinalitaService;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Campo;
 import org.govway.catalogo.servlets.model.CheckDati;
@@ -4458,6 +4469,144 @@ public class ServiziTest {
         if(statiAutorizzati != null) {
             conf.getAdesione().setRateLimiting(new ConfigurazioneAdesioneRateLimiting().statiAutorizzati(statiAutorizzati));
         }
+        return conf;
+    }
+
+    // ==================== Issue 446: finalita` PDND nel rate limiting ====================
+
+    private static final String FINALITA_CONDIVISA = "3f2a1b4c-5d6e-7f80-9a1b-2c3d4e5f6071";
+
+    @Autowired
+    private RateLimitingFinalitaService rateLimitingFinalitaService;
+
+    /**
+     * Riepilogo e lista dei fruitori: la finalita` condivisa da due adesioni autorizzate in collaudo
+     * somma le loro quote giornaliere e la supera; una terza adesione non ancora autorizzata non
+     * conta. La produzione, senza proprieta` della finalita` configurata, non riporta finalita`.
+     */
+    @Test
+    void testRateLimitingFinalitaRiepilogoEFruitori() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+        UUID prima = creaAdesione(ctx.idServizio(), "aderente_1");
+        UUID seconda = creaAdesione(ctx.idServizio(), "aderente_2");
+        UUID richiesta = creaAdesione(ctx.idServizio(), "aderente_3");
+        adesioniController.updateRateLimitingCollaudoAdesione(prima, quoteFruitore(ctx.idApi(), 40, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(seconda, quoteFruitore(ctx.idApi(), 30, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(richiesta, quoteFruitore(ctx.idApi(), 10, null));
+        this.entityManager.flush();
+        impostaStatoAdesione(prima, "pubblicato_collaudo");
+        impostaStatoAdesione(seconda, "pubblicato_collaudo");
+        impostaStatoAdesione(richiesta, "richiesto_collaudo");
+        this.entityManager.clear();
+
+        // Lo stesso identificativo, scritto diversamente, e` la stessa finalita`
+        FinalitaPdndTestUtils.setFinalitaAdesione(this.entityManager, prima, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, FINALITA_CONDIVISA);
+        FinalitaPdndTestUtils.setFinalitaAdesione(this.entityManager, seconda, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, " " + FINALITA_CONDIVISA.toUpperCase() + " ");
+        FinalitaPdndTestUtils.setFinalitaAdesione(this.entityManager, richiesta, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, FINALITA_CONDIVISA);
+        this.entityManager.clear();
+
+        // Senza proprieta` della finalita` in configurazione il riepilogo non cambia
+        assertNull(serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getFinalita());
+        assertNull(serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, null, null, 0, 10)
+                .getBody().getContent().get(0).getFinalita());
+
+        IPDNDClient pdnd = mock(IPDNDClient.class);
+        FinalitaPdndTestUtils.Ripristino ripristino = FinalitaPdndTestUtils.configura(this.configurazione, this.rateLimitingFinalitaService, pdnd);
+        try {
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA_CONDIVISA, "Finalita` condivisa", 60, null);
+
+            RateLimitingServizio riepilogo = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody();
+            assertNull(riepilogo.getFinalita().getProduzione());
+            assertEquals(1, riepilogo.getFinalita().getCollaudo().size());
+            RateLimitingFinalita finalita = riepilogo.getFinalita().getCollaudo().get(0);
+            assertEquals(FINALITA_CONDIVISA, finalita.getPurposeId());
+            assertNull(finalita.getErrore());
+            assertEquals("Finalita` condivisa", finalita.getTitolo());
+            assertEquals(60, finalita.getQuota());
+            assertEquals("ACTIVE", finalita.getStato());
+            assertNull(finalita.getQuotaInAttesa());
+            assertEquals(70, finalita.getQuotaAssegnata());
+            assertEquals(2, finalita.getNumeroAdesioni());
+            assertTrue(finalita.isSuperata());
+            // Il riepilogo della quota totale del servizio non cambia
+            assertFalse(riepilogo.getApi().get(0).getCollaudo().get(0).isSuperata());
+
+            // Fruitori: la finalita` solo per le adesioni autorizzate, con l'esito della singola quota
+            List<ItemRateLimitingFruitore> fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, null, null, 0, 10)
+                    .getBody().getContent();
+            assertEquals(3, fruitori.size());
+            RateLimitingAdesioneFinalita primaFinalita = fruitori.stream().filter(f -> f.getIdAdesione().equals(prima)).findAny().orElseThrow().getFinalita().get(0);
+            assertNull(primaFinalita.getIdApi());
+            assertEquals(40, primaFinalita.getQuotaRichiesta());
+            assertEquals(RateLimitingFinalitaEsitoEnum.INFERIORE, primaFinalita.getEsito());
+            assertEquals(2, primaFinalita.getFinalita().getNumeroAdesioni());
+            assertTrue(primaFinalita.getFinalita().isSuperata());
+            assertTrue(fruitori.stream().filter(f -> f.getIdAdesione().equals(richiesta)).findAny().orElseThrow().getFinalita().isEmpty());
+            assertNull(serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10)
+                    .getBody().getContent().get(0).getFinalita());
+
+            // Finalita` di 30: la quota di 40 e` un errore, quella di 30 conforme; poi di 70, pari alla somma
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA_CONDIVISA, "Finalita` condivisa", 30, 100);
+            finalita = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getFinalita().getCollaudo().get(0);
+            assertTrue(finalita.isSuperata());
+            assertEquals(100, finalita.getQuotaInAttesa());
+            fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, true, null, 0, 10).getBody().getContent();
+            assertEquals(java.util.Set.of(RateLimitingFinalitaEsitoEnum.SUPERIORE, RateLimitingFinalitaEsitoEnum.CONFORME),
+                    fruitori.stream().map(f -> f.getFinalita().get(0).getEsito()).collect(java.util.stream.Collectors.toSet()));
+
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA_CONDIVISA, "Finalita` condivisa", 70, null);
+            assertFalse(serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getFinalita().getCollaudo().get(0).isSuperata());
+
+            // PDND non raggiungibile: la finalita` non e` verificabile, la richiesta non fallisce
+            when(pdnd.getPurpose(UUID.fromString(FINALITA_CONDIVISA))).thenThrow(new IllegalStateException("connessione rifiutata"));
+            finalita = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getFinalita().getCollaudo().get(0);
+            assertEquals(RateLimitingFinalitaErroreEnum.NON_DISPONIBILE, finalita.getErrore());
+            assertNull(finalita.getQuota());
+            assertEquals(70, finalita.getQuotaAssegnata());
+            assertFalse(finalita.isSuperata());
+            assertEquals(RateLimitingFinalitaEsitoEnum.NON_VERIFICABILE, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, true, null, 0, 1)
+                    .getBody().getContent().get(0).getFinalita().get(0).getEsito());
+        } finally {
+            ripristino.esegui();
+        }
+    }
+
+    /** La proprieta` della finalita` deve essere fra le proprieta_custom delle adesioni, con una classe dato dell'ambiente. */
+    @Test
+    void testRateLimitingFinalitaConfigurazioneNonValida() {
+        ConfigurazioneWorkflow workflow = new ConfigurazioneWorkflow();
+        workflow.setStati(List.of("bozza", "pubblicato_collaudo", "archiviato"));
+        workflow.setStatoIniziale("bozza");
+        workflow.setStatoArchiviato("archiviato");
+
+        ConfigurazioneCustomProprieta proprieta = new ConfigurazioneCustomProprieta();
+        proprieta.setNome("finalita");
+        ConfigurazioneCustomAdesioneProprietaList gruppo = new ConfigurazioneCustomAdesioneProprietaList();
+        gruppo.setNomeGruppo("PDNDCollaudo");
+        gruppo.setClasseDato(ConfigurazioneClasseDato.COLLAUDO_PDND);
+        gruppo.setProprieta(List.of(proprieta));
+
+        // Valida in collaudo
+        Configurazione conf = getConfigurazioneFinalita(workflow, gruppo, new ConfigurazioneRateLimitingFinalita()
+                .collaudo(new ConfigurazioneRiferimentoProprietaCustom().nomeGruppo("PDNDCollaudo").nomeProprieta("finalita")));
+        RateLimitingRegole.applicaDefault(conf);
+
+        // Proprieta` inesistente
+        Configurazione inesistente = getConfigurazioneFinalita(workflow, gruppo, new ConfigurazioneRateLimitingFinalita()
+                .collaudo(new ConfigurazioneRiferimentoProprietaCustom().nomeGruppo("PDNDCollaudo").nomeProprieta("altra")));
+        assertThrows(IllegalStateException.class, () -> RateLimitingRegole.applicaDefault(inesistente));
+
+        // Gruppo di collaudo indicato per la produzione
+        Configurazione altroAmbiente = getConfigurazioneFinalita(workflow, gruppo, new ConfigurazioneRateLimitingFinalita()
+                .produzione(new ConfigurazioneRiferimentoProprietaCustom().nomeGruppo("PDNDCollaudo").nomeProprieta("finalita")));
+        assertThrows(IllegalStateException.class, () -> RateLimitingRegole.applicaDefault(altroAmbiente));
+    }
+
+    private static Configurazione getConfigurazioneFinalita(ConfigurazioneWorkflow workflow, ConfigurazioneCustomAdesioneProprietaList gruppo,
+            ConfigurazioneRateLimitingFinalita finalita) {
+        Configurazione conf = getConfigurazioneStatiAutorizzati(workflow, null);
+        conf.getAdesione().setProprietaCustom(List.of(gruppo));
+        conf.getAdesione().setRateLimiting(new ConfigurazioneAdesioneRateLimiting().finalita(finalita));
         return conf;
     }
 

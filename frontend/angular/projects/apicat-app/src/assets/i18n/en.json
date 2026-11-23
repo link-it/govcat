@@ -2741,7 +2741,34 @@
 					"autorizzate": "Authorized",
 					"attesa": "Pending"
 				},
-				"MassimoFruitore": "Max per subscriber"
+				"MassimoFruitore": "Max per subscriber",
+				"FINALITA": {
+					"Titolo": "PDND purposes",
+					"Descrizione": "Daily quota of the PDND purposes indicated by the authorized subscriptions, compared with the daily quotas of the subscribers",
+					"Finalita": "Purpose",
+					"QuotaFinalita": "Purpose quota",
+					"QuotaAssegnata": "Assigned to subscribers",
+					"QuotaRichiesta": "Subscriber daily quota",
+					"QuotaInAttesa": "Increase waiting for approval",
+					"Adesioni": "Subscriptions",
+					"Condivisa": "Shared by {{numero}} subscriptions",
+					"Superata": "The subscriber quotas exceed the purpose quota",
+					"StatoNonAttivo": "Purpose not active on PDND",
+					"Nessuna": "No purpose indicated by the authorized subscriptions.",
+					"SoloAvviso": "Warning only: no save is blocked.",
+					"ESITO": {
+						"conforme": "Matches the purpose",
+						"inferiore": "Below the purpose quota",
+						"superiore": "Above the purpose quota",
+						"quota_assente": "No daily quota indicated",
+						"non_verificabile": "Purpose not verifiable"
+					},
+					"ERRORE": {
+						"non_valida": "Invalid purpose identifier",
+						"non_trovata": "Purpose not found on PDND",
+						"non_disponibile": "PDND not reachable: purpose not read"
+					}
+				}
 			},
 			"ATTACHMENTS": {
 				"Title": "Attachments",

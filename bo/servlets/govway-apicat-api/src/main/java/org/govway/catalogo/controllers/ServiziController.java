@@ -111,6 +111,10 @@ import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.services.ApiUnivocitaService;
 import org.govway.catalogo.services.DisclaimerService;
+import org.govway.catalogo.services.RateLimitingFinalitaService;
+import org.govway.catalogo.services.RateLimitingFinalitaService.Finalita;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAdesione;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAssegnata;
 import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.servlets.api.ServiziApi;
 import org.govway.catalogo.servlets.model.Allegato;
@@ -308,6 +312,9 @@ public class ServiziController implements ServiziApi {
 
 	@Autowired
 	private RateLimitingAssembler rateLimitingAssembler;
+
+	@Autowired
+	private RateLimitingFinalitaService rateLimitingFinalitaService;
 
 	@Autowired
 	private StoricoStatiAssembler storicoStatiAssembler;
@@ -851,10 +858,13 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+	/** Riepilogo letto dal DB, da completare con le finalita` lette dalla PDND fuori dalla transazione. */
+	private record RiepilogoRateLimiting(RateLimitingServizio model, Map<org.govway.catalogo.core.orm.entity.AmbienteEnum, List<FinalitaAssegnata>> finalita) {}
+
 	@Override
 	public ResponseEntity<RateLimitingServizio> getRateLimitingServizio(UUID idServizio) {
 		try {
-			return this.service.runTransaction( () -> {
+			RiepilogoRateLimiting riepilogo = this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
@@ -862,11 +872,15 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.debug("Autorizzazione completata con successo");
 
-				RateLimitingServizio model = this.rateLimitingAssembler.toRiepilogo(entity, this.rateLimitingService.getQuoteAssegnate(entity));
-
-				this.logger.info("Invocazione completata con successo");
-				return ResponseEntity.ok(model);
+				return new RiepilogoRateLimiting(this.rateLimitingAssembler.toRiepilogo(entity, this.rateLimitingService.getQuoteAssegnate(entity)),
+						this.rateLimitingFinalitaService.getFinalitaAssegnate(entity));
 			});
+
+			RateLimitingServizio model = riepilogo.model();
+			model.setFinalita(this.rateLimitingAssembler.toFinalitaServizio(this.rateLimitingFinalitaService.leggiFinalita(riepilogo.finalita())));
+
+			this.logger.info("Invocazione completata con successo");
+			return ResponseEntity.ok(model);
 		}
 		catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
@@ -878,11 +892,20 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+	/**
+	 * Pagina dei fruitori letta dal DB, con le finalita` indicate da ciascuno (stesso ordine del
+	 * contenuto) e quelle assegnate nell'ambiente, da completare fuori dalla transazione.
+	 */
+	private record FruitoriRateLimiting(PagedModelItemRateLimitingFruitore list, List<List<FinalitaAdesione>> finalitaFruitori,
+			List<FinalitaAssegnata> finalitaAssegnate) {}
+
 	@Override
 	public ResponseEntity<PagedModelItemRateLimitingFruitore> listRateLimitingFruitoriServizio(UUID idServizio,
 			org.govway.catalogo.servlets.model.AmbienteEnum ambiente, Boolean autorizzate, String q, Integer page, Integer size) {
 		try {
-			return this.service.runTransaction( () -> {
+			org.govway.catalogo.core.orm.entity.AmbienteEnum ambienteEntity = org.govway.catalogo.core.orm.entity.AmbienteEnum.valueOf(ambiente.name());
+
+			FruitoriRateLimiting fruitori = this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
@@ -890,7 +913,6 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.debug("Autorizzazione completata con successo");
 
-				org.govway.catalogo.core.orm.entity.AmbienteEnum ambienteEntity = org.govway.catalogo.core.orm.entity.AmbienteEnum.valueOf(ambiente.name());
 				Page<AdesioneEntity> adesioni = this.rateLimitingService.getAdesioniNonArchiviate(entity, ambienteEntity, autorizzate, q, page, size);
 
 				PagedModelItemRateLimitingFruitore list = new PagedModelItemRateLimitingFruitore();
@@ -900,9 +922,25 @@ public class ServiziController implements ServiziApi {
 						.toList());
 				list.setPage(new PageMetadata().size((long)adesioni.getSize()).number((long)adesioni.getNumber()).totalElements(adesioni.getTotalElements()).totalPages((long)adesioni.getTotalPages()));
 
-				this.logger.info("Invocazione completata con successo");
-				return ResponseEntity.ok(list);
+				List<List<FinalitaAdesione>> finalitaFruitori = adesioni.getContent().stream()
+						.map(a -> this.rateLimitingFinalitaService.getFinalitaAdesione(a, ambienteEntity))
+						.toList();
+				boolean usate = finalitaFruitori.stream().anyMatch(f -> !f.isEmpty());
+				return new FruitoriRateLimiting(list, finalitaFruitori,
+						usate ? this.rateLimitingFinalitaService.getFinalitaAssegnate(entity, ambienteEntity) : List.of());
 			});
+
+			PagedModelItemRateLimitingFruitore list = fruitori.list();
+			if(this.rateLimitingFinalitaService.isAbilitata(ambienteEntity)) {
+				Map<String, Finalita> finalita = this.rateLimitingFinalitaService.leggiFinalita(ambienteEntity, fruitori.finalitaAssegnate(),
+						fruitori.finalitaFruitori().stream().flatMap(List::stream).toList());
+				for(int i = 0; i < list.getContent().size(); i++) {
+					list.getContent().get(i).setFinalita(this.rateLimitingAssembler.toFinalitaAdesione(fruitori.finalitaFruitori().get(i), finalita));
+				}
+			}
+
+			this.logger.info("Invocazione completata con successo");
+			return ResponseEntity.ok(list);
 		}
 		catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);

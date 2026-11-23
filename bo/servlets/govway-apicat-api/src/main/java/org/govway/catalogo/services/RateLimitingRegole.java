@@ -32,10 +32,14 @@ import org.govway.catalogo.core.orm.entity.RateLimitingPeriodo;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneAdesione;
 import org.govway.catalogo.servlets.model.ConfigurazioneAdesioneRateLimiting;
+import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloRateLimiting;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingFinalita;
 import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingQuota;
 import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingStatiAutorizzati;
+import org.govway.catalogo.servlets.model.ConfigurazioneRiferimentoProprietaCustom;
 import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
 import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.Ruolo;
@@ -63,6 +67,9 @@ import org.springframework.stereotype.Component;
  * convenzione <fase>_<ambiente>[_senza_collaudo] su cui si basa il resto dell'applicazione:
  * l'ordine della lista degli stati non e` utilizzabile, perche' il ramo senza collaudo segue quello
  * di produzione.
+ *
+ * Indica infine, per ambiente, la proprieta` custom delle adesioni che contiene la finalita` PDND
+ * (adesione.rate_limiting.finalita), verificata all'avvio.
  *
  * Non dipende dalle autorizzazioni, che la usano per la verifica dei dati obbligatori.
  */
@@ -133,6 +140,54 @@ public class RateLimitingRegole {
 		} else {
 			checkStati(sa.getProduzione(), stati, "produzione");
 		}
+
+		ConfigurazioneRateLimitingFinalita finalita = adesione.getRateLimiting().getFinalita();
+		if(finalita != null) {
+			checkFinalita(adesione, finalita.getCollaudo(), AmbienteEnum.COLLAUDO);
+			checkFinalita(adesione, finalita.getProduzione(), AmbienteEnum.PRODUZIONE);
+		}
+	}
+
+	/**
+	 * La proprieta` della finalita` deve essere fra le proprieta_custom delle adesioni, in un gruppo
+	 * di una classe dato dello stesso ambiente: le estensioni dell'adesione ne riportano l'ambiente.
+	 */
+	private static void checkFinalita(ConfigurazioneAdesione adesione, ConfigurazioneRiferimentoProprietaCustom riferimento, AmbienteEnum ambiente) {
+		if(riferimento == null) {
+			return;
+		}
+		String chiave = "adesione.rate_limiting.finalita." + ambiente.name().toLowerCase();
+		List<ConfigurazioneCustomAdesioneProprietaList> gruppi = adesione.getProprietaCustom() != null ? adesione.getProprietaCustom() : List.of();
+		ConfigurazioneCustomAdesioneProprietaList gruppo = gruppi.stream()
+				.filter(g -> g.getNomeGruppo().equals(riferimento.getNomeGruppo()))
+				.filter(g -> g.getProprieta() != null && g.getProprieta().stream().anyMatch(p -> p.getNome().equals(riferimento.getNomeProprieta())))
+				.findAny()
+				.orElseThrow(() -> new IllegalStateException("Configurazione non valida: la proprieta` '" + riferimento.getNomeGruppo() + "."
+						+ riferimento.getNomeProprieta() + "' di " + chiave + " non e` fra le proprieta_custom delle adesioni"));
+
+		if(!ambiente.equals(getAmbiente(gruppo.getClasseDato()))) {
+			throw new IllegalStateException("Configurazione non valida: il gruppo '" + gruppo.getNomeGruppo() + "' di " + chiave
+					+ " ha la classe dato '" + gruppo.getClasseDato() + "', di un altro ambiente");
+		}
+	}
+
+	/** Ambiente dei dati di una classe dato delle proprieta` custom, null se non e` di un ambiente. */
+	private static AmbienteEnum getAmbiente(ConfigurazioneClasseDato classeDato) {
+		if(classeDato == null) {
+			return null;
+		}
+		switch(classeDato) {
+		case COLLAUDO:
+		case COLLAUDO_CONFIGURATO:
+		case COLLAUDO_PDND:
+			return AmbienteEnum.COLLAUDO;
+		case PRODUZIONE:
+		case PRODUZIONE_CONFIGURATO:
+		case PRODUZIONE_PDND:
+			return AmbienteEnum.PRODUZIONE;
+		default:
+			return null;
+		}
 	}
 
 	/**
@@ -167,6 +222,18 @@ public class RateLimitingRegole {
 	/** Profilo PDND: pdnd_type valorizzato, lo stesso criterio del menu` PDND della console. */
 	private static boolean isPdnd(ConfigurazioneProfilo profilo) {
 		return profilo.getPdndType() != null && !profilo.getPdndType().isBlank();
+	}
+
+	/**
+	 * Proprieta` custom delle adesioni che contiene la finalita` PDND per l'ambiente, vuota se il
+	 * confronto con la finalita` non e` configurato.
+	 */
+	public Optional<ConfigurazioneRiferimentoProprietaCustom> getProprietaFinalita(AmbienteEnum ambiente) {
+		ConfigurazioneRateLimitingFinalita finalita = this.configurazione.getAdesione().getRateLimiting().getFinalita();
+		if(finalita == null) {
+			return Optional.empty();
+		}
+		return Optional.ofNullable(AmbienteEnum.PRODUZIONE.equals(ambiente) ? finalita.getProduzione() : finalita.getCollaudo());
 	}
 
 	/** Stati delle adesioni in cui le quote dell'ambiente sono autorizzate, impostati all'avvio. */

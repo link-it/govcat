@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.core.dao.repositories;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.govway.catalogo.core.orm.entity.AdesioneRateLimitingEntity;
@@ -56,6 +57,42 @@ public interface AdesioneRateLimitingRepository extends JpaRepositoryImplementat
 			+ "AND r.ambiente = ?3 AND r.adesione.id <> ?4 "
 			+ "GROUP BY r.api.id, r.ambiente, r.periodo, r.adesione.stato")
 	List<QuotaAssegnata> getQuoteAssegnateAltreAdesioni(Long idServizio, String statoArchiviato, AmbienteEnum ambiente, Long idAdesione);
+
+	/**
+	 * Adesioni che usano una finalita` PDND: l'identificativo, normalizzato in minuscolo e senza
+	 * spazi, e il numero delle adesioni del servizio negli stati indicati che lo riportano nella
+	 * proprieta` custom indicata per l'ambiente.
+	 */
+	interface AdesioniFinalita {
+		String getPurposeId();
+		Long getNumeroAdesioni();
+	}
+
+	@Query(value = "SELECT LOWER(TRIM(e.valore)) AS purposeId, COUNT(DISTINCT e.adesione.id) AS numeroAdesioni "
+			+ "FROM EstensioneAdesioneEntity e WHERE e.adesione.servizio.id = ?1 AND e.ambiente = ?2 AND e.gruppo = ?3 AND e.nome = ?4 "
+			+ "AND e.adesione.stato IN ?5 AND e.valore IS NOT NULL AND TRIM(e.valore) <> '' "
+			+ "GROUP BY LOWER(TRIM(e.valore))")
+	List<AdesioniFinalita> getAdesioniFinalita(Long idServizio, AmbienteEnum ambiente, String gruppo, String nome, Collection<String> stati);
+
+	/** Somma delle quote di una finalita` PDND nel periodo indicato. */
+	interface QuotaFinalita {
+		String getPurposeId();
+		Long getQuota();
+	}
+
+	/**
+	 * Come {@link #getAdesioniFinalita(Long, AmbienteEnum, String, String, Collection)}, con la somma
+	 * delle quote del periodo indicato: dell'API della proprieta`, se specifica per API, altrimenti di
+	 * tutte le API dell'adesione. Le adesioni senza quote nel periodo non compaiono.
+	 */
+	@Query(value = "SELECT LOWER(TRIM(e.valore)) AS purposeId, SUM(r.quota) AS quota "
+			+ "FROM EstensioneAdesioneEntity e, AdesioneRateLimitingEntity r "
+			+ "WHERE r.adesione = e.adesione AND r.ambiente = e.ambiente AND r.periodo = ?6 AND (e.api IS NULL OR r.api = e.api) "
+			+ "AND e.adesione.servizio.id = ?1 AND e.ambiente = ?2 AND e.gruppo = ?3 AND e.nome = ?4 "
+			+ "AND e.adesione.stato IN ?5 AND e.valore IS NOT NULL AND TRIM(e.valore) <> '' "
+			+ "GROUP BY LOWER(TRIM(e.valore))")
+	List<QuotaFinalita> getQuoteFinalita(Long idServizio, AmbienteEnum ambiente, String gruppo, String nome, Collection<String> stati,
+			RateLimitingPeriodo periodo);
 
 	@Query(value = "SELECT COUNT(r) FROM AdesioneRateLimitingEntity r "
 			+ "WHERE r.api.id = ?1 AND r.ambiente = ?2 AND r.periodo = ?3 AND r.adesione.stato <> ?4")

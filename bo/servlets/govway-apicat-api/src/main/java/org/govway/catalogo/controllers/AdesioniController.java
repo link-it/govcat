@@ -84,6 +84,9 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.DisclaimerService;
+import org.govway.catalogo.services.RateLimitingFinalitaService;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAdesione;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAssegnata;
 import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.api.AdesioniApi;
@@ -228,6 +231,9 @@ public class AdesioniController implements AdesioniApi {
 
 	@Autowired
 	private RateLimitingAssembler rateLimitingAssembler;
+
+	@Autowired
+	private RateLimitingFinalitaService rateLimitingFinalitaService;
 
 	@Autowired
 	private StoricoStatiAssembler storicoStatiAssembler;
@@ -2256,13 +2262,17 @@ public class AdesioniController implements AdesioniApi {
 		return verificaRateLimitingAdesione(idAdesione, AmbienteEnum.PRODUZIONE);
 	}
 
+	/** Verifica letta dal DB, da completare con le finalita` lette dalla PDND fuori dalla transazione. */
+	private record VerificaRateLimiting(RateLimitingVerifica model, List<FinalitaAdesione> finalitaAdesione, List<FinalitaAssegnata> finalitaAssegnate) {}
+
 	/**
 	 * Verifica, per chi gestisce il servizio, se le quote dell'adesione rientrano nella quota totale
-	 * residua: espone le quote impegnate dagli altri fruitori, quindi non e` aperta all'aderente.
+	 * residua e nelle finalita` PDND indicate: espone le quote impegnate dagli altri fruitori, quindi
+	 * non e` aperta all'aderente.
 	 */
 	private ResponseEntity<RateLimitingVerifica> verificaRateLimitingAdesione(UUID idAdesione, AmbienteEnum ambiente) {
 		try {
-			return this.service.runTransaction( () -> {
+			VerificaRateLimiting verifica = this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
 				AdesioneEntity entity = findOneConsultazione(idAdesione);
@@ -2274,9 +2284,19 @@ public class AdesioniController implements AdesioniApi {
 						this.rateLimitingService.getRateLimiting(entity, ambiente),
 						this.rateLimitingService.getQuoteAssegnateAltreAdesioni(entity, ambiente));
 
-				this.logger.info("Invocazione completata con successo");
-				return ResponseEntity.ok(model);
+				List<FinalitaAdesione> finalitaAdesione = this.rateLimitingFinalitaService.getFinalitaAdesione(entity, ambiente);
+				return new VerificaRateLimiting(model, finalitaAdesione,
+						finalitaAdesione.isEmpty() ? List.of() : this.rateLimitingFinalitaService.getFinalitaAssegnate(entity.getServizio(), ambiente));
 			});
+
+			RateLimitingVerifica model = verifica.model();
+			if(this.rateLimitingFinalitaService.isAbilitata(ambiente)) {
+				model.setFinalita(this.rateLimitingAssembler.toFinalitaAdesione(verifica.finalitaAdesione(),
+						this.rateLimitingFinalitaService.leggiFinalita(ambiente, verifica.finalitaAssegnate(), verifica.finalitaAdesione())));
+			}
+
+			this.logger.info("Invocazione completata con successo");
+			return ResponseEntity.ok(model);
 		}
 		catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);

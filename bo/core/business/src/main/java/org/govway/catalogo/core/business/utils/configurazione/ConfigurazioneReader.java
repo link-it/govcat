@@ -44,6 +44,7 @@ public class ConfigurazioneReader {
 
     private static final String PATH_PROFILI_API = "$.servizio.api.profili";
     private static final String PATH_PROFILO_GATEWAY_DEFAULT = "$.soggetto.profilo_gateway_default";
+    private static final String PATH_FINALITA_ADESIONE = "$.adesione.rate_limiting.finalita";
 
     private static final String CAMPO_CODICE_INTERNO = "codice_interno";
     private static final String CAMPO_PROFILO_GOVWAY = "profilo_govway";
@@ -240,7 +241,30 @@ public class ConfigurazioneReader {
             return null;
         }
 
-        if (!(profilo.get(CAMPO_PROPRIETA_TOKEN_POLICY) instanceof Map<?, ?> riferimento)) {
+        return toRiferimento(profilo.get(CAMPO_PROPRIETA_TOKEN_POLICY), CAMPO_PROPRIETA_TOKEN_POLICY + " del profilo " + codiceInterno);
+    }
+
+    /**
+     * Riferimento alla proprietà custom delle adesioni che contiene la finalità PDND per l'ambiente
+     * indicato (adesione.rate_limiting.finalita.collaudo|produzione), nullo se non configurato. È la
+     * stessa chiave usata da govcat-api per il confronto delle quote con le finalità.
+     *
+     * @param ambiente collaudo o produzione, in minuscolo
+     */
+    public RiferimentoProprietaCustom getProprietaFinalitaAdesione(String ambiente) throws IOException {
+        Map<String, Object> finalita;
+        try {
+            finalita = getDocumento().read(PATH_FINALITA_ADESIONE);
+        } catch (PathNotFoundException e) {
+            logger.debug("{} non configurato", PATH_FINALITA_ADESIONE);
+            return null;
+        }
+
+        return finalita == null ? null : toRiferimento(finalita.get(ambiente), PATH_FINALITA_ADESIONE + "." + ambiente);
+    }
+
+    private static RiferimentoProprietaCustom toRiferimento(Object valore, String descrizione) {
+        if (!(valore instanceof Map<?, ?> riferimento)) {
             return null;
         }
 
@@ -248,8 +272,7 @@ public class ConfigurazioneReader {
         String nomeProprieta = getStringa(riferimento.get(CAMPO_NOME_PROPRIETA));
 
         if (nomeGruppo == null || nomeProprieta == null) {
-            logger.warn("{} del profilo {} incompleto: {} e {} sono entrambi obbligatori",
-                    CAMPO_PROPRIETA_TOKEN_POLICY, codiceInterno, CAMPO_NOME_GRUPPO, CAMPO_NOME_PROPRIETA);
+            logger.warn("{} incompleto: {} e {} sono entrambi obbligatori", descrizione, CAMPO_NOME_GRUPPO, CAMPO_NOME_PROPRIETA);
             return null;
         }
 
