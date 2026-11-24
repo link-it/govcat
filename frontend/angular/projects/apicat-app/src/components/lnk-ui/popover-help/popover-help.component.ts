@@ -48,6 +48,7 @@ export class PopoverHelpComponent implements OnChanges {
     title: string = '';
     text: string = '';
     existsValue: boolean = false;
+    ariaLabel: string = '';
 
     constructor(
         private readonly sanitized: DomSanitizer,
@@ -67,6 +68,8 @@ export class PopoverHelpComponent implements OnChanges {
             if (_existsTitle) {
                 this.title = this.translate.instant(_keyTitle, this.params);
             }
+            const _mostra = this.translate.instant('APP.LABEL.ShowHelp');
+            this.ariaLabel = this.title ? `${_mostra}: ${this.title}` : _mostra;
         }
     }
 

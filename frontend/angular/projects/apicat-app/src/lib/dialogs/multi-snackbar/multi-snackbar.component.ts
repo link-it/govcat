@@ -48,9 +48,12 @@ import { BehaviorSubject } from 'rxjs';
       z-index: 1700;
       padding: .5rem;
       overflow: hidden;
+      /* La fascia, anche vuota, non deve intercettare i clic sulla pagina sottostante */
+      pointer-events: none;
     }
 
     .snackbar-message {
+      pointer-events: auto;
       margin-bottom: .5rem;
       border-radius: 4px;
       padding: 14px 16px;

@@ -517,3 +517,15 @@
     color: var(--ink, #212c49);
   }
 }
+
+// Titolo del gruppo di referenti come pulsante di apertura (il clic sull'intestazione resta per il mouse)
+.lnk-ref-group-toggle {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}

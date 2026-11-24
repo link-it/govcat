@@ -8,6 +8,15 @@
 	  GET /configurazione; se assente le note non sono mostrate in vetrina. Il dettaglio del servizio
 	  restituisce le note come prima; i ruoli dell'utente sono quelli della GET /servizi/{id}/grant.
 
+2026-11-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilità da tastiera e riflusso: indicatore del fuoco visibile (:focus-visible) al posto della
+	  rimozione globale; header e breadcrumb senza scorrimento orizzontale a 320 px; titoli delle schede,
+	  aiuti, alberi, riepiloghi della dashboard, sotto-step del wizard e gruppi di referenti
+	  raggiungibili da tastiera; tabindex sulle regioni scorrevoli solo se prive di elementi focusabili
+	  visibili; la fascia delle notifiche non intercetta più i clic sulla pagina.
+
 2026-11-23  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

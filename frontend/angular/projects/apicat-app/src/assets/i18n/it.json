@@ -1401,7 +1401,8 @@
 			"Warning": "Warning",
 			"X-Forwarded-For": "X-Forwarded-For",
 			"Yes": "Si",
-			"RuoloNonValido": "Ruolo non valido"
+			"RuoloNonValido": "Ruolo non valido",
+			"ShowHelp": "Mostra l'aiuto"
 		},
 		"LABEL_HELP": {
 			"ClientAuthForm": {

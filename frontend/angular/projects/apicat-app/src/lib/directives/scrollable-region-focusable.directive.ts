@@ -23,9 +23,13 @@ import { AfterViewInit, Directive, ElementRef, NgZone, OnDestroy } from '@angula
  * Quando il contenuto va in overflow la regione diventa scorrevole ma, senza discendenti
  * focusabili, chi naviga da tastiera non può raggiungerla né scorrerla (WCAG 2.1.1,
  * axe scrollable-region-focusable). La direttiva assegna `tabindex="0"` solo quando la
- * regione è effettivamente scrollabile, evitando tab-stop inutili sulle liste corte.
+ * regione è effettivamente scrollabile e non contiene già elementi focusabili visibili (che
+ * bastano a scorrerla), evitando tab-stop inutili.
  * Si applica automaticamente in ogni componente che importa le direttive condivise.
  */
+const FOCUSABILI = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), '
+  + 'textarea:not([disabled]), [contenteditable="true"], [tabindex]:not([tabindex="-1"])';
+
 @Directive({
   selector: 'section.container-scroller',
   standalone: true
@@ -71,10 +75,15 @@ export class ScrollableRegionFocusableDirective implements AfterViewInit, OnDest
     });
   }
 
+  /** Gli elementi nascosti (per esempio i comandi mostrati solo al passaggio del mouse) non contano. */
+  private haFocusabiliVisibili(el: HTMLElement): boolean {
+    return Array.from(el.querySelectorAll<HTMLElement>(FOCUSABILI)).some((n) => n.getClientRects().length > 0);
+  }
+
   private updateTabindex(): void {
     const el = this.elementRef.nativeElement;
     const scrollable = el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1;
-    if (scrollable) {
+    if (scrollable && !this.haFocusabiliVisibili(el)) {
       if (el.getAttribute('tabindex') !== '0') {
         el.setAttribute('tabindex', '0');
       }

@@ -36,8 +36,35 @@ input {
 }
 
 *:focus {
-  outline: none !important;
   box-shadow: none;
+}
+
+// Indicatore del fuoco solo da tastiera; i componenti con un indicatore proprio lo sovrascrivono.
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring-color, #428fdc);
+  outline-offset: 2px;
+}
+
+// Contenitori scorrevoli: il contorno esterno verrebbe tagliato
+section.container-scroller:focus-visible,
+.panel-body-scroll:focus-visible {
+  outline-offset: -2px;
+}
+
+// Bootstrap toglie il contorno ai campi in sola lettura
+.form-control-plaintext:focus-visible {
+  outline: 2px solid var(--focus-ring-color, #428fdc);
+  outline-offset: 2px;
+}
+
+// Campo Cerca delle liste: l'indicatore sta sul contenitore del campo
+.gl-filtered-search-scrollable:focus-within {
+  outline: 2px solid var(--focus-ring-color, #428fdc);
+  outline-offset: -2px;
 }
 
 ::-moz-selection {
