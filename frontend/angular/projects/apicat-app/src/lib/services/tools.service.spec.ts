@@ -254,6 +254,17 @@ describe('Tools', () => {
         expect(result).toBe('title - detail');
     });
 
+    it('should use the DEFAULT translation of an error code with several variants', () => {
+        const translate = (service as any).translate;
+        translate.setTranslation('it', { APP: { MESSAGE: { ERROR: { SRV: { '404': {
+            DEFAULT: 'Servizio [{{idServizio}}] non trovato',
+            IMAGE: 'Immagine non trovata'
+        } } } } } });
+        translate.use('it');
+        const error = { status: 404, error: { title: 'Not Found', detail: 'SRV.404', errori: [{ params: { idServizio: 's1' } }] } };
+        expect(Tools.GetErrorMsg(error)).toBe('Servizio [s1] non trovato');
+    });
+
     it('should handle error with statusText and status not 0', () => {
         const error = { status: 404, statusText: 'Not Found', url: 'http://example.com' };
         const result = Tools.GetErrorMsg(error);
@@ -721,6 +732,24 @@ describe('WorkflowErrorMsg', () => {
         const error = { message: 'error message' };
         const result = Tools.WorkflowErrorMsg(error);
         expect(result).toBe('error message');
+    });
+
+    it('should translate the backend code when errori has only params', () => {
+        const instant = vi.fn((key: string, params?: any) => {
+            if (key === 'APP.MESSAGE.ERROR.API.409') { return { DEFAULT: '', INTERMEDIATO: '' }; }
+            if (key === 'APP.MESSAGE.ERROR.API.409.DEFAULT') { return `API [${params.nome}/${params.versione}] esiste già`; }
+            return key;
+        });
+        Tools.translate = { instant };
+        const error = { status: 409, error: { detail: 'API.409', errori: [{ params: { nome: 'verifica-arch', versione: '1' }, links: [] }] } };
+        expect(Tools.WorkflowErrorMsg(error)).toBe('API [verifica-arch/1] esiste già');
+    });
+});
+
+describe('filtraErroriComplessi', () => {
+    it('should keep only the entries with data to complete', () => {
+        const complesso = { dato: 'servizio', campi: [{ nome_campo: 'descrizione' }], params: {} };
+        expect(Tools.filtraErroriComplessi([complesso, { params: { nome: 'a' }, links: [] }, { links: [] }])).toEqual([complesso]);
     });
 });
 

@@ -370,7 +370,7 @@
                           <h6 class="card-title">{{ 'APP.PROFILE.ORGANIZATION.AddTitle' | translate }}</h6>
                           <div class="form-group">
                             <label for="add_org" class="form-label">{{ 'APP.PROFILE.ORGANIZATION.SelectNewOrg' | translate }}</label>
-                            <ng-select id="add_org"
+                            <ng-select labelForId="add_org"
                               [items]="(organizzazioni$ | async) || []"
                               bindLabel="nome"
                               [minTermLength]="minLengthTerm"

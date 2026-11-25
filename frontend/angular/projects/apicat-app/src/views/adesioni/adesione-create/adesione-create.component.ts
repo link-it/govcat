@@ -36,6 +36,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { Adesione } from '../adesione-details/adesione';
 import { AdesioneCreate } from '../adesione-details/adesioneCreate';
 import { Servizio, Soggetto } from '../adesione-details/adesioneUpdate';
+import { ID_LOGICO_MAX, normalizzaIdLogico, validatoriIdLogico } from '../id-logico';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 
@@ -172,6 +173,9 @@ export class AdesioneCreateComponent implements OnInit {
    * al posto del ng-select (evita problemi di bind ng-select +
    * patchValue + disabled durante creazione adesione). */
   _lockedOrgNome: string = '';
+  readonly idLogicoMax = ID_LOGICO_MAX;
+  /** Organizzazione bloccata da un servizio intermediato (non da quella di sessione). */
+  _orgIntermediato: boolean = false;
 
   debugMandatoryFields: boolean = false;
 
@@ -209,12 +213,30 @@ export class AdesioneCreateComponent implements OnInit {
 
     this._scelta_libera_organizzazione = this.generalConfig?.adesione.scelta_libera_organizzazione || false;
 
+    // Prima dei params: il servizio indicato nell'URL serve alla creazione del form
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
+        this._initBreadcrumb();
+      }
+
+      if (val.id_servizio) {
+        this._id_servizio = val.id_servizio;
+        this._adesioneCreate.id_servizio = this._id_servizio;
+        this._isWeb = val.web || false;
+        this._loadServizio(this._id_servizio);
+      }
+    });
+
     this.route.params.subscribe(() => {
       this._initBreadcrumb();
 
+      // Form creato subito: i campi devono esistere già al primo rendering
+      this._isNew = true;
+      this._initForm({ ...this._adesioneCreate });
+
       this.configService.getConfig(this.model).subscribe(() => {
-        this._isNew = true;
-        this._initForm({ ...this._adesioneCreate });
         this._initSoggettiSelect([]);
         this._initOrganizzazioniSelect([]);
         this._initReferentiSelect([]);
@@ -238,25 +260,13 @@ export class AdesioneCreateComponent implements OnInit {
       });
     });
 
-    this.route.queryParams.subscribe((val) => {
-      if (val.from === 'dashboard') {
-        this._fromDashboard = true;
-        this._dashboardSection = val.section || '';
-        this._initBreadcrumb();
-      }
-
-      if (val.id_servizio) {
-        this._id_servizio = val.id_servizio;
-        this._adesioneCreate.id_servizio = this._id_servizio;
-        this._isWeb = val.web || false;
-        this._loadServizio(this._id_servizio);
-      }
-    });
-
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, () => {
       this.generalConfig = Tools.Configurazione || null;
       this._scelta_libera_organizzazione = this.generalConfig?.adesione.scelta_libera_organizzazione || false;
       this._initForm(this._adesioneCreate);
+      if (this._orgIntermediato) {
+        this._bloccaOrganizzazioneIntermediato();
+      }
     });
   }
 
@@ -267,11 +277,7 @@ export class AdesioneCreateComponent implements OnInit {
       this._initServiziSelect([{'id_servizio': serv.id_servizio, 'nome': serv.nome, 'versione': serv.versione}]);
 
       if (disable) { this._formGroup.get('id_servizio')?.disable(); }
-      if (this._servizio.multi_adesione) {
-        this._formGroup.get('id_logico')?.setValidators([Validators.required]);
-      } else {
-        this._formGroup.get('id_logico')?.clearValidators();
-      }
+      this._formGroup.get('id_logico')?.setValidators(validatoriIdLogico(!!this._servizio.multi_adesione));
       this._formGroup.get('id_logico')?.updateValueAndValidity();
 
       this._showMandatoryFields(this._formGroup.controls);
@@ -323,6 +329,9 @@ export class AdesioneCreateComponent implements OnInit {
             break;
           }
           case 'id_logico':
+            value = data[key] ? data[key] : null;
+            _group[key] = new FormControl(value, validatoriIdLogico(!!this._servizio?.multi_adesione));
+            break;
           case 'id_soggetto':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [Validators.required]);
@@ -365,7 +374,7 @@ export class AdesioneCreateComponent implements OnInit {
     const _newBody: any = {
       id_soggetto: body.id_soggetto || this._disabled_id_soggetto,
       id_servizio: body.id_servizio,
-      id_logico: body.id_logico || null,
+      id_logico: normalizzaIdLogico(body.id_logico),
     };
 
     if (this._isServizioSenzaCollaudo(this._servizio)) {
@@ -596,11 +605,7 @@ export class AdesioneCreateComponent implements OnInit {
     // multi-adesione o nessun servizio selezionato) il validator va rimosso,
     // altrimenti resterebbe un required su un campo nascosto → form bloccato.
     const _ctrl = this._formGroup.get('id_logico');
-    if (this._servizio?.multi_adesione) {
-      _ctrl?.setValidators([Validators.required]);
-    } else {
-      _ctrl?.clearValidators();
-    }
+    _ctrl?.setValidators(validatoriIdLogico(!!this._servizio?.multi_adesione));
     _ctrl?.updateValueAndValidity();
   }
 
@@ -851,10 +856,20 @@ export class AdesioneCreateComponent implements OnInit {
 
     this.updateIdLogico(this._servizio);
 
-    // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di sessione
-    // (impostata da `_loadProfilo`) o scelta dall'utente: non viene mai
-    // derivata dal dominio/erogatore del servizio. Per il ruolo
-    // referente_servizio carichiamo/abilitiamo l'org corrente.
+    if (this._bloccaOrganizzazioneIntermediato()) {
+      this._showMandatoryFields(this._formGroup.controls);
+      return;
+    }
+    if (this._orgIntermediato) {
+      // Da un servizio intermediato a uno che non lo e`: torna l'organizzazione di sessione
+      this._orgIntermediato = false;
+      this._formGroup.get('id_organizzazione')?.enable();
+      this._loadProfilo();
+    }
+
+    // L'organizzazione dell'adesione (fruitore) e` quella di sessione (impostata
+    // da `_loadProfilo`) o scelta dall'utente, tranne per i servizi intermediati.
+    // Per il ruolo referente_servizio carichiamo/abilitiamo l'org corrente.
     if (servizio && await this.isCurrentUserReferenteServizio(servizio)) {
       this._formGroup.get('id_organizzazione')?.enable();
       // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare
@@ -869,6 +884,23 @@ export class AdesioneCreateComponent implements OnInit {
     }
 
     this._showMandatoryFields(this._formGroup.controls);
+  }
+
+  /**
+   * Servizio intermediato: organizzazione e soggetto aderente sono quelli del referente del dominio,
+   * bloccati; i referenti si cercano in quell'organizzazione.
+   */
+  _bloccaOrganizzazioneIntermediato(): boolean {
+    const _soggetto = this._servizio?.fruizione ? this._servizio?.dominio?.soggetto_referente : null;
+    const _org = _soggetto?.organizzazione;
+    if (!_org?.id_organizzazione) { return false; }
+    this._orgIntermediato = true;
+    this._lockedOrgNome = _org.nome || '';
+    this._initOrganizzazioniSelect([{ id_organizzazione: _org.id_organizzazione, nome: _org.nome }]);
+    this._formGroup.patchValue({ id_organizzazione: _org.id_organizzazione });
+    this._formGroup.get('id_organizzazione')?.disable();
+    this._checkSoggetto(_org);
+    return true;
   }
 
   _onChangeIdLogico(event: any) {

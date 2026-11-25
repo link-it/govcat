@@ -36,6 +36,7 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { ErrorViewCardComponent } from '@app/components/error-view-card/error-view-card.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { GrantRole } from '@app/services/grant-roles.const';
 import { NavigationService } from '@app/services/navigation.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -48,13 +49,14 @@ import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
 import { WizardStepBarComponent, StepBarVariant, StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { WizardSubstepperComponent } from '@app/components/wizard/wizard-substepper/wizard-substepper.component';
-import { WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
+import { chiavePrefissoRifiuto, WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
 import { StatoChipComponent } from '@app/components/vetrina';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
 import { forkJoin, interval, Observable, of, Subscription } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
+import { servizioNonAccessibile } from '@app/views/servizi/servizio-accessibile';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
@@ -66,6 +68,9 @@ declare const saveAs: any;
 
 import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
 import { NotificationBarComponent } from '@app/views/notifications/notification-bar/notification-bar.component';
+import { AdesioneRateLimitingComponent } from './adesione-rate-limiting/adesione-rate-limiting.component';
+import { AdesioneRateLimitingVerificaComponent } from './adesione-rate-limiting-verifica/adesione-rate-limiting-verifica.component';
+import { rateLimitingMockAttivo } from '@app/views/servizi/rate-limiting.mock';
 
 export enum AccordionType {
     GENERAL_INFO = 'accordion-general-info',
@@ -126,6 +131,8 @@ export interface AdesioneDisclaimer {
         WizardFasiBarComponent,
         WizardSubstepperComponent,
         WizardRifiutoFormComponent,
+        AdesioneRateLimitingComponent,
+        AdesioneRateLimitingVerificaComponent,
         StatoChipComponent,
         ReferenteAddFormComponent,
         NotificationBarComponent,
@@ -236,10 +243,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
     grant: Grant | null = null;
-    /** Ruoli referente dell'utente esposti da `GET /profilo/ruoli`
-        (es. ['referente_servizio', 'referente_dominio']). Usati da
-        `canChangeStatoMapper` per abilitare il cambio stato. */
-    _ruoliReferenteProfilo: string[] = [];
     updateMapper: string = '';
 
     isDominioEsterno: boolean = false;
@@ -636,6 +639,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     // Abilitare solo per test locali dei disclaimer con contesti/severity diverse
     disclaimersUseMock: boolean = false;
+    /** Dati di esempio del rate limiting (`AppConfig.Services.rateLimitingMock`). */
+    rateLimitingMock: boolean = false;
+    /** Incrementato a ogni salvataggio delle quote dell'adesione, per rifare la verifica del rate limiting. */
+    rateLimitingAggiornato: number = 0;
     private readonly DISCLAIMERS_MOCK: AdesioneDisclaimer[] = [
         {
             contesto: 'generale',
@@ -710,6 +717,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         });
 
         this.appConfig = this.configService.getConfiguration();
+        this.rateLimitingMock = rateLimitingMockAttivo(this.appConfig);
 
         this.configService.getConfig(this.model).subscribe(
             (config: any) => {
@@ -749,23 +757,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                 const _configErogaz: Observable<any> = this.configService.getConfig('adesioniErogaz');
                 const _apiConfig: Observable<any> = this.configService.getConfig('api');
                 const _referentiConfig: Observable<any> = this.configService.getConfig('referenti');
-                // Carichiamo i ruoli referente dell'utente (`/profilo/ruoli`):
-                // sono utilizzati da `canChangeStatoMapper` per abilitare il
-                // cambio stato a referenti servizio/dominio. Fail-open: se
-                // l'endpoint fallisce (es. gestore/coordinatore) usiamo array
-                // vuoto e il check ricade sul solo `isGestore()`.
-                const _ruoliProfilo: Observable<any> = this.apiService.getList('profilo/ruoli').pipe(
-                    catchError(() => of({ ruolo: '', ruoli_referente: [] }))
-                );
 
-                const combined = forkJoin([_grant, _configClients, _configErogaz, _apiConfig, _referentiConfig, _ruoliProfilo]);
+                const combined = forkJoin([_grant, _configClients, _configErogaz, _apiConfig, _referentiConfig]);
                 combined.subscribe(result => {
                     this.grant = result[0];
                     this.adesioniClientsConfig = result[1];
                     this.adesioniErogazConfig = result[2];
                     this.apiConfig = result[3];
                     this.referentiConfig = result[4];
-                    this._ruoliReferenteProfilo = (result[5]?.ruoli_referente as string[]) || [];
 
                     console.log('grant', this.grant);
 
@@ -926,7 +925,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this.apiService.getDetails(this.model, this.id).subscribe({
                 next: (response: any) => {
                     this.adesione = response;
-                    this.adesione.id_logico = response.id_logico;
                     this.title = this._geServicetTitle();
 
                     this.isBozza = (this.adesione.stato == 'bozza');
@@ -1059,13 +1057,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return (idx === -1) ? null : workflow.cambi_stato[idx];
     }
 
-    /** Ruoli combinati: grant per-adesione + ruoli_referente del
-     *  profilo. Allineato al pattern di `canEditMapper`. */
-    private _combinedRuoli(): string[] {
-        return [
-            ...(this.grant?.ruoli || []),
-            ...(this._ruoliReferenteProfilo || [])
-        ];
+    /** Ruoli dell'utente sull'adesione (grant). */
+    private _ruoliGrant(): string[] {
+        return this.grant?.ruoli || [];
     }
 
     /** Abilitazione di un'azione di cambio stato (mirror del mapper
@@ -1082,7 +1076,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             'adesione',
             this.adesione.stato,
             type,
-            this._combinedRuoli(),
+            this._ruoliGrant(),
             statusName,
             this._requiredProfiles()
         );
@@ -1123,7 +1117,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return this.authenticationService.canArchiviare(
             'adesione',
             this.adesione.stato,
-            this._combinedRuoli()
+            this._ruoliGrant()
         );
     }
 
@@ -1131,6 +1125,20 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * Rifiuto della richiesta: nel sotto-step "In approvazione", per chi puo` sia autorizzare
      * sia riportare l'adesione allo stato precedente del workflow.
      */
+    /** Chi puo` approvare l'adesione nel sotto-step "In approvazione" (verifica del rate limiting). */
+    canApprovare(section: 'collaudo' | 'produzione'): boolean {
+        return this._isSubstepNaturallyActive(section, 'in_approvazione') && this._isWorkflowActionEnabled('stato_successivo');
+    }
+
+    /**
+     * Verifica del rate limiting: in approvazione e, per chi porta avanti l'adesione autorizzata, in
+     * configurazione, dove contano le finalita` PDND indicate dopo l'autorizzazione.
+     */
+    canVerificareRateLimiting(section: 'collaudo' | 'produzione'): boolean {
+        return this.canApprovare(section)
+            || (this._isSubstepNaturallyActive(section, 'in_configurazione') && this._isWorkflowActionEnabled('stato_successivo'));
+    }
+
     canRifiutare(section: 'collaudo' | 'produzione'): boolean {
         const _precedente = this.getCambioStatoEntry()?.stato_precedente?.nome;
         return this._isSubstepNaturallyActive(section, 'in_approvazione') && !!_precedente
@@ -1148,6 +1156,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const _soggetto = this.adesione?.soggetto?.nome;
         const _stato = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione?.stato);
         return this.translate.instant('APP.WORKFLOW.RIFIUTO.OggettoDefault', { nome: _soggetto ? `${_nome} (${_soggetto})` : _nome, stato: _stato });
+    }
+
+    /** Motivo proposto: il prefisso con l'ambiente dell'autorizzazione rifiutata. */
+    get _testoRifiuto(): string {
+        return this.translate.instant(chiavePrefissoRifiuto(this.adesione?.stato));
     }
 
     openRifiuto() {
@@ -1673,19 +1686,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     /**
      * Vero se l'utente puo' cambiare lo stato dell'adesione via
      * `<ui-workflow>` (azioni del workflow). Oltre al gestore,
-     * abilitati i referenti (servizio/dominio, tecnici e non)
-     * valutati sui ruoli referente del profilo utente
-     * (`GET /profilo/ruoli` → `ruoli_referente`, caricato in init).
+     * abilitati i referenti del servizio o del dominio (tecnici e non)
+     * e l'amministratore dell'organizzazione erogatrice, che il grant
+     * dell'adesione riporta come `referente_superiore`.
      */
     canChangeStatoMapper = (update: string): boolean => {
         if (this.authenticationService.isGestore()) { return true; }
-        const referentiRoles = [
-            'referente_servizio',
-            'referente_tecnico_servizio',
-            'referente_dominio',
-            'referente_tecnico_dominio'
-        ];
-        return this._ruoliReferenteProfilo.some((r: string) => referentiRoles.includes(r));
+        const referentiRoles: string[] = [GrantRole.ReferenteSuperiore, GrantRole.ReferenteTecnicoSuperiore];
+        return this._ruoliGrant().some((r: string) => referentiRoles.includes(r));
     }
 
     /**
@@ -2050,6 +2058,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     public referents: any[] = [];
+    /** Falso se il servizio dell'adesione non e` visibile all'utente (i suoi referenti rispondono 404/403). */
+    public _servizioAccessibile: boolean = true;
     public serviceReferents: any[] = [];
     public domainReferents: any[] = [];
     public referentiLoading: boolean = true;
@@ -2061,8 +2071,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         this._referentsLoadCount++;
         forkJoin({
             referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
-            referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti'),
-            referentiServizio: this.apiService.getDetails('servizi', this.adesione?.servizio.id_servizio, 'referenti')
+            referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti').pipe(
+                catchError(() => of({ content: [] }))
+            ),
+            referentiServizio: this.apiService.getDetails('servizi', this.adesione?.servizio.id_servizio, 'referenti').pipe(
+                catchError((error: any) => {
+                    this._servizioAccessibile = !servizioNonAccessibile(error);
+                    return of({ content: [] });
+                })
+            )
         }).subscribe({
             next: (response: any) => {
                 const referents: Referent[] = response.referenti.content.map((item: any) => ({ ...item, tipo: `${item.tipo}` }));
@@ -2235,18 +2252,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     canEditMapper = (): boolean => {
-        // Combina il grant per-adesione con i `ruoli_referente` del
-        // profilo: il grant BE puo` non riportare i referenti contestuali
-        // (es. `referente_tecnico_servizio`) ma il profilo si`.
-        const ruoli = [
-            ...(this.grant?.ruoli || []),
-            ...(this._ruoliReferenteProfilo || [])
-        ];
-        return this.authenticationService.canEdit('adesione', 'adesione', this.adesione?.stato, ruoli);
+        return this.authenticationService.canEdit('adesione', 'adesione', this.adesione?.stato, this._ruoliGrant());
     }
 
     hasActions() {
-        const _grant: any = this.grant || [];
+        const _grant: string[] = this._ruoliGrant();
         // Issue #322: il gate `profili` vincola anche il gestore -> prima del bypass.
         const _reqProfiles = this._requiredProfiles();
         if (this.adesione && !this.authenticationService.isTransitionAllowedForProfiles('adesione', this.adesione.stato, 'stato_successivo', _reqProfiles)) { return false; }
@@ -2402,13 +2412,19 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         }
     }
 
+    /** Lo skip collaudo dell'adesione e` consentito dal dominio del servizio. */
     get showSkipCollaudo(): boolean {
-        return this.isBozza && this.adesione.servizio.skip_collaudo;
+        return this.isBozza && !!this.adesione?.servizio?.dominio?.skip_collaudo;
     };
 
-    /** Servizio pubblicato senza collaudo: l'adesione non puo` prevedere il collaudo */
+    /** Servizio senza collaudo: l'adesione non puo` prevedere il collaudo */
     get skipCollaudoVincolato(): boolean {
-        return !!this.adesione?.servizio?.stato?.endsWith('_senza_collaudo');
+        return !!this.adesione?.servizio?.skip_collaudo || !!this.adesione?.servizio?.stato?.endsWith('_senza_collaudo');
+    }
+
+    /** Adesione in bozza che salta il collaudo: la produzione attende la pubblicazione in produzione del servizio. */
+    get attesaPubblicazioneProduzione(): boolean {
+        return this.isBozza && !!this.adesione?.skip_collaudo && this._isProduzioneBloccata();
     }
 
     toggleSkipCollaudo() {
@@ -2437,6 +2453,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             },
             error: (error: any) => {
                 this.saveSkipCollaudo = false;
+                Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
             }
         });
     }

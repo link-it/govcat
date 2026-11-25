@@ -66,6 +66,8 @@ import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.ApiUnivocitaService;
 import org.govway.catalogo.services.ProfiloGovwayService;
+import org.govway.catalogo.services.RateLimitingService;
+import org.govway.catalogo.services.RateLimitingService.QuoteApi;
 import org.govway.catalogo.servlets.api.ApiApi;
 import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
@@ -111,6 +113,9 @@ public class APIController implements ApiApi {
 
 	@Autowired
 	private ProfiloGovwayService profiloGovwayService;
+
+	@Autowired
+	private RateLimitingService rateLimitingService;
 
 	@Autowired
 	private ServizioDettaglioAssembler servizioDettaglioAssembler;
@@ -199,7 +204,8 @@ public class APIController implements ApiApi {
 		aspec.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 
 		// Il coordinatore ha visibilita' su tutti i servizi al pari dell'amministratore:
-		// stesso criterio applicato da ServiziController.findOne
+		// stesso criterio applicato da ServiziController.findOne (compresa la visibilita'
+		// dell'amministratore dell'organizzazione di sessione)
 		boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 		if(!admin) {
@@ -207,6 +213,7 @@ public class APIController implements ApiApi {
 				aspec.setUtente(Optional.of(new UtenteEntity()));
 			} else {
 				aspec.setUtente(Optional.of(utente));
+				aspec.setIdOrganizzazioneAmministrata(this.coreAuthorization.getIdOrganizzazioneAmministrataSessione());
 			}
 		}
 
@@ -239,6 +246,7 @@ public class APIController implements ApiApi {
 				ApiEntity entity = this.dettaglioAssembler.toEntity(apiCreate);
 				ServizioEntity servizio = entity.getServizio();
 				this.servizioAuthorization.authorizeModificaProprietaCustomApi(apiCreate.getProprietaCustom(), servizio);
+				this.rateLimitingService.authorizeModifica(entity, QuoteApi.VUOTE);
 				// La classe dato API governa la composizione della lista delle API del servizio:
 				// e' richiesta in AND con IDENTIFICATIVO, cosi' le configurazioni che non la
 				// dichiarano mantengono i vincoli gia' in vigore.
@@ -702,6 +710,7 @@ public class APIController implements ApiApi {
 				}
 
 				String profiloGovwayOverridePrima = this.profiloGovwayService.getOverride(entity);
+				QuoteApi quoteRateLimitingPrima = this.rateLimitingService.getQuoteApi(entity);
 
 				List<ConfigurazioneClasseDato> lstClassiDato = new ArrayList<>();
 
@@ -766,12 +775,16 @@ public class APIController implements ApiApi {
 					this.profiloGovwayService.checkProfili(entity);
 				}
 
+				// Il rate limiting dipende da ruolo e profili: si verifica sullo stato finale dell'API
+				this.rateLimitingService.checkRateLimiting(entity);
+
 				Grant grant = this.servizioDettaglioAssembler.toGrant(entity.getServizio());
 
 				if(!isForce(force, grant.getRuoli())) {
 					if(apiUpdate.getDatiCustom()!=null) {
 						this.servizioAuthorization.authorizeModificaProprietaCustomApi(apiUpdate.getDatiCustom().getProprietaCustom(), servizio);
 					}
+					this.rateLimitingService.authorizeModifica(entity, quoteRateLimitingPrima);
 					this.servizioAuthorization.authorizeModifica(servizio, lstClassiDato);
 				}
 				

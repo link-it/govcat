@@ -33,7 +33,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 
-import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity_;
@@ -84,6 +83,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private Optional<Boolean> utenteAdmin = Optional.empty();
 	private Optional<Boolean> aderibili = Optional.empty();
 	private Optional<Long> idOrganizzazioneVisibilita = Optional.empty();
+	private Optional<Long> idOrganizzazioneAmministrata = Optional.empty();
 	private List<String> stati = null;
 	private List<String> statiAderibili = new ArrayList<>();
 	private List<String> tag = null;
@@ -331,6 +331,12 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).join(AdesioneEntity_.referenti, JoinType.LEFT).join(ReferenteAdesioneEntity_.referente, JoinType.LEFT).get(UtenteEntity_.id)));
 				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).get(AdesioneEntity_.richiedente).get(UtenteEntity_.id)));
 			}
+
+			// Amministratore dell'organizzazione di sessione: vede i servizi di cui l'organizzazione
+			// e` titolare (in ogni stato) e quelli a cui ha aderito (anche riservati o privati).
+			if(this.idOrganizzazioneAmministrata.isPresent()) {
+				predListMieiServizi.add(ServizioSpecificationUtils.visibilitaAmministratoreOrganizzazione(root, query, cb, this.idOrganizzazioneAmministrata.get()));
+			}
 			
 
 			List<Predicate> predLstUtente = new ArrayList<>();
@@ -405,12 +411,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	 */
 	private Predicate getOrganizzazioneVisibilitaFilter(Long idOrganizzazione, Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
-		Predicate titolareDominio = cb.equal(
-				root.join(ServizioEntity_.dominio, JoinType.LEFT)
-					.join(DominioEntity_.soggettoReferente, JoinType.LEFT)
-					.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
-					.get(OrganizzazioneEntity_.id),
-				idOrganizzazione);
+		Predicate titolareDominio = ServizioSpecificationUtils.organizzazioneTitolare(root, cb, idOrganizzazione);
 
 		Predicate erogatoreFruizione = cb.and(
 				cb.isTrue(root.get(ServizioEntity_.fruizione)),
@@ -420,17 +421,8 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 							.get(OrganizzazioneEntity_.id),
 						idOrganizzazione));
 
-		Subquery<Integer> subAdesioni = query.subquery(Integer.class);
-		Root<AdesioneEntity> adesione = subAdesioni.from(AdesioneEntity.class);
-		subAdesioni.select(cb.literal(1)).where(
-				cb.equal(adesione.get(AdesioneEntity_.servizio), root),
-				cb.equal(
-						adesione.join(AdesioneEntity_.soggetto, JoinType.LEFT)
-							.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
-							.get(OrganizzazioneEntity_.id),
-						idOrganizzazione));
-
-		return cb.or(titolareDominio, erogatoreFruizione, cb.exists(subAdesioni));
+		return cb.or(titolareDominio, erogatoreFruizione,
+				ServizioSpecificationUtils.organizzazioneAderente(root, query, cb, idOrganizzazione));
 	}
 	
 	private Predicate getVisibilitaFilter(VISIBILITA visibilita, Root<ServizioEntity> root, CriteriaBuilder cb) {
@@ -567,6 +559,19 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setIdOrganizzazioneVisibilita(Optional<Long> idOrganizzazioneVisibilita) {
 		this.idOrganizzazioneVisibilita = idOrganizzazioneVisibilita;
+	}
+
+	public Optional<Long> getIdOrganizzazioneAmministrata() {
+		return idOrganizzazioneAmministrata;
+	}
+
+	/**
+	 * Organizzazione di cui l'utente e` amministratore nel contesto di sessione: amplia la
+	 * visibilita` del filtro per utente ai servizi di cui l'organizzazione e` titolare o a cui
+	 * ha aderito. Ha effetto solo insieme a {@link #setUtente(Optional)}.
+	 */
+	public void setIdOrganizzazioneAmministrata(Optional<Long> idOrganizzazioneAmministrata) {
+		this.idOrganizzazioneAmministrata = idOrganizzazioneAmministrata;
 	}
 
 	public List<String> getStatiAderibili() {

@@ -1,0 +1,61 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@let f = finalita();
+<div class="rlf" [class.is-errore]="inErrore()">
+  <div class="rlf-hd">
+    <div class="rlf-nome">
+      <span class="rlf-titolo">{{ titolo() }}</span>
+      @if (f.titolo) { <span class="rlf-id">{{ f.purpose_id }}</span> }
+      @if (nomeApi()) { <span class="rlf-api">{{ nomeApi() }}</span> }
+    </div>
+    <div class="rlf-chips">
+      @if (esito(); as e) {
+        <span class="rlf-chip" [attr.data-tono]="tono()">{{ ('APP.SERVICES.RATE_LIMITING.FINALITA.ESITO.' + e.esito) | translate }}</span>
+      }
+      @if (condivisa()) {
+        <span class="rlf-chip">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Condivisa' | translate: { numero: f.numero_adesioni } }}</span>
+      }
+      @if (nonAttiva()) {
+        <span class="rlf-chip" data-tono="avviso">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.StatoNonAttivo' | translate }} ({{ f.stato }})</span>
+      }
+    </div>
+  </div>
+
+  @if (f.errore) {
+    <p class="rlf-nota">{{ ('APP.SERVICES.RATE_LIMITING.FINALITA.ERRORE.' + f.errore) | translate }}</p>
+  } @else {
+    <dl class="rlf-dati">
+      <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.QuotaFinalita' | translate }}</dt><dd>{{ f.quota != null ? (f.quota | localeNumber) : '-' }}</dd></div>
+      @if (esito(); as e) {
+        <div>
+          <dt>{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.QuotaRichiesta' | translate }}</dt>
+          <dd [class.text-danger]="e.esito === 'superiore'">{{ e.quota_richiesta != null ? (e.quota_richiesta | localeNumber) : '-' }}</dd>
+        </div>
+      }
+      <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.QuotaAssegnata' | translate }}</dt><dd [class.text-danger]="f.superata">{{ f.quota_assegnata | localeNumber }}</dd></div>
+      <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Adesioni' | translate }}</dt><dd>{{ f.numero_adesioni }}</dd></div>
+    </dl>
+    @if (f.quota_in_attesa != null) {
+      <p class="rlf-nota"><i class="bi bi-hourglass-split" aria-hidden="true"></i> {{ 'APP.SERVICES.RATE_LIMITING.FINALITA.QuotaInAttesa' | translate }}: {{ f.quota_in_attesa | localeNumber }}</p>
+    }
+    @if (f.superata) {
+      <p class="rlf-avviso" role="status"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Superata' | translate }}</p>
+    }
+  }
+</div>

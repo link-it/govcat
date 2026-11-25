@@ -118,6 +118,8 @@ describe('ServizioApiDetailsComponent', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // clearAllMocks non ripristina i valori di ritorno impostati dai test precedenti
+    mockApiService.getDetails.mockReturnValue(of(_safeServiceResponse));
     savedConfigurazione = Tools.Configurazione;
     Tools.Configurazione = {
       servizio: {
@@ -599,6 +601,35 @@ describe('ServizioApiDetailsComponent', () => {
   });
 
   describe('_prepareBodySaveApi', () => {
+    it('should send the quotas of the phase environment in creation (Issue #402)', () => {
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      component.service = { stato: 'bozza', skip_collaudo: false } as any;
+      component.fase = 'collaudo';
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([]),
+        rate_limiting: new FormArray([
+          new FormGroup({ quota: new FormControl(20), periodo: new FormControl('ora') }),
+          new FormGroup({ quota: new FormControl(300), periodo: new FormControl('giorno') })
+        ])
+      }) as any;
+      const body: any = {
+        nome: 'Api1', versione: '1', id_servizio: 's1', ruolo: 'erogato_soggetto_dominio',
+        protocollo: 'rest', url_collaudo: 'http://c', url_produzione: '', authTypes: []
+      };
+      const result: any = component._prepareBodySaveApi(body);
+      expect(result.configurazione_collaudo.rate_limiting).toEqual([{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }]);
+
+      component.fase = 'produzione';
+      component.service = { stato: 'bozza', skip_collaudo: true } as any;
+      const resultSkip: any = component._prepareBodySaveApi({ ...body, url_produzione: 'http://p' });
+      expect(resultSkip.configurazione_collaudo).not.toHaveProperty('rate_limiting');
+      expect(resultSkip.configurazione_produzione.rate_limiting).toEqual([{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }]);
+
+      const resultAderente: any = component._prepareBodySaveApi({ ...body, ruolo: 'erogato_soggetto_aderente' });
+      expect(resultAderente.configurazione_collaudo).not.toHaveProperty('rate_limiting');
+    });
+
     it('should not send the invocation URL selection in creation', () => {
       component._hasSpecifica = false;
       component._apiProprietaCustomGrouped = null;
@@ -789,6 +820,34 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_specifica!.gruppi_auth_type).toHaveLength(1);
       expect(result.dati_specifica!.gruppi_auth_type![0].profilo).toBe('p1');
       expect(result.dati_specifica!.gruppi_auth_type![0].proprieta_custom).toEqual([{ nome: 'cp1', valore: 'v1' }]);
+    });
+
+    it('should adapt the saved quotas to the selected profiles, keeping the other environment data (Issue #402)', () => {
+      (Tools.Configurazione as any).servizio.api.profili = [{ codice_interno: 'PDND', rate_limiting: { periodi: ['giorno'], quota_totale: {} } }];
+      component._isNew = false;
+      component.service = { stato: 'bozza' };
+      component.servizioApi = {
+        configurazione_collaudo: { protocollo: 'rest', dati_erogazione: { url: 'http://c', url_prefix: 'https://api.ente.it' }, rate_limiting: [{ periodo: 'ora', quota: 20 }, { periodo: 'giorno', quota: 300, quota_fruitore: 30 }] },
+        configurazione_produzione: { protocollo: 'rest', dati_erogazione: { url: 'http://p' }, rate_limiting: [{ periodo: 'giorno', quota: 500 }] }
+      } as any;
+      component._formGroup = new FormGroup<any>({
+        ruolo: new FormControl('erogato_soggetto_dominio'),
+        authTypes: new FormArray([new FormGroup({ profilo: new FormControl('PDND') })])
+      });
+      (component as any)._aggiornaRegolaRateLimiting();
+      expect(component._quoteSalvateDaAdeguare).toEqual({ collaudo: [{ periodo: 'giorno', quota: 300 }] });
+      expect(component._quoteSalvateAdeguate).toBe(true);
+
+      const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_dominio', authTypes: [{ profilo: 'PDND', resources: [], note: null }] };
+      const result: any = component._prepareBodyUpdateApi(body);
+      expect(result.configurazione_collaudo).toEqual({
+        protocollo: 'rest', dati_erogazione: { url: 'http://c', url_prefix: 'https://api.ente.it' },
+        rate_limiting: [{ periodo: 'giorno', quota: 300 }]
+      });
+      expect(result).not.toHaveProperty('configurazione_produzione');
+
+      mockAuthenticationService.canEditField.mockReturnValueOnce(false);
+      expect(component._prepareBodyUpdateApi(body)).not.toHaveProperty('configurazione_collaudo');
     });
 
     it('should keep the description when dati_generici is not modifiable, reading codice_asset from its control', () => {

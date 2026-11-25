@@ -103,6 +103,7 @@ export function motivoSkipCollaudoBloccato(servizio: any, dominio: any): string 
             : 'APP.MESSAGE.SkipCollaudoDominioNonConsente';
     }
     if (skipCollaudoBloccato(servizio)) { return 'APP.MESSAGE.SkipCollaudoNonModificabile'; }
-    if (servizio?.vincola_skip_collaudo) { return 'APP.MESSAGE.SkipCollaudoVincolato'; }
+    // Il vincolo impedisce di attivare lo skip: ci sono adesioni che passano dal collaudo
+    if (servizio?.vincola_skip_collaudo && !servizio?.skip_collaudo) { return 'APP.MESSAGE.SkipCollaudoVincolato'; }
     return null;
 }

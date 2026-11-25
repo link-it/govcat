@@ -25,11 +25,14 @@ import { MarkdownModule } from 'ngx-markdown';
 
 import { ConfigService, COMPONENTS_IMPORTS, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { QUERY_PARAM_AMBIENTE, ambienteServizio } from '../../ambiente-servizio';
 import { UtilService } from '@app/services/utils.service';
 
 import { Transazione } from './transazione';
+import { auditAbilitato, auditDettaglio, erroreAudit, PARAMETRO_AUDIT } from '../audit';
 
-import { Observable, Subject } from 'rxjs';
+import { Observable, of, Subject, throwError } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 declare const saveAs: any;
 
@@ -130,6 +133,9 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
   _hasInvocazioneApi: boolean = false;
   _hasInformazioniToken: boolean = false;
 
+  /** Dettaglio aperto dalla pagina Audit. */
+  _audit: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -140,16 +146,24 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
     private utils: UtilService
   ) {
     this.appConfig = this.configService.getConfiguration();
+    this._audit = !!this.route.snapshot?.data?.['audit'];
+    if (this._audit) {
+      this.tabs = [{ label: 'APP.AUDIT.TABS.Audit', icon: 'details', link: 'Audit', enabled: true }, ...this.tabs];
+      this._currentTab = 'Audit';
+    } else {
+      this.tabs = [...this.tabs, { label: 'APP.TRANSACTIONS.TABS.InformazioniAudit', icon: 'details', link: 'InformazioniAudit', enabled: false }];
+    }
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
 
     this.apiUrl = this.appConfig.AppConfig.GOVAPI.HOST;
 
     const _currentNav: Navigation | null = this.router.getCurrentNavigation();
-    if (_currentNav?.extras.state) {
-      if (_currentNav.extras.state.environment ) {
-        this.environment = _currentNav.extras.state.environment || 'collaudo';
-      }
+    if (_currentNav?.extras.state?.environment) {
+      this.environment = _currentNav.extras.state.environment;
+    } else {
+      // Ricaricando la pagina vale l'ambiente nell'URL
+      this.environment = ambienteServizio(null, this.route.snapshot?.queryParams?.[QUERY_PARAM_AMBIENTE]);
     }
 
     this.route.queryParams.subscribe((val) => {
@@ -250,7 +264,16 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
       this._spin = spin;
       if (spin) { this.data = null; }
       // this.configService.getJson('transazione').subscribe({
-      this.apiService.getMonitorDetails(`${this.environment}/diagnostica`, this.id).subscribe({
+      const _path = `${this.environment}/diagnostica`;
+      const _dettaglio$ = this._conAudit$().pipe(
+        switchMap((conAudit: boolean) => conAudit
+          ? this.apiService.getMonitorDetails(_path, this.id, undefined, { params: { [PARAMETRO_AUDIT]: 'true' } }).pipe(
+            // Transazione di un'API senza audit: si mostra il dettaglio senza le informazioni di audit
+            catchError((error: any) => (!this._audit && erroreAudit(error)) ? this.apiService.getMonitorDetails(_path, this.id) : throwError(() => error))
+          )
+          : this.apiService.getMonitorDetails(_path, this.id))
+      );
+      _dettaglio$.subscribe({
         next: (response: any) => {
           let _applicativoToken = '';
           const _data = response;
@@ -292,7 +315,8 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
             ip_richiedente: _indirizzoIp,
             profilo_collaborazione: _profiloCollaborazione,
             esito_composed: _esitoComposed,
-            token: { ..._data.token, applicativo_token: _applicativoToken }
+            token: { ..._data.token, applicativo_token: _applicativoToken },
+            audit: auditDettaglio(_data.audit)
           };
           this._initTabs();
           this._spin = false;
@@ -315,7 +339,7 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
       this.breadcrumbs = [
         { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: `/servizi/${this.sid}${_view}`, type: 'link', tooltip: _toolTipServizio },
-        { label: 'APP.TITLE.Transactions', url: `/servizi/${this.sid}/transazioni`, type: 'link', params: { back: true } },
+        { label: this._audit ? 'APP.TITLE.Audit' : 'APP.TITLE.Transactions', url: `/servizi/${this.sid}/${this._audit ? 'audit' : 'transazioni'}`, type: 'link', params: { back: true } },
         { label: `${this.data.id_traccia}`, url: ``, type: 'link' },
       ];
     } else {
@@ -323,13 +347,32 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
         { label: '', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
         { label: 'APP.TITLE.Services', url: '/servizi', type: 'link' },
         { label: `${_title}`, url: `/servizi/${this.sid}${_view}`, type: 'link', tooltip: _toolTipServizio },
-        { label: 'APP.TITLE.Transactions', url: `/servizi/${this.sid}/transazioni`, type: 'link', params: { back: true } },
+        { label: this._audit ? 'APP.TITLE.Audit' : 'APP.TITLE.Transactions', url: `/servizi/${this.sid}/${this._audit ? 'audit' : 'transazioni'}`, type: 'link', params: { back: true } },
         { label: `${this.data.id_traccia}`, url: ``, type: 'link' },
       ];
     }
   }
 
+  /** Informazioni di audit richieste se abilitate; al primo caricamento la configurazione remota può non essere ancora disponibile. */
+  _conAudit$(): Observable<boolean> {
+    if (this._audit) {
+      return of(true);
+    }
+    const _monitoraggio$: Observable<any> = Tools.Configurazione
+      ? of(Tools.Configurazione.monitoraggio)
+      : this.apiService.getList('configurazione').pipe(
+        map((config: any) => config?.monitoraggio),
+        catchError(() => of(null))
+      );
+    return _monitoraggio$.pipe(map((monitoraggio: any) => auditAbilitato(monitoraggio)));
+  }
+
+  get _tabAudit(): string {
+    return this._audit ? 'Audit' : 'InformazioniAudit';
+  }
+
   _initTabs() {
+    const _conAudit = !this._audit && !!this.data.audit;
     this.tabs = this.tabs.map((item: any) => {
       let _enabled = true;
       if (item.link === 'InformazioniMittente') {
@@ -337,6 +380,9 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
       }
       if (item.link === 'DettaglioMessaggio') {
         _enabled = !!this.data.richiesta || !!this.data.risposta;
+      }
+      if (item.link === 'InformazioniAudit') {
+        _enabled = _conAudit;
       }
       return {
         ...item,
@@ -353,6 +399,12 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
         this.router.navigate([event.url], { state: event.params || null, queryParamsHandling: 'preserve' });
       }
     }
+  }
+
+  /** Elementi nome/valore di una sezione che indica il campo dell'elenco. */
+  _elencoSezione(section: any): any[] {
+    const _valore = (section?.field || '').split('.').reduce((obj: any, key: string) => obj?.[key], this.data);
+    return Array.isArray(_valore) ? _valore : [];
   }
 
   _onTabs(tab: string) {

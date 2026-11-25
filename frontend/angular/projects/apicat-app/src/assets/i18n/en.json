@@ -52,7 +52,10 @@
 				"User": "User",
 				"Role": "Role in organization",
 				"SearchUser": "Search user",
-				"CurrentOrganization": "Current organization"
+				"CurrentOrganization": "Current organization",
+				"ReferenteServizi": "Services",
+				"ReferenteDomini": "Domains",
+				"ReferenteAdesioni": "Subscriptions"
 			},
 			"BUTTON": {
 				"Add": "Add",
@@ -67,6 +70,31 @@
 			}
 		},
 		"ADESIONI": {
+			"RATE_LIMITING": {
+				"Titolo": "Requested rate limiting",
+				"Descrizione": "Maximum number of requests the subscriber expects to send, for each API and period for which the service declares a rate limiting.",
+				"OltreMassimo": "The quota cannot exceed the maximum per subscriber ({{massimo}})",
+				"Massimo": "max {{quota}} per subscriber",
+				"Totale": "service total {{quota}}",
+				"NonRichiesta": "not requested"
+			},
+			"RATE_LIMITING_VERIFICA": {
+				"Pulsante": "Check rate limiting",
+				"Titolo": "Rate limiting check",
+				"Descrizione": "For each API and period: service quota, quota already authorized to other subscribers, remaining quota and quota requested by this subscription. Pending requests are not counted.",
+				"QuotaServizio": "Service quota",
+				"Richiesta": "Requested by the subscription",
+				"EsitoRientra": "Within the remaining service quota",
+				"EsitoSfora": "Exceeds the service quota",
+				"SoloAvviso": "This is only a warning: the subscription can still be authorized. To stay within limits, reduce the requested quota, the other subscribers' quotas from the service summary, or raise the API overall quota.",
+				"ChipRientra": "Within",
+				"ChipSfora": "Exceeds",
+				"Autorizzata": "Already authorized",
+				"SuFruitori": "to {{numero}} subscribers",
+				"Residua": "Remaining",
+				"ResiduaDopo": "{{quota}} after authorization",
+				"InAttesa": "Other pending requests: {{quota}} from {{numero}} subscribers (not counted)"
+			},
 			"FILTER": {
 				"All": "All",
 				"Closed": "Closed",
@@ -116,7 +144,7 @@
 				"ScegliCredenziali": "Choose your credentials…",
 				"Service": "Service",
 				"SkipCollaudoTooltip": "Enabling this option makes the subscription skip the testing phase and move directly to production configuration. Production configuration cannot be modified once published.",
-				"SkipCollaudoVincolatoTooltip": "The service is published without testing: the subscription moves directly to production configuration and this option cannot be changed.",
+				"SkipCollaudoVincolatoTooltip": "The service does not include testing: the subscription moves directly to production configuration and this option cannot be changed.",
 				"Subject": "Subject",
 				"UsaClientEsistente": "Use existing client",
 				"WizardShowAllSections": "Show all sections (debug)",
@@ -208,11 +236,13 @@
 				"ShowReferents_sub": "Show referents"
 			},
 			"MESSAGE": {
+				"IdLogicoMancante": "The service allows several subscriptions of the same subject but this subscription has no logical identifier: set it by editing the general information, otherwise changes to the subscription are rejected.",
 				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data.",
 				"FaseProduzioneBloccata": "To request production, the service must first be published in production.",
 				"FaseProduzioneBloccataShort": "Service not published in production",
 				"FaseCollaudoSaltata": "Testing phase skipped (skip testing enabled).",
-				"FaseSaltata": "Skipped"
+				"FaseSaltata": "Skipped",
+				"SkipCollaudoAttesaProduzione": "Testing is skipped: you can request the production configuration once the service {{servizio}} v{{versione}} is published in production."
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
@@ -233,12 +263,63 @@
 				"Found": "Found",
 				"Open": "Open"
 			},
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting",
+				"Descrizione": "Maximum number of requests to the API in this environment, at most one entry per period.",
+				"QuotaTotale": "Overall quota (requests)",
+				"QuotaFruitore": "Maximum quota per subscriber",
+				"Periodo": "Period",
+				"AggiungiQuota": "Add quota",
+				"RimuoviQuota": "Remove quota",
+				"Nessuno": "No rate limiting",
+				"QuotaNonValida": "Enter a whole number greater than zero",
+				"QuotaAssente": "Enter at least one of overall quota and maximum quota per subscriber",
+				"QuotaTotaleAssente": "Enter the overall quota",
+				"QuotaFruitoreAssente": "Enter the maximum quota per subscriber",
+				"FruitoreSuperiore": "The maximum quota per subscriber cannot exceed the overall quota",
+				"MaxPerFruitore": "max {{quota}} per subscriber",
+				"MaxPerFruitorePeriodo": "max {{quota}} / {{periodo}} per subscriber",
+				"QuoteAdeguate": "Some saved quotas are not allowed by the API profiles and have been removed: save to confirm.",
+				"QuoteRimosseProfili": "Some quotas are not allowed by the selected profiles and have been removed.",
+				"QuoteDaAdeguareProfili": "With the selected profiles some saved rate limiting quotas are no longer allowed: they will be removed when saving."
+			},
 			"TITLE": {
 				"ApiList": "API",
 				"GeneralInformations": "General informations",
 				"GeneralInformations_sub": "",
 				"ProductionInformations": "Production information",
 				"TestingInformations": "Testing information"
+			}
+		},
+		"AUDIT": {
+			"LABEL": {
+				"Audience": "Audience",
+				"Expiration": "Expiration",
+				"IssuedAt": "Issued at",
+				"Issuer": "Issuer",
+				"Kid": "Kid",
+				"Loa": "LoA",
+				"LoaEstesa": "Level of assurance (LoA)",
+				"MessageId": "Audit token id",
+				"NotBefore": "Not before",
+				"Pattern": "Pattern",
+				"PatternAudit": "Audit pattern",
+				"PurposeId": "Purpose (PurposeID)",
+				"SchemaDati": "Data schema",
+				"UserId": "User id",
+				"UserLocation": "User location"
+			},
+			"MESSAGE": {
+				"NoApi": "No API with audit",
+				"NoApiHelp": "No API of the service has audit enabled in the selected environment",
+				"NoAudit": "No audit information for the transaction"
+			},
+			"TABS": {
+				"Audit": "Audit"
+			},
+			"TITLE": {
+				"AltreProprieta": "Other properties",
+				"Audit": "Audit"
 			}
 		},
 		"AUTHENTICATION": {
@@ -402,6 +483,7 @@
 			"Download": "Download",
 			"DownloadDocumentation": "Download documentation",
 			"DownloadeServiceDescriptor": "Download eService descriptor",
+			"DomainReferents": "Domain referents",
 			"DownloadeServiceExtendedDescriptor": "Download extended eService descriptor",
 			"EditGroup": "Edit group",
 			"Entra": "Enter",
@@ -649,14 +731,19 @@
 			},
 			"LABEL": {
 				"Classi": "Classes",
+				"DeprecatiEsclusi": "Excluded",
+				"DeprecatiInclusi": "Included",
 				"Deprecato": "Deprecated",
 				"Description": "Dscription",
+				"DominiDeprecati": "Deprecated domains",
+				"IncludiDeprecati": "Include deprecated domains",
 				"Name": "Name",
 				"Private": "Private",
 				"Public": "Public",
 				"ReferentSubject": "Referent subject",
 				"Reserved": "reserved",
 				"SkipCollaudo": "Allow skipping testing",
+				"SoloDeprecati": "Deprecated only",
 				"Tag": "Tags",
 				"UrlInvocazione": "Url invocation",
 				"UrlPrefixCollaudo": "Url prefix test",
@@ -871,6 +958,10 @@
 			"LogoFormatHint": "In the catalogue the logo is shown in 16:9 format: the darkened parts of the preview are left out. Use a landscape image, for example 1280×720.",
 			"ImpostatoDalDominio": "Set by the domain",
 			"SkipToContent": "Skip to content",
+			"MainMenu": "Main menu",
+			"ServiceInfo": "Service information",
+			"SubscriptionInfo": "Subscription information",
+			"UserMenu": "User menu ({{utente}})",
 			"UrlEsposizione": "Exposure URL",
 			"RemoveFilter": "Remove filter",
 			"SelectRow": "Select item",
@@ -972,7 +1063,7 @@
 			"DateFrom": "Date From",
 			"DateTo": "Date To",
 			"Description": "Description",
-			"DescriptorID": "Identifier",
+			"DescriptorID": "Version ID",
 			"descrizione": "Description",
 			"descrizione_sintetica": "Synthetic description",
 			"DescrizioneCompleta": "Full description",
@@ -1108,11 +1199,11 @@
 				"GroupAlternatives": "Group {{n}}: at least one of {{count}}",
 				"Code": "Code",
 				"Origin": "Origin",
-				"OrganizationId": "Organization ID",
+				"OrganizationId": "Producer ID",
 				"CallsPerConsumer": "Calls/day per subscriber",
 				"CallsTotal": "Total calls/day",
 				"VoucherLifespan": "Voucher validity",
-				"NoDescriptors": "No published descriptors.",
+				"NoDescriptors": "No published versions.",
 				"STATE": {
 					"DRAFT": "Draft",
 					"PUBLISHED": "Published",
@@ -1134,8 +1225,8 @@
 				"Client": "Client",
 				"Consumer": "Consumer",
 				"DeclaredAttributes": "Declared Attributes",
-				"Descriptor": "Descriptor",
-				"Descriptors": "Descriptors",
+				"Descriptor": "Version",
+				"Descriptors": "Versions",
 				"Events": "Events",
 				"EventType": {
 					"Any": "Any",
@@ -1176,6 +1267,7 @@
 			"PurposeId": "Purpose ID",
 			"referente": "Contact",
 			"referente_self": "I am the subscription contact",
+			"referente_self_servizio": "I am the service contact",
 			"referente_tecnico": "Technical contact",
 			"ReferenteTecnico": "Technical referent",
 			"ReportTimeInterval": "Time unit",
@@ -1196,7 +1288,7 @@
 			"SearchType": "Search Type",
 			"ServerURL": "Server URL",
 			"ServiceId": "Service Id",
-			"ServiceID": "Service ID",
+			"ServiceID": "E-service ID",
 			"ServiceName": "Service name",
 			"Services": "Services",
 			"Servizio": "Service",
@@ -1280,6 +1372,10 @@
 			"Type": "Type",
 			"Url": "Url",
 			"url_collaudo": "Internal Url Base (Testing)",
+			"rate_limiting": {
+				"quota_totale": "Rate limiting: overall quota",
+				"quota_fruitore": "Rate limiting: maximum quota per subscriber"
+			},
 			"url_esposizione": "Exposure URL",
 			"url_produzione": "Internal Url Base (Production)",
 			"url_redirezione": "URL Redirect",
@@ -1304,7 +1400,9 @@
 			"VoucherLifespan": "Voucher Lifespan",
 			"Warning": "Warning",
 			"X-Forwarded-For": "X-Forwarded-For",
-			"Yes": "Yes"
+			"Yes": "Yes",
+			"RuoloNonValido": "Invalid role",
+			"ShowHelp": "Show help"
 		},
 		"LABEL_HELP": {
 			"ClientAuthForm": {
@@ -1351,11 +1449,13 @@
 				"tags": "Keywords to categorize the service and make it easier to find. Press Enter to add each tag.",
 				"termini_ricerca": "Additional terms (synonyms, acronyms) separated by commas, e.g. «registry, ANPR»: they improve service search and do not appear on the service page.",
 				"fruizione": "The service is provided as an intermediary by an entity of your organization: the entity and the providing subject must be specified.",
+				"fruizione_interna": "The service is implemented within your organization.",
+				"fruizione_esterna": "The service is implemented by an external organization. Your organization makes it available to its subscribers, acting as an intermediary.",
 				"package": "Groups several services (components) into a single service to subscribe to; a package has no APIs of its own.",
 				"skip_collaudo": "The service goes straight to production: the testing phase is skipped.",
 				"adesione_disabilitata": "The service remains visible in the catalog but subscriptions cannot be requested.",
 				"multi_adesione": "Allows the same subscribing subject to have more than one subscription to the service.",
-				"note": "Internal notes about the service, visible to the referents; they do not appear on the public catalog page."
+				"note": "Internal notes about the service, visible to the referents. On the catalog page they can be shown to the users with the roles enabled by the configuration."
 			},
 			"SETTINGS": {
 				"servizi_view": "Choose the default display mode of the list of services."
@@ -1376,6 +1476,7 @@
 		"MENU": {
 			"AddService": "Add service",
 			"ApiDescriptor": "API Descriptor",
+			"Audit": "Audit",
 			"BackView": "Exit management",
 			"BackViewWizard": "Exit setup",
 			"ChangeStatus": "Change status to \"{{status}}\"",
@@ -1467,10 +1568,26 @@
 			"ERROR": {
 				"ADE": {
 					"400": {
+						"MONITORING": {
+							"CLIENT": {
+								"ASSENTE": "No client of membership [{{idAdesione}}] for API [{{nomeApi}} v{{versioneApi}}] in {{ambiente}}: monitoring cannot be filtered by membership",
+								"MULTIPLI": "Membership [{{idAdesione}}] has more than one client for API [{{nomeApi}} v{{versioneApi}}] in {{ambiente}} ({{applicativi}}): monitoring by membership supports a single application"
+							}
+						},
 						"STATE": {
 							"DEFAULT": "Membership state [{{stato}}] not valid for this operation",
 							"MONITORING": "Membership state [{{stato}}] not valid for monitoring (membership [{{idAdesione}}])",
 							"SERVICE": "Service [{{servizio}}] state does not allow memberships"
+						},
+						"RATE": {
+							"LIMITING": {
+								"API": "API [{{idApi}}] not allowed for rate limiting: it must be an API of the service provided by the domain subject",
+								"PERIODO": "The service does not define a [{{periodo}}] rate limiting for API [{{nome}} v{{versione}}] in {{ambiente}}",
+								"DUPLICATE": "Quota for API [{{nome}} v{{versione}}] and period [{{periodo}}] specified more than once",
+								"QUOTA": {
+									"FRUITORE": "Quota [{{quota}}] exceeds the subscriber quota [{{quotaFruitore}}] defined by the service for API [{{nome}} v{{versione}}] and period [{{periodo}}]"
+								}
+							}
 						}
 					},
 					"403": {
@@ -1488,7 +1605,15 @@
 						"STATE": {
 							"DEFAULT": "Cannot modify membership in current state",
 							"SKIP": {
-								"COLLAUDO": "Skip testing not allowed by service [{{nomeServizio}} v{{versioneServizio}}]"
+								"COLLAUDO": {
+									"DEFAULT": "Skip testing not allowed: the domain [{{nomeDominio}}] of service [{{nomeServizio}} v{{versioneServizio}}] does not allow skipping testing",
+									"REQUIRED": "Skip testing required: service [{{nomeServizio}} v{{versioneServizio}}] does not include testing"
+								}
+							},
+							"SERVICE": {
+								"NOT": {
+									"PRODUCTION": "Service [{{nomeServizio}} v{{versioneServizio}}] is not yet published in production"
+								}
 							},
 							"DISABLED": "Membership disabled for service [{{servizio}}]",
 							"VISIBILITY": "Service [{{servizio}}] visibility does not allow direct memberships",
@@ -1506,6 +1631,24 @@
 							"EROGATIONS": "API [{{nome}} v{{versione}}] has [{{count}}] active erogations, cannot delete"
 						},
 						"SPEC": "Specification not present",
+						"RATE": {
+							"LIMITING": {
+								"DUPLICATE": "Period [{{periodo}}] specified more than once in the {{ambiente}} rate limiting",
+								"RUOLO": "Rate limiting is only allowed for APIs provided by the domain subject: API [{{nome}} v{{versione}}]",
+								"PERIODO": "Period [{{periodo}}] not allowed by the profiles of API [{{nome}} v{{versione}}]",
+								"QUOTA": {
+									"NON": {
+										"PREVISTA": "Quota [{{quota}}] not allowed by the profiles of API [{{nome}} v{{versione}}]"
+									},
+									"ASSENTE": "Period [{{periodo}}] in {{ambiente}} requires at least one of total quota and subscriber quota",
+									"FRUITORE": {
+										"SUPERIORE": "The subscriber quota of period [{{periodo}}] in {{ambiente}} cannot exceed the total quota",
+										"ASSEGNATE": "Cannot set the subscriber quota of period [{{periodo}}] in {{ambiente}} to {{quotaFruitore}}: [{{numeroAdesioni}}] memberships have a higher quota assigned"
+									}
+								},
+								"FRUITORI": "Cannot remove the [{{periodo}}] rate limiting in {{ambiente}}: [{{numeroAdesioni}}] memberships have a quota assigned for that period"
+							}
+						},
 						"URL": {
 							"DUPLICATE": "Invocation URL [{{identificativo}}] given more than once for the same specification",
 							"NOT": {
@@ -1543,7 +1686,7 @@
 						"ORG": {
 							"ADHESION": "Organization [{{nomeOrganizzazione}}] does not match for membership",
 							"MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
-							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization",
+							"MISSING": "User [{{nomeUtente}} {{cognomeUtente}}] is not associated with organization [{{orgNome}}] and cannot be its referent",
 							"NOT": {
 								"ADERENTE": "Organization [{{nomeOrganizzazione}}] is not enabled as an adherent",
 								"REFERENTE": "Organization [{{nomeOrganizzazione}}] is not enabled as a service referent"
@@ -1554,7 +1697,14 @@
 								"ELIGIBLE": "User [{{nomeUtente}} {{cognomeUtente}}] not eligible as referent"
 							},
 							"NO": {
-								"ROLE": "User [{{userIdUtente}}] does not have a sufficient role in organization [{{orgNome}}]: at least the API Operator role is required"
+								"ROLE": "User [{{nomeUtente}} {{cognomeUtente}}] does not have at least the API Operator role in organization [{{orgNome}}] and cannot be its referent"
+							}
+						},
+						"RATE": {
+							"LIMITING": {
+								"RUOLI": {
+									"ABILITATI": "You do not have a role allowed to modify the rate limiting [{{quota}}]"
+								}
 							}
 						},
 						"RESOURCE": "Access denied to resource [{{resource}}]",
@@ -1646,6 +1796,7 @@
 				},
 				"Default": "Sorry, unpredictable problem",
 				"DefaultHelp": "Please try again later",
+				"StatisticaNonDisponibile": "The selected statistic is not available for this service",
 				"DOC": {
 					"400": {
 						"FORMAT": "Document format not supported",
@@ -1687,7 +1838,7 @@
 						},
 						"REQUEST": "Invalid request",
 						"SKIP": {
-							"COLLAUDO": "Skip testing constrained by parent entity"
+							"COLLAUDO": "Skip testing cannot be changed: constrained by related entities"
 						}
 					},
 					"404": "Resource not found",
@@ -1733,16 +1884,34 @@
 				},
 				"MON": {
 					"400": {
+						"API": {
+							"AMBIENTE": "API [{{nomeApi}} v{{versioneApi}}] is not configured in the [{{ambiente}}] environment"
+						},
 						"ALARM": {
 							"CONFIG": "Invalid alarm configuration: {{dettagli}}"
 						},
-						"INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid"
+						"AUDIT": {
+							"API": "API [{{nomeApi}} v{{versioneApi}}] is not enabled for audit monitoring in environment [{{ambiente}}]",
+							"ID": {
+								"API": "An API must be specified to view audit information"
+							}
+						},
+						"INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid",
+						"SOGGETTO": "Subject [{{soggetto}}] is not the referent subject of the domain of the monitored service"
+					},
+					"403": {
+						"DEFAULT": "You do not have a role enabled to monitor the service",
+						"TRANSAZIONE": "You do not have a role enabled to monitor the service of transaction [{{idTransazione}}]"
+					},
+					"409": {
+						"GOVWAY": "GovWay rejected the monitoring request for subject [{{soggetto}}] with profile [{{profilo}}]: {{dettaglio}}. Check that the subject is configured in GovWay with the same name and for the same interoperability profile used by GovCat"
 					},
 					"404": {
 						"DEFAULT": "Monitoring data not available for service [{{servizio}}]",
 						"ALARM": "Alarm [{{idAllarme}}] not found",
+						"AUDIT": "Audit monitoring is not enabled",
 						"METRIC": "Metric [{{metrica}}] not found",
-						"STATS": "Statistics not available for period [{{periodo}}]"
+						"STATS": "Monitoring not available: the requested feature or report type is not enabled"
 					}
 				},
 				"NoAddCategorie": "The category could not be added.",
@@ -1773,7 +1942,10 @@
 						"DEFAULT": "Organization [{{nome}}] already exists",
 						"ADERENTE": "Adhering subject constrained, cannot modify",
 						"REFERENT": "Referent [{{nomeUtente}} {{cognomeUtente}}] of type [{{tipoReferente}}] already exists for domain [{{nomeDominio}}]",
-						"USER": "User [{{nomeUtente}} {{cognomeUtente}}] is already associated to organization [{{nomeOrganizzazione}}]"
+						"USER": "User [{{nomeUtente}} {{cognomeUtente}}] is already associated to organization [{{nomeOrganizzazione}}]",
+						"UTENTE": {
+							"REFERENTE": "User [{{nomeUtente}} {{cognomeUtente}}] is referent in organization [{{nomeOrganizzazione}}] of {{numeroServizi}} services, {{numeroDomini}} domains and {{numeroAdesioni}} subscriptions: without the API Operator or Administrator role they will no longer be a valid referent. Confirm the operation to proceed anyway"
+						}
 					}
 				},
 				"PRF": {
@@ -1860,7 +2032,8 @@
 							"DEFAULT": "Subject [{{nome}}] is the default subject of the organization"
 						},
 						"NOT": {
-							"ADERENTE": "Subject [{{nomeSoggetto}}] is not an adhering subject"
+							"ADERENTE": "Subject [{{nomeSoggetto}}] is not an adhering subject",
+							"REFERENTE": "Subject [{{nomeSoggetto}}] is not a referent subject"
 						},
 						"ORG": {
 							"MISMATCH": "Subject [{{nomeSoggetto}}] does not belong to organization [{{nomeOrganizzazione}}]"
@@ -1898,7 +2071,12 @@
 							"ADESIONE": "The service must allow multiple subscriptions because domain [{{dominio}}] allows multiple subscriptions"
 						},
 						"NOT": {
-							"DELETABLE": "",
+							"DELETABLE": {
+								"DEFAULT": "The service cannot be deleted",
+								"ADESIONI": "The service cannot be deleted because it has subscriptions: archive it to make it no longer available. The APIs of an archived service do not reserve their name and version and can be reused in a new service",
+								"API": "The service cannot be deleted because it has APIs: delete the service APIs first",
+								"PACKAGE": "The package cannot be deleted because it contains services: remove the services from the package first"
+							},
 							"REGISTERED": ""
 						},
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed for services"
@@ -1927,10 +2105,10 @@
 				},
 				"SYS": {
 					"500": {
-						"DEFAULT": "System error",
-						"CONFIG": "",
-						"DB": "",
-						"IO": ""
+						"DEFAULT": "System error (identifier: {{idErrore}})",
+						"CONFIG": "Invalid system configuration (identifier: {{idErrore}})",
+						"DB": "Database access error (identifier: {{idErrore}})",
+						"IO": "I/O error (identifier: {{idErrore}})"
 					},
 					"501": "Operation [{{operazione}}] not supported",
 					"503": "Service unavailable"
@@ -2033,7 +2211,21 @@
 						"PATTERN": "Pattern [{{pattern}}] not satisfied for field [{{campo}}]",
 						"PIVA": "VAT number [{{partitaIva}}] not valid",
 						"PROFILE": "Profile [{{profilo}}] not present in configuration",
+						"PROFILO": {
+							"COMPATIBILITA": "Profile [{{profilo}}] compatible only with [{{compatibilita}}] APIs",
+							"DOMINIO": "Profile [{{profilo}}] not allowed in domain [{{dominio}}]",
+							"GOVWAY": "GovWay interoperability profile [{{valore}}] not valid: allowed values [{{valoriAmmessi}}]",
+							"SOGGETTO": "Profile [{{profilo}}] not allowed for subject [{{soggetto}}], referent of domain [{{dominio}}]",
+							"TIPO": {
+								"DOMINIO": "Profile [{{profilo}}] allowed only for domain type [{{tipoDominio}}]"
+							}
+						},
 						"RANGE": "Value [{{valore}}] out of allowed range [{{min}} - {{max}}]",
+						"RATE": {
+							"LIMITING": {
+								"QUOTA": "Rate limiting quota [{{quota}}] not valid: it must be an integer greater than zero"
+							}
+						},
 						"REQUIRED": "Required field [{{campo}}] missing",
 						"URL": "URL [{{url}}] not valid"
 					},
@@ -2050,8 +2242,8 @@
 						},
 						"COMPLEX": "Semantically invalid complex entity update",
 						"DEFAULT": "Semantically invalid request",
-						"SKIP": {
-							"COLLAUDO": "Skip testing not allowed for service [{{servizio}}]"
+						"REFERENTI": {
+							"ORGANIZZAZIONE": "Referents [{{referenti}}] are not associated with organization [{{orgNome}}] with at least the API Operator role: replace them or assign them the role before moving the resource to the organization"
 						}
 					}
 				},
@@ -2059,17 +2251,19 @@
 					"404": "",
 					"400": {
 						"DATA": {
-							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]",
-							"NOT": {
-								"MODIFIABLE": "Data not modifiable in the current workflow state"
-							}
+							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]"
 						},
 						"PROFILO": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not enabled for the profiles [{{profili}}] required by the service",
 						"STATE": "",
 						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"
 					},
 					"403": {
-						"ACTION": ""
+						"ACTION": "",
+						"DATA": {
+							"NOT": {
+								"MODIFIABLE": "Data [{{dati}}] cannot be modified by the user in the current workflow state"
+							}
+						}
 					}
 				}
 			},
@@ -2095,7 +2289,7 @@
 			"SkipCollaudoDominioDaSelezionare": "Select the domain: skipping testing depends on the domain.",
 			"SkipCollaudoSoggettoNonConsente": "Not available: the domain's reference subject does not allow skipping testing.",
 			"SkipCollaudoDominioNonConsente": "Not available: the service domain does not allow skipping testing.",
-			"SkipCollaudoVincolato": "Cannot be disabled: some subscriptions to the service skip testing.",
+			"SkipCollaudoVincolato": "Cannot be enabled: some subscriptions to the service go through testing.",
 			"SkipCollaudoNonModificabile": "Editable only while the service is a draft.",
 			"CollaudoNonDisponibileServizio": "Testing not available: the service is published directly in production.",
 			"CollaudoNonDisponibileAdesione": "Testing not available: the subscription is requested directly in production.",
@@ -2103,6 +2297,8 @@
 			"NoApiHelp": "",
 			"NoData": "Sorry, the requested information was not found",
 			"NoDataHelp": "Please check your connection and try again",
+			"ServizioNonDisponibile": "Service not available for your profile",
+			"ServizioNonDisponibileHelp": "The service no longer exists or is not visible with the permissions of your organization",
 			"NoFilesSelected": "No documents selected",
 			"NoItemsFound": "No items found",
 			"NoOperations": "No operations present",
@@ -2177,7 +2373,8 @@
 				"MaxFileSize": "Maximum size allowed: {{size}} MB",
 				"OnlyImages": "Only files of type are allowed: {{types}}",
 				"MaxDimensions": "Maximum dimensions allowed: {{width}}x{{height}} px"
-			}
+			},
+			"SkipCollaudoDominioVincolato": "It cannot be turned off: services or subscriptions of the domain skip testing."
 		},
 		"NOTIFICATIONS": {
 			"BUTTON": {
@@ -2345,8 +2542,10 @@
 				"CurrentLabel": "Current organization",
 				"RequestSent": "Organization change request sent successfully",
 				"ApproveTitle": "Approve organization change",
-				"ApproveWarning": "Do you confirm you want to approve the organization change request? The existing association will be replaced with the new organization.",
+				"ApproveWarning": "Do you confirm you want to approve the organization change request? The association with {{partenza}} will be replaced with {{destinazione}}.",
 				"ApproveWarningFirstOrg": "Do you confirm you want to approve the organization assignment request? The user will be associated with the new organization.",
+				"ApproveWarningAddOrg": "Do you confirm you want to approve the request to join {{destinazione}}? The user's existing associations remain unchanged.",
+				"ApproveTitleAdd": "Approve organization association",
 				"ApproveButton": "Approve",
 				"CancelTitle": "Cancel request",
 				"CancelWarning": "Do you confirm you want to cancel the pending organization change request? This action cannot be undone.",
@@ -2495,6 +2694,8 @@
 			"referente_servizio": "Service referent",
 			"utente_organizzazione": "Organization user",
 			"amministratore_organizzazione": "Organization administrator",
+			"amministratore_organizzazione_aderente": "Subscriber organization administrator",
+			"amministratore_organizzazione_erogatrice": "Provider organization administrator",
 			"operatore_api": "API operator",
 			"referente_tecnico": "Technical referent",
 			"referente_tecnico_adesione": "Membership technical contact",
@@ -2506,13 +2707,75 @@
 		},
 		"SEARCH": {
 			"ClearRecentSearches": "Clear recent searches",
+			"SearchFilters": "Search and filters",
 			"NoRecentSearches": "You don't have any recent searches",
 			"RecentSearches": "Recent searches",
 			"View": "View"
 		},
 		"SERVICES": {
+			"NOTA_VETRINA": {
+				"Titolo": "Service note",
+				"Mostra": "Show the service note"
+			},
 			"PDND_PENDING": "Pending PDND actions: {{count}}",
 			"PDND_PENDING_LOADING": "Counting pending PDND actions",
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting",
+				"Descrizione": "Overall API quotas in this environment and quotas requested by subscribers. Exceeding the quota is reported but not blocked.",
+				"Assegnata": "Assigned",
+				"Residua": "Remaining",
+				"Fruitori": "Subscribers",
+				"Superata": "The sum of the subscriber quotas exceeds the overall quota",
+				"QuoteFruitori": "Subscriber quotas",
+				"AltriFruitori": "Other subscribers",
+				"Fruitore": "Subscriber",
+				"NessunFruitore": "No subscribers in this environment.",
+				"NessunAltroFruitore": "No other subscribers in this environment.",
+				"ModificaQuote": "Edit quotas of",
+				"CaricaAltri": "Load more subscribers",
+				"NessunaApi": "No API with rate limiting in this environment.",
+				"Api": "Service APIs",
+				"FiltraFruitori": "Filter by subscriber or logical id",
+				"NessunRisultato": "No subscriber matches the filter.",
+				"QuestaAdesione": "This subscription",
+				"StatoFruitori": "Authorization status",
+				"Autorizzata": "Authorized",
+				"InAttesa": "Pending",
+				"STATO": {
+					"tutte": "All",
+					"autorizzate": "Authorized",
+					"attesa": "Pending"
+				},
+				"MassimoFruitore": "Max per subscriber",
+				"FINALITA": {
+					"Titolo": "PDND purposes",
+					"Descrizione": "Daily quota of the PDND purposes indicated by the authorized subscriptions, compared with the daily quotas of the subscribers",
+					"Finalita": "Purpose",
+					"QuotaFinalita": "Purpose quota",
+					"QuotaAssegnata": "Assigned to subscribers",
+					"QuotaRichiesta": "Subscriber daily quota",
+					"QuotaInAttesa": "Increase waiting for approval",
+					"Adesioni": "Subscriptions",
+					"Condivisa": "Shared by {{numero}} subscriptions",
+					"Superata": "The subscriber quotas exceed the purpose quota",
+					"StatoNonAttivo": "Purpose not active on PDND",
+					"Nessuna": "No purpose indicated by the authorized subscriptions.",
+					"SoloAvviso": "Warning only: no save is blocked.",
+					"ChipErrore": "Over the PDND purpose",
+					"ESITO": {
+						"conforme": "Matches the purpose",
+						"inferiore": "Below the purpose quota",
+						"superiore": "Above the purpose quota",
+						"quota_assente": "No daily quota indicated",
+						"non_verificabile": "Purpose not verifiable"
+					},
+					"ERRORE": {
+						"non_valida": "Invalid purpose identifier",
+						"non_trovata": "Purpose not found on PDND",
+						"non_disponibile": "PDND not reachable: purpose not read"
+					}
+				}
+			},
 			"ATTACHMENTS": {
 				"Title": "Attachments",
 				"ApiMenu": "API attachments",
@@ -2529,6 +2792,12 @@
 			"API_EROGATE_ADERENTE": {
 				"true": "With APIs provided by the subscriber",
 				"false": "Without APIs provided by the subscriber"
+			},
+			"INTERMEDIAZIONE": {
+				"Label": "Implemented by",
+				"Interna": "Your organization ({{organizzazione}})",
+				"InternaSenzaNome": "Your organization",
+				"Esterna": "External organization (intermediated service)"
 			},
 			"ARCHIVED": {
 				"escludi": "Exclude",
@@ -2650,7 +2919,8 @@
 			"BUTTON": {
 				"AddAttachment": "Add Attachment",
 				"AddAttachment-generico": "Add generic attachment",
-				"AddAttachment-specifica": "Add specific attachment"
+				"AddAttachment-specifica": "Add specific attachment",
+				"SpostaComunque": "Move anyway"
 			},
 			"FILTER": {
 				"All": "All",
@@ -3020,6 +3290,7 @@
 		"TITLE": {
 			"AddGroup": "Add group",
 			"About": "About",
+			"Audit": "Audit",
 			"AddApi": "Add APIs",
 			"AddAttachment": "Add attachment",
 			"AddAttachments": "Add attachments",
@@ -3249,6 +3520,7 @@
 			"RemoveReferent": "Remove referent",
 			"ReturnCodeHttp": "Return Code Http",
 			"richiedente_anonimo": "Anonymous applicant",
+			"UtenteAudit": "Audit user",
 			"RichiestaAnonima": "Anonymous request",
 			"ScheduledExpeditionDate": "Scheduled expedition date",
 			"Select": "Select",
@@ -3269,7 +3541,10 @@
 				"cambio_stato": "State change",
 				"comunicazione": "Communication"
 			},
-			"Version": "Version"
+			"Version": "Version",
+			"RuoloNonValido": "No longer has a valid role in the organization: replace it",
+			"ServizioNonEliminabile": "The service cannot be deleted while it has APIs or subscriptions. If it has subscriptions, archive it: the APIs of an archived service can be reused in a new service",
+			"PackageNonEliminabile": "The package cannot be deleted while it contains services or has subscriptions. If it has subscriptions, archive it"
 		},
 		"TRANSACTIONS": {
 			"FILTER": {
@@ -3286,6 +3561,7 @@
 			},
 			"TABS": {
 				"DettaglioMessaggio": "Message Detail",
+				"InformazioniAudit": "Audit information",
 				"InformazioniGenerali": "General informations",
 				"InformazioniMittente": "Sender Information"
 			},
@@ -3318,7 +3594,9 @@
 			},
 			"ORGANIZZAZIONI": {
 				"Title": "Organizations",
-				"HelpText": "Organization memberships are managed from the organization detail page, in the \"Organization users\" section."
+				"HelpText": "Organization memberships are managed from the organization detail page, in the \"Organization users\" section.",
+				"HelpTextConRichiesta": "Approved memberships are managed from the organization detail page, in the \"Organization users\" section. The pending request is not listed there: approve or reject it from this page.",
+				"HelpTextSoloRichiesta": "The user is not yet listed among the users of the requested organization: approve or reject the request from this page."
 			},
 			"LABEL": {
 				"Cognome": "Lastname",
@@ -3479,6 +3757,8 @@
 					"bozza": "Return to draft status",
 					"in_configurazione_automatica_collaudo": "Returns to automatic configuration test",
 					"in_configurazione_automatica_produzione": "Returns to automatic production configuration",
+					"in_configurazione_manuale_produzione_senza_collaudo": "Returns to manual production configuration without testing",
+					"in_configurazione_automatica_produzione_senza_collaudo": "Returns to automatic production configuration without testing",
 					"in_configurazione_collaudo": "Returns to configuration in testing state",
 					"in_configurazione_manuale_collaudo": "Returns to manual configuration testing",
 					"in_configurazione_manuale_produzione": "Returns to manual production configuration",
@@ -3495,6 +3775,8 @@
 				"cambia_stato": "Change status",
 				"in_configurazione_automatica_collaudo": "In automatic configuration test",
 				"in_configurazione_automatica_produzione": "In automatic production configuration",
+				"in_configurazione_manuale_produzione_senza_collaudo": "In manual production configuration without testing",
+				"in_configurazione_automatica_produzione_senza_collaudo": "In automatic production configuration without testing",
 				"in_configurazione_collaudo": "Configure in testing",
 				"in_configurazione_manuale_collaudo": "In manual configuration testing",
 				"in_configurazione_manuale_produzione": "In manual production configuration",
@@ -3515,6 +3797,8 @@
 				"bozza": "Draft",
 				"in_configurazione_automatica_collaudo": "Automatic configuration",
 				"in_configurazione_automatica_produzione": "Automatic configuration",
+				"in_configurazione_manuale_produzione_senza_collaudo": "Manual configuration (without testing)",
+				"in_configurazione_automatica_produzione_senza_collaudo": "Automatic configuration (without testing)",
 				"in_configurazione_collaudo": "Configure",
 				"in_configurazione_manuale_collaudo": "Manual configuration",
 				"in_configurazione_manuale_produzione": "Manual configuration",
@@ -3531,7 +3815,8 @@
 				"AreYouSure": "Do you want to confirm the status change to '**{{next}}**'?",
 				"AreYouSureBulk": "**You are about to perform a bulk operation that cannot be undone.**\n\nDo you want to confirm the change of status to '**{{next}}**' of '**{{count}}**' memberships?",
 				"ChangeStatusError": "Error changing state [{{status}}]",
-				"ChangeStatusSuccess": "Status change successful [{{status}}]"
+				"ChangeStatusSuccess": "Status change successful [{{status}}]",
+				"ArchiviazioneApiRiusabili": "Once archived, the name and version of the service APIs become available to other services of the same domain: the service can return to its previous state only if nobody has reused them."
 			},
 			"RIFIUTO": {
 				"Rifiuta": "Reject",
@@ -3539,9 +3824,19 @@
 				"Descrizione": "The state goes back to \"{{stato}}\" and the referents receive a communication with the reason.",
 				"Oggetto": "Subject",
 				"Motivo": "Reason for rejection",
+				"PrefissoCollaudo": "Testing authorization rejected for the following reason: ",
+				"PrefissoProduzione": "Production authorization rejected for the following reason: ",
 				"Conferma": "Confirm rejection",
 				"OggettoDefault": "{{nome}}: request rejected ({{stato}})",
 				"Successo": "Request rejected: the state went back to \"{{stato}}\" and the communication was sent to the referents."
+			},
+			"STORICO": {
+				"A": "to",
+				"Creazione": "Creation",
+				"Da": "from",
+				"Nessuno": "No status change recorded.",
+				"Titolo": "Status history",
+				"Voce": "Status history"
 			},
 			"STATUS": {
 				"PROCESSING": "Processing",
@@ -3561,6 +3856,8 @@
 				"configurato": "Configured",
 				"in_configurazione_automatica_collaudo": "In automatic configuration test",
 				"in_configurazione_automatica_produzione": "In automatic production configuration",
+				"in_configurazione_manuale_produzione_senza_collaudo": "In manual production configuration without testing",
+				"in_configurazione_automatica_produzione_senza_collaudo": "In automatic production configuration without testing",
 				"in_configurazione_collaudo": "In configuration under testing",
 				"in_configurazione_manuale_collaudo": "In manual configuration testing",
 				"in_configurazione_manuale_produzione": "In manual production configuration",

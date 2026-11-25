@@ -79,6 +79,15 @@ describe('AdesioniComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should filter the referent tabs by the side of the organization admin', () => {
+    const roles = (key: string) => component._allRoleTabs.find(t => t.key === key)?.roles || [];
+    expect(roles('referente')).toContain('amministratore_organizzazione_erogatrice');
+    expect(roles('referente')).not.toContain('amministratore_organizzazione_aderente');
+    expect(roles('referente_adesione')).toContain('amministratore_organizzazione_aderente');
+    expect(roles('referente_adesione')).not.toContain('amministratore_organizzazione_erogatrice');
+    expect([...roles('referente'), ...roles('referente_adesione')]).not.toContain('amministratore_organizzazione');
+  });
+
   it('should have static Name', () => {
     expect(AdesioniComponent.Name).toBe('AdesioniComponent');
   });

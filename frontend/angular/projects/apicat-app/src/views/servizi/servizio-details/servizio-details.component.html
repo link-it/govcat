@@ -23,6 +23,7 @@
     <div class="nav-controls">
       @if (data && !_isNew) {
         <app-monitor-dropdown
+          [service_id]="data.id_servizio"
           [showMonitoring]="Tools.Configurazione?.servizio?.api?.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
           [returnWeb]="true"
           [otherActions]="_showExternalOtherActions ? _otherActions : []"
@@ -151,6 +152,17 @@
                 [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate"
                 [btnTooltip]="'APP.TOOLTIP.DeleteService'"
                 (onAction)="_confirmDelection()"
+              ></lnk-button>
+            </div>
+          } @else if (!_isEdit && !_spin && data) {
+            <div class="btn-group- ms-2 d-inline-block">
+              <lnk-button
+                [type]="'button'"
+                [icon]="'bi bi-trash'"
+                [onlyIcon]="true"
+                [ariaDisabled]="true"
+                [ariaLabel]="('APP.TOOLTIP.DeleteService' | translate) + ': ' + (_motivoNonEliminabile() | translate)"
+                [btnTooltip]="_motivoNonEliminabile()"
               ></lnk-button>
             </div>
           }
@@ -303,14 +315,14 @@
                         <div class="form-group package mt-2-">
                           <div class="form-group">
                             @if (_isEdit || !isComponente) {
-                              <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }} @if (_isEdit) {
+                              <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.package' | translate }} @if (_isEdit) {
                                 <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'"></span>
-                              }</label>
+                              }</span>
                             }
                             @if (_isEdit) {
                               <div class="gl-form-checkbox custom-control custom-checkbox">
-                                <input #chkPackage class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
-                                <label class="custom-control-label" aria-hidden="true" (click)="chkPackage.click()"></label>
+                                <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
+                                <label class="custom-control-label" for="package"><span class="visually-hidden">{{ 'APP.LABEL.package' | translate }}</span></label>
                                 @if (hasHelpPackage) {
                                   <span class="ms-1" [tooltip]="helpTooltipPackage | translate" container="body"><i class="bi bi-question-circle"></i></span>
                                 }
@@ -320,7 +332,7 @@
                               <div class="">
                                 <div class="gl-form-checkbox custom-control custom-checkbox">
                                   <input class="custom-control-input" type="checkbox" id="package" [checked]="data.package" disabled>
-                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                  <label class="custom-control-label" for="package"><span class="visually-hidden">{{ 'APP.LABEL.package' | translate }}</span></label>
                                 </div>
                               </div>
                             }
@@ -332,20 +344,20 @@
                       <div class="col-4">
                         <div class="form-group fruizione mt-2-">
                           <div class="form-group">
-                            <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }} @if (_isEdit) {
+                            <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.fruizione' | translate }} @if (_isEdit) {
                               <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'fruizione'"></span>
-                            }</label>
+                            }</span>
                             @if (_isEdit) {
                               <div class="gl-form-checkbox custom-control custom-checkbox">
-                                <input #chkFruizione class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
-                                <label class="custom-control-label" aria-hidden="true" (click)="chkFruizione.click()"></label>
+                                <input class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
+                                <label class="custom-control-label" for="fruizione"><span class="visually-hidden">{{ 'APP.LABEL.fruizione' | translate }}</span></label>
                               </div>
                             }
                             @if (!_isEdit) {
                               <div class="">
                                 <div class="gl-form-checkbox custom-control custom-checkbox">
                                   <input class="custom-control-input" type="checkbox" id="fruizione" [checked]="data.fruizione" disabled>
-                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                  <label class="custom-control-label" for="fruizione"><span class="visually-hidden">{{ 'APP.LABEL.fruizione' | translate }}</span></label>
                                 </div>
                               </div>
                             }
@@ -970,14 +982,14 @@
                         <div class="col-6">
                           <div class="form-group">
                             @if (_isEdit || !isComponente) {
-                              <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }} @if (_isEdit) {
+                              <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.DisabilitaAdesione' | translate }} @if (_isEdit) {
                                 <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'adesione_disabilitata'"></span>
-                              }</label>
+                              }</span>
                             }
                             @if (_isEdit) {
                               <div class="gl-form-checkbox custom-control custom-checkbox">
-                                <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata" [attr.aria-describedby]="_adesioneBloccata.disabilitata ? 'adesione_disabilitata-dominio' : null">
-                                <label class="custom-control-label" aria-hidden="true" (click)="chkAdesioneDisabilitata.click()"></label>
+                                <input class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata" [attr.aria-describedby]="_adesioneBloccata.disabilitata ? 'adesione_disabilitata-dominio' : null">
+                                <label class="custom-control-label" for="adesione_disabilitata"><span class="visually-hidden">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</span></label>
                                 @if (isComponente) {
                                   <span class="ms-1" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><i class="bi bi-question-circle"></i></span>
                                 }
@@ -990,7 +1002,7 @@
                               <div class="">
                                 <div class="gl-form-checkbox custom-control custom-checkbox">
                                   <input class="custom-control-input" type="checkbox" id="adesione_disabilitata" [checked]="data.adesione_disabilitata" disabled>
-                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                  <label class="custom-control-label" for="adesione_disabilitata"><span class="visually-hidden">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</span></label>
                                 </div>
                               </div>
                             }
@@ -1003,13 +1015,13 @@
                         <div class="col-6">
                           <div class="form-group">
                             <div class="form-group">
-                              <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }} @if (_isEdit && false) {
+                              <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.multi_adesione' | translate }} @if (_isEdit && false) {
                                 <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'multi_adesione'"></span>
-                              }</label>
+                              }</span>
                               @if (_isEdit) {
                                 <div class="gl-form-checkbox custom-control custom-checkbox">
-                                  <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" [attr.aria-describedby]="_adesioneBloccata.multi ? 'multi_adesione-dominio' : null">
-                                  <label class="custom-control-label" aria-hidden="true" (click)="chkMultiAdesione.click()"></label>
+                                  <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" [attr.aria-describedby]="_adesioneBloccata.multi ? 'multi_adesione-dominio' : null">
+                                  <label class="custom-control-label" for="multi_adesione"><span class="visually-hidden">{{ 'APP.LABEL.multi_adesione' | translate }}</span></label>
                                 </div>
                                 @if (_adesioneBloccata.multi) {
                                   <p class="form-text text-muted mb-0" id="multi_adesione-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
@@ -1019,7 +1031,7 @@
                                 <div class="">
                                   <div class="gl-form-checkbox custom-control custom-checkbox">
                                     <input class="custom-control-input" type="checkbox" id="multi_adesione" [checked]="data.multi_adesione" disabled>
-                                    <label class="custom-control-label" aria-hidden="true"></label>
+                                    <label class="custom-control-label" for="multi_adesione"><span class="visually-hidden">{{ 'APP.LABEL.multi_adesione' | translate }}</span></label>
                                   </div>
                                 </div>
                               }
@@ -1031,14 +1043,14 @@
                     <div class="row skip_collaudo">
                       <div class="col-md-6">
                         <div class="form-group">
-                          <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }} @if (_isEdit) {
+                          <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.SkipCollaudo' | translate }} @if (_isEdit) {
                             <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'skip_collaudo'"></span>
                           }
-                        </label>
+                        </span>
                         @if (_isEdit) {
                           <div class="gl-form-checkbox custom-control custom-checkbox">
-                            <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo" [attr.aria-describedby]="_motivoSkipCollaudo ? 'skip_collaudo-motivo' : null">
-                            <label class="custom-control-label" aria-hidden="true" (click)="chkSkipCollaudo.click()"></label>
+                            <input class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo" [attr.aria-describedby]="_motivoSkipCollaudo ? 'skip_collaudo-motivo' : null">
+                            <label class="custom-control-label" for="skip_collaudo"><span class="visually-hidden">{{ 'APP.LABEL.SkipCollaudo' | translate }}</span></label>
                           </div>
                           @if (_motivoSkipCollaudo; as motivo) {
                             <p class="field-notice mb-0" id="skip_collaudo-motivo"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{{ motivo | translate }}</span></p>
@@ -1048,7 +1060,7 @@
                           <div class="">
                             <div class="gl-form-checkbox custom-control custom-checkbox">
                               <input class="custom-control-input" type="checkbox" id="skip_collaudo" [checked]="data.skip_collaudo" disabled>
-                              <label class="custom-control-label" aria-hidden="true"></label>
+                              <label class="custom-control-label" for="skip_collaudo"><span class="visually-hidden">{{ 'APP.LABEL.SkipCollaudo' | translate }}</span></label>
                             </div>
                           </div>
                         }

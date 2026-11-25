@@ -103,7 +103,7 @@ section.adesione-config-list {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.75rem;
     font-weight: 500;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     background: var(--surface-3, #eef4f8);
     padding: 1px 6px;
     border-radius: 4px;
@@ -114,7 +114,7 @@ section.adesione-config-list {
 
 .adesione-config-list-item-meta {
   font-size: 0.75rem;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -145,7 +145,7 @@ section.adesione-config-list {
     }
     &.config-status-NONCONFIGURATO {
       background: var(--surface-3, #eef4f8);
-      color: var(--ink-3, #57738a);
+      color: var(--ink-3, #506a80);
     }
   }
 }

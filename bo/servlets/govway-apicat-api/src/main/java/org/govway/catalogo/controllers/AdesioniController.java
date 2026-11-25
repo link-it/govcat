@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -42,7 +43,9 @@ import org.govway.catalogo.assembler.ClientAdesioneItemAssembler;
 import org.govway.catalogo.assembler.DocumentoAllegatoAssembler;
 import org.govway.catalogo.assembler.ErogazioneItemAssembler;
 import org.govway.catalogo.assembler.ItemMessaggioAdesioneAssembler;
+import org.govway.catalogo.assembler.RateLimitingAssembler;
 import org.govway.catalogo.assembler.ReferenteAdesioneAssembler;
+import org.govway.catalogo.assembler.StoricoStatiAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.AdesioneAuthorization;
 import org.govway.catalogo.controllers.csv.AdesioneCsvBuilder;
@@ -66,7 +69,6 @@ import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
-import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -82,9 +84,15 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.DisclaimerService;
+import org.govway.catalogo.services.RateLimitingFinalitaService;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAdesione;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAssegnata;
+import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.api.AdesioniApi;
 import org.govway.catalogo.servlets.model.Adesione;
+import org.govway.catalogo.servlets.model.RateLimitingAdesione;
+import org.govway.catalogo.servlets.model.RateLimitingVerifica;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
 import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
@@ -116,6 +124,7 @@ import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelItemAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemClientAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
+import org.govway.catalogo.servlets.model.PagedModelItemStoricoStato;
 import org.govway.catalogo.servlets.model.PagedModelItemConfigurazioneAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemErogazioneAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
@@ -217,6 +226,18 @@ public class AdesioniController implements AdesioniApi {
 	@Autowired
 	private DisclaimerService disclaimerService;
 
+	@Autowired
+	private RateLimitingService rateLimitingService;
+
+	@Autowired
+	private RateLimitingAssembler rateLimitingAssembler;
+
+	@Autowired
+	private RateLimitingFinalitaService rateLimitingFinalitaService;
+
+	@Autowired
+	private StoricoStatiAssembler storicoStatiAssembler;
+
 	@Override
 	public ResponseEntity<Adesione> createAdesione(AdesioneCreate adesioneCreate) {
 		try {
@@ -292,15 +313,21 @@ public class AdesioniController implements AdesioniApi {
 
 	/**
 	 * Variante di {@link #findOne(UUID)} per le operazioni di sola consultazione (endpoint GET):
-	 * un amministratore di organizzazione può consultare tutte le adesioni della/e propria/e
-	 * organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
-	 * Non va usata per le operazioni di scrittura, la cui autorizzazione resta invariata.
+	 * l'amministratore dell'organizzazione di sessione può consultare anche le adesioni della
+	 * propria organizzazione lato aderente, senza esserne referente o richiedente.
+	 * Non va usata per le operazioni di scrittura: lato aderente l'amministratore non ha poteri
+	 * di workflow (vedi AdesioneAuthorization.getRuoli).
 	 */
 	private AdesioneEntity findOneConsultazione(UUID idAdesione) {
 		return findOne(idAdesione, true);
 	}
 
-	private AdesioneEntity findOne(UUID idAdesione, boolean visibilitaAmministratoreOrganizzazione) {
+	/**
+	 * @param consultazione true per le operazioni di sola lettura: l'amministratore dell'organizzazione
+	 *        di sessione vede anche le adesioni lato aderente. In ogni caso vede quelle ai servizi
+	 *        di cui la sua organizzazione è titolare (lato erogatore), che può autorizzare.
+	 */
+	private AdesioneEntity findOne(UUID idAdesione, boolean consultazione) {
 
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 		
@@ -315,8 +342,10 @@ public class AdesioniController implements AdesioniApi {
 		// indirizzate al suo ruolo ma non puo` aprire l'adesione a cui si riferiscono.
 		if(!this.coreAuthorization.isAdmin() && !this.coreAuthorization.isCoordinatore()) {
 			aspec.setUtente(Optional.of(utente));
-			if(visibilitaAmministratoreOrganizzazione) {
-				aspec.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utente));
+			Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+			aspec.setIdOrganizzazioneAmministrataErogatrice(idOrganizzazioneAmministrata);
+			if(consultazione) {
+				aspec.setIdOrganizzazioneAmministrataAderente(idOrganizzazioneAmministrata);
 			}
 		}
 
@@ -813,6 +842,47 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
+	public ResponseEntity<PagedModelItemStoricoStato> listStoricoStatiAdesione(UUID idAdesione, Integer page, Integer size) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+
+				if(page < 0 || size < 1) {
+					throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+				}
+
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// size+1 righe: l'ultima serve solo a ricavare lo stato precedente dell'ultimo cambio della pagina
+				List<StoricoStatiAssembler.CambioStato> cambi = this.service.findStatiAdesione(entity, (long) page * size, (long) size + 1).stream()
+						.map(s -> new StoricoStatiAssembler.CambioStato(s.getData(), s.getUtente(), s.getStato()))
+						.toList();
+				long totaleCambi = this.service.countStatiAdesione(entity);
+				StoricoStatiAssembler.CambioStato creazione = new StoricoStatiAssembler.CambioStato(entity.getDataCreazione(), entity.getRichiedente(),
+						this.configurazione.getAdesione().getWorkflow().getStatoIniziale());
+
+				PagedModelItemStoricoStato list = this.storicoStatiAssembler.toModel(cambi, totaleCambi, creazione, page, size);
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(list);
+			});
+
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
 	public ResponseEntity<PagedModelItemAdesione> listAdesioni(List<String> stato, UUID idSoggettoAderente, UUID idOrganizzazioneAderente, UUID idGruppo,
 			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, List<String> statoServizio, String q,  Integer page,
 			Integer size, List<String> sort) {
@@ -856,9 +926,7 @@ public class AdesioniController implements AdesioniApi {
 				if(!admin) {
 					UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
 					specification.setUtente(Optional.of(utenteSessione));
-					// Un amministratore di organizzazione vede tutte le adesioni della/e propria/e
-					// organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
-					specification.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utenteSessione));
+					applicaVisibilitaAmministratoreOrganizzazione(specification);
 					applicaFiltroOrganizzazioneSessione(specification);
 				}
 
@@ -898,6 +966,26 @@ public class AdesioniController implements AdesioniApi {
 									break;
 								case RICHIEDENTE_ADESIONE:
 									specRuolo = AdesioneSpecificationUtils.byRichiedente(utenteRuolo);
+									break;
+								case AMMINISTRATORE_ORGANIZZAZIONE:
+									// Adesioni dell'organizzazione di sessione, aderente o erogatrice
+									// (stessa regola con cui ruoli_referente riporta il ruolo)
+									specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()
+											.map(idOrg -> AdesioneSpecificationUtils.byOrganizzazioneAderente(idOrg)
+													.or(AdesioneSpecificationUtils.byOrganizzazioneErogatrice(idOrg)))
+											.orElse(null);
+									break;
+								case AMMINISTRATORE_ORGANIZZAZIONE_EROGATRICE:
+									// Solo il lato erogatore: adesioni ai servizi dell'organizzazione di sessione
+									specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()
+											.map(AdesioneSpecificationUtils::byOrganizzazioneErogatrice)
+											.orElse(null);
+									break;
+								case AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE:
+									// Solo il lato aderente: adesioni dell'organizzazione di sessione
+									specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()
+											.map(AdesioneSpecificationUtils::byOrganizzazioneAderente)
+											.orElse(null);
 									break;
 								default:
 									break;
@@ -967,6 +1055,15 @@ public class AdesioniController implements AdesioniApi {
 								Specification<AdesioneEntity> specRefServizio = AdesioneSpecificationUtils.byReferenteServizio(utente)
 										.and(AdesioneSpecificationUtils.byStati(statiReferente));
 								specRuolo = (specRuolo != null) ? specRuolo.or(specRefServizio) : specRefServizio;
+							}
+
+							// Se amministratore dell'organizzazione di sessione -> adesioni ai servizi di cui
+							// l'organizzazione è titolare negli stati "referente_superiore", come il referente di dominio
+							Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+							if(idOrganizzazioneAmministrata.isPresent() && !statiReferenteSuperiore.isEmpty()) {
+								Specification<AdesioneEntity> specAmmOrg = AdesioneSpecificationUtils.byOrganizzazioneErogatrice(idOrganizzazioneAmministrata.get())
+										.and(AdesioneSpecificationUtils.byStati(statiReferenteSuperiore));
+								specRuolo = (specRuolo != null) ? specRuolo.or(specAmmOrg) : specAmmOrg;
 							}
 						}
 
@@ -1133,6 +1230,7 @@ public class AdesioniController implements AdesioniApi {
 
 				if(!admin && !isWhiteListed) {
 					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
+					applicaVisibilitaAmministratoreOrganizzazione(specification);
 					applicaFiltroOrganizzazioneSessione(specification);
 				}
 
@@ -1529,7 +1627,8 @@ public class AdesioniController implements AdesioniApi {
 	@Override
 	public ResponseEntity<Adesione> updateStatoAdesione(UUID idAdesione, StatoUpdate statoUpdate, Boolean checkOnly) {
 		try {
-			return this.service.runTransaction(() -> {
+			// check_only: la transizione e` solo verificata, nessuna modifica (entita`, storico, notifiche) viene salvata
+			return this.runTransaction(isCheckOnly(checkOnly), () -> {
 				this.logger.info("Invocazione in corso ...");
 				AdesioneEntity entity = this.cambiaStatoAdesione(idAdesione, statoUpdate, checkOnly);
 
@@ -2133,6 +2232,137 @@ public class AdesioniController implements AdesioniApi {
 		}
 	}
 
+	@Override
+	public ResponseEntity<RateLimitingAdesione> getRateLimitingCollaudoAdesione(UUID idAdesione) {
+		return getRateLimitingAdesione(idAdesione, AmbienteEnum.COLLAUDO);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingAdesione> getRateLimitingProduzioneAdesione(UUID idAdesione) {
+		return getRateLimitingAdesione(idAdesione, AmbienteEnum.PRODUZIONE);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingAdesione> updateRateLimitingCollaudoAdesione(UUID idAdesione, RateLimitingAdesione rateLimitingAdesione) {
+		return updateRateLimitingAdesione(idAdesione, rateLimitingAdesione, AmbienteEnum.COLLAUDO);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingAdesione> updateRateLimitingProduzioneAdesione(UUID idAdesione, RateLimitingAdesione rateLimitingAdesione) {
+		return updateRateLimitingAdesione(idAdesione, rateLimitingAdesione, AmbienteEnum.PRODUZIONE);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingVerifica> verificaRateLimitingCollaudoAdesione(UUID idAdesione) {
+		return verificaRateLimitingAdesione(idAdesione, AmbienteEnum.COLLAUDO);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingVerifica> verificaRateLimitingProduzioneAdesione(UUID idAdesione) {
+		return verificaRateLimitingAdesione(idAdesione, AmbienteEnum.PRODUZIONE);
+	}
+
+	/** Verifica letta dal DB, da completare con le finalita` lette dalla PDND fuori dalla transazione. */
+	private record VerificaRateLimiting(RateLimitingVerifica model, List<FinalitaAdesione> finalitaAdesione, List<FinalitaAssegnata> finalitaAssegnate) {}
+
+	/**
+	 * Verifica, per chi gestisce il servizio, se le quote dell'adesione rientrano nella quota totale
+	 * residua e nelle finalita` PDND indicate: espone le quote impegnate dagli altri fruitori, quindi
+	 * non e` aperta all'aderente.
+	 */
+	private ResponseEntity<RateLimitingVerifica> verificaRateLimitingAdesione(UUID idAdesione, AmbienteEnum ambiente) {
+		try {
+			VerificaRateLimiting verifica = this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
+				this.rateLimitingService.authorizeGestioneServizio(entity.getServizio());
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				RateLimitingVerifica model = this.rateLimitingAssembler.toVerifica(entity, ambiente,
+						this.rateLimitingService.getRateLimiting(entity, ambiente),
+						this.rateLimitingService.getQuoteAssegnateAltreAdesioni(entity, ambiente));
+
+				List<FinalitaAdesione> finalitaAdesione = this.rateLimitingFinalitaService.getFinalitaAdesione(entity, ambiente);
+				return new VerificaRateLimiting(model, finalitaAdesione,
+						finalitaAdesione.isEmpty() ? List.of() : this.rateLimitingFinalitaService.getFinalitaAssegnate(entity.getServizio(), ambiente));
+			});
+
+			RateLimitingVerifica model = verifica.model();
+			if(this.rateLimitingFinalitaService.isAbilitata(ambiente)) {
+				model.setFinalita(this.rateLimitingAssembler.toFinalitaAdesione(verifica.finalitaAdesione(),
+						this.rateLimitingFinalitaService.leggiFinalita(ambiente, verifica.finalitaAssegnate(), verifica.finalitaAdesione())));
+			}
+
+			this.logger.info("Invocazione completata con successo");
+			return ResponseEntity.ok(model);
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	private ResponseEntity<RateLimitingAdesione> getRateLimitingAdesione(UUID idAdesione, AmbienteEnum ambiente) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				RateLimitingAdesione model = this.rateLimitingAssembler.toModel(this.rateLimitingService.getRateLimiting(entity, ambiente));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	private ResponseEntity<RateLimitingAdesione> updateRateLimitingAdesione(UUID idAdesione, RateLimitingAdesione rateLimitingAdesione, AmbienteEnum ambiente) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = findOne(idAdesione);
+
+				this.rateLimitingService.authorizeModifica(entity, ambiente);
+				this.logger.debug("Autorizzazione completata con successo");
+
+				this.rateLimitingService.setRateLimiting(rateLimitingAdesione.getRateLimiting(), entity, ambiente);
+				this.dettaglioAssembler.setUltimaModifica(entity);
+
+				this.service.save(entity);
+				RateLimitingAdesione model = this.rateLimitingAssembler.toModel(this.rateLimitingService.getRateLimiting(entity, ambiente));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
 	private List<Ruolo> listRuoloForce = Arrays.asList(Ruolo.GESTORE);
 	
 	private boolean isForce(Boolean force, List<Ruolo> listRuoli) {
@@ -2149,6 +2379,14 @@ public class AdesioniController implements AdesioniApi {
 	
 	private boolean isCheckOnly(Boolean checkOnly) {
 		return checkOnly != null && checkOnly;
+	}
+
+	/**
+	 * In check_only la transazione e` annullata e le query non forzano il flush:
+	 * le modifiche applicate per la verifica non arrivano al database.
+	 */
+	private <T> T runTransaction(boolean checkOnly, Supplier<T> supplier) {
+		return checkOnly ? this.service.runTransactionSenzaModifiche(supplier) : this.service.runTransaction(supplier);
 	}
 
 	// Metodo per registrare un errore
@@ -2301,6 +2539,19 @@ public class AdesioniController implements AdesioniApi {
 						//errore.setMessaggio("Utente non autorizzato");
 						//errori.add(errore);
 						this.registraErrore(errorIds, errorMessages, v,"Utente non autorizzato");
+					} catch(BadRequestException ex) {
+						// Le transizioni non ammesse dal workflow escono con 400 (Issue 457): restano un errore
+						// della singola adesione e non interrompono il cambio stato delle altre
+						if(ex.getErrorCode() != ErrorCode.WFL_400_TRANSITION && ex.getErrorCode() != ErrorCode.WFL_400_PROFILO) {
+							throw ex;
+						}
+						this.registraErrore(errorIds, errorMessages, v,"Transizione di stato non consentita");
+					} catch(ConflictException ex) {
+						// Servizio non ancora in produzione (Issue 478): errore della singola adesione
+						if(ex.getErrorCode() != ErrorCode.ADE_409_STATE_SERVICE_NOT_PRODUCTION) {
+							throw ex;
+						}
+						this.registraErrore(errorIds, errorMessages, v,"Servizio non ancora pubblicato in produzione");
 					}
 				});
 				response.setNumeroOk(numeroOk.get());
@@ -2512,23 +2763,14 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	/**
-	 * Restituisce gli identificativi delle organizzazioni di cui l'utente è amministratore
-	 * (ruolo {@link RuoloOrganizzazione#AMMINISTRATORE_ORGANIZZAZIONE}). Usato per ampliare la
-	 * visibilità in elenco adesioni: l'amministratore vede tutte le adesioni della propria
-	 * organizzazione (lato aderente) anche senza esserne referente o richiedente.
+	 * Visibilità in elenco dell'amministratore dell'organizzazione di sessione, anche senza
+	 * esserne referente o richiedente: le adesioni della sua organizzazione (lato aderente)
+	 * e quelle ai servizi di cui la sua organizzazione è titolare (lato erogatore).
 	 */
-	private List<UUID> getIdOrganizzazioniAmministrate(UtenteEntity utente) {
-		List<UUID> ids = new ArrayList<>();
-		if (utente == null) {
-			return ids;
-		}
-		for (UtenteOrganizzazioneEntity assoc : this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente)) {
-			if (assoc.getRuoloOrganizzazione() == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
-					&& assoc.getOrganizzazione() != null) {
-				ids.add(UUID.fromString(assoc.getOrganizzazione().getIdOrganizzazione()));
-			}
-		}
-		return ids;
+	private void applicaVisibilitaAmministratoreOrganizzazione(AdesioneSpecification specification) {
+		Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+		specification.setIdOrganizzazioneAmministrataAderente(idOrganizzazioneAmministrata);
+		specification.setIdOrganizzazioneAmministrataErogatrice(idOrganizzazioneAmministrata);
 	}
 
 	/**
@@ -2608,47 +2850,20 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	/**
-	 * Valida che tutti i referenti di un'adesione (sia REFERENTE che REFERENTE_TECNICO)
-	 * siano associati all'organizzazione del soggetto aderente. Gestori esentati.
+	 * Valida che tutti i referenti di un'adesione (sia REFERENTE che REFERENTE_TECNICO) possano
+	 * essere referenti per l'organizzazione del soggetto aderente. Gestori esentati.
 	 */
 	private void checkReferenti(AdesioneEntity adesione) {
 		OrganizzazioneEntity organizzazione = adesione.getSoggetto().getOrganizzazione();
-		for (ReferenteAdesioneEntity ref : adesione.getReferenti()) {
-			if (this.coreAuthorization.isAdmin(ref.getReferente())) {
-				continue;
-			}
-			if (!this.organizzazioneService.isAssociatoA(ref.getReferente(), organizzazione)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-						Map.of("orgNome", organizzazione.getNome(),
-								"userIdUtente", ref.getReferente().getIdUtente()));
-			}
-			if (!this.organizzazioneService.hasRuoloInOrganizzazione(ref.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-						Map.of("orgNome", organizzazione.getNome(),
-								"userIdUtente", ref.getReferente().getIdUtente()));
-			}
-		}
+		adesione.getReferenti().forEach(r -> this.coreAuthorization.checkReferente(r.getReferente(), organizzazione));
 	}
 
 	/**
-	 * Valida che il singolo referente (REFERENTE o REFERENTE_TECNICO) sia associato
-	 * all'organizzazione del soggetto aderente. Gestori esentati.
+	 * Valida che il singolo referente (REFERENTE o REFERENTE_TECNICO) possa essere referente per
+	 * l'organizzazione del soggetto aderente. Gestori esentati.
 	 */
 	private void checkReferente(ReferenteAdesioneEntity referenteEntity) {
-		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
-			return;
-		}
-		OrganizzazioneEntity organizzazione = referenteEntity.getAdesione().getSoggetto().getOrganizzazione();
-		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
-		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
+		this.coreAuthorization.checkReferente(referenteEntity.getReferente(), referenteEntity.getAdesione().getSoggetto().getOrganizzazione());
 	}
 
 }

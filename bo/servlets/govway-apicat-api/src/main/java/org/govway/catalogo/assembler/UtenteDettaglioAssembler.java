@@ -303,16 +303,18 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	public UtenteOrganizzazione toUtenteOrganizzazione(UtenteOrganizzazioneEntity assoc) {
 		UtenteOrganizzazione model = new UtenteOrganizzazione();
 		model.setOrganizzazione(organizzazioneItemAssembler.toModel(assoc.getOrganizzazione()));
-		if (assoc.getRuoloOrganizzazione() != null) {
-			model.setRuoloOrganizzazione(toRuoloOrganizzazioneEnum(assoc.getRuoloOrganizzazione()));
-		}
+		model.setRuoloOrganizzazione(toRuoloOrganizzazioneEnum(assoc.getRuoloOrganizzazione()));
 		return model;
 	}
 
 	/**
 	 * Mapping da enum interno RuoloOrganizzazione a enum API RuoloOrganizzazioneEnum.
+	 * Un'associazione senza ruolo ("Nessun ruolo") è un valore ammesso: restituisce null.
 	 */
 	public RuoloOrganizzazioneEnum toRuoloOrganizzazioneEnum(RuoloOrganizzazione ruolo) {
+		if (ruolo == null) {
+			return null;
+		}
 		switch (ruolo) {
 		case AMMINISTRATORE_ORGANIZZAZIONE:
 			return RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE;

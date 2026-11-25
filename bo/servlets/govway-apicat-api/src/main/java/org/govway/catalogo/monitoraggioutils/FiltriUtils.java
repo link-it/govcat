@@ -20,20 +20,29 @@
 package org.govway.catalogo.monitoraggioutils;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.govway.catalogo.core.business.utils.ProfiloGovwayResolver;
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
+import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ErogazioneEntity;
+import org.govway.catalogo.core.orm.entity.EstensioneApiEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
@@ -47,6 +56,7 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.ProfiloGovwayService;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
+import org.govway.catalogo.servlets.model.ConfigurazioneProprietaAudit;
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -73,7 +83,18 @@ public class FiltriUtils {
 	@Autowired
 	private ProfiloGovwayService profiloGovwayService;
 
-	public String getProfilo(UUID idServizio, UUID idApi) {
+	/**
+	 * Profilo di interoperabilità GovWay con cui interrogare il monitoraggio (transazioni e statistiche).
+	 * La ridefinizione del gestore sull'API (Issue 354) prevale; altrimenti si applica la stessa logica
+	 * del batch di configurazione (Issue 440, {@link ProfiloGovwayResolver}): tipo gateway del soggetto
+	 * interrogato, profilo_govway dei profili delle API del servizio, soggetto.profilo_gateway_default,
+	 * monitoraggio.profilo_govway_default.
+	 *
+	 * @param idServizio servizio monitorato
+	 * @param idApi API monitorata, nulla per tutte le API del servizio
+	 * @param soggetto nome del soggetto interrogato (referente del dominio)
+	 */
+	public String getProfilo(UUID idServizio, UUID idApi, String soggetto) {
 		return this.servizioService.runTransaction(() -> {
 			ServizioEntity servizio = this.servizioService.find(idServizio)
 					.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
@@ -83,37 +104,58 @@ public class FiltriUtils {
 				api = this.apiService.find(idApi)
 					.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", idApi.toString())));
 			}
-	
-			String ridefinito = null;
-			
-			for(ApiEntity c: servizio.getApi()) {
+
+			// Stesse API considerate da getApi: per i package quelle dei servizi componenti
+			Set<ApiEntity> apiServizio = getApiServizio(servizio);
+
+			// La ridefinizione del gestore sull'API prevale sulla logica del batch
+			for(ApiEntity c: apiServizio) {
 				if(api == null || api.getId().equals(c.getId())) {
-					// La ridefinizione del gestore sull'API prevale sul profilo_govway dei profili
-					if(ridefinito == null) {
-						ridefinito = this.profiloGovwayService.getOverride(c);
-					}
-					List<AuthTypeEntity> authTypeList = c.getAuthType();
-					for(AuthTypeEntity at: authTypeList) {
-						if(ridefinito == null) {
-							Optional<ConfigurazioneProfilo> pr = this.configurazione.getServizio().getApi().getProfili()
-									.stream()
-								.filter(p -> p.getCodiceInterno().equals(at.getProfilo())).findAny();
-							if(pr.isPresent() && pr.get().getProfiloGovway()!=null) {
-								ridefinito = pr.get().getProfiloGovway();
-							}
-						}
+					String ridefinito = this.profiloGovwayService.getOverride(c);
+					if(ridefinito != null) {
+						return ridefinito;
 					}
 				}
 			}
-			
-			if(ridefinito != null) {
-				return ridefinito;
-			} else {
-				return this.configurazione.getMonitoraggio().getProfiloGovwayDefault();
-			}
-			
+
+			SoggettoEntity soggettoEntity = this.soggettoService.findByNome(soggetto)
+					.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", soggetto)));
+
+			String profiloGovwayProfili = ProfiloGovwayResolver.getProfiloGovwayProfili(apiServizio,
+					this::getProfiloGovwayProfilo, "del servizio " + servizio.getNome() + " v" + servizio.getVersione());
+
+			return ProfiloGovwayResolver.risolvi(soggettoEntity.getTipoGateway(), profiloGovwayProfili,
+					this::getProfiloGatewayDefaultSoggetto,
+					() -> this.configurazione.getMonitoraggio().getProfiloGovwayDefault());
 		});
 
+	}
+
+	private Set<ApiEntity> getApiServizio(ServizioEntity servizio) {
+		if(servizio.is_package()) {
+			Set<ApiEntity> apiComponenti = new HashSet<>();
+			for(PackageServizioEntity c: servizio.getComponenti()) {
+				apiComponenti.addAll(c.getServizio().getApi());
+			}
+			return apiComponenti;
+		}
+		return servizio.getApi();
+	}
+
+	private String getProfiloGovwayProfilo(String codiceInterno) {
+		return this.configurazione.getServizio().getApi().getProfili()
+				.stream()
+				.filter(p -> p.getCodiceInterno().equals(codiceInterno))
+				.findAny()
+				.map(ConfigurazioneProfilo::getProfiloGovway)
+				.orElse(null);
+	}
+
+	private String getProfiloGatewayDefaultSoggetto() {
+		if(this.configurazione.getSoggetto() != null && this.configurazione.getSoggetto().getProfiloGatewayDefault() != null) {
+			return this.configurazione.getSoggetto().getProfiloGatewayDefault().getValue();
+		}
+		return null;
 	}
 
 	public ApiEntity findAPI(String nome, Integer versione, SoggettoEntity soggetto) {
@@ -132,7 +174,7 @@ public class FiltriUtils {
 				if(apiEntity.isPresent())
 					api = apiEntity.get();
 			} else {
-				Optional<ApiEntity> oApi = this.apiService.findByNomeVersioneSoggetto(nome, versione, UUID.fromString(soggetto.getIdSoggetto()));
+				Optional<ApiEntity> oApi = this.apiService.findByNomeVersioneSoggetto(nome, versione, UUID.fromString(soggetto.getIdSoggetto()), this.configurazione.getServizio().getWorkflow().getStatoArchiviato());
 				if(oApi.isPresent()) {
 					api = oApi.get();
 				} else {
@@ -145,6 +187,55 @@ public class FiltriUtils {
 		return api;
 	}
 	
+	/**
+	 * Un'API ha l'audit in un ambiente se almeno una delle proprietà custom indicate per quell'ambiente
+	 * in monitoraggio.proprieta_audit è valorizzata.
+	 */
+	public static boolean isAuditAbilitato(List<ConfigurazioneProprietaAudit> proprietaAudit, Collection<EstensioneApiEntity> estensioni, AmbienteEnum ambiente) {
+		if(proprietaAudit == null || estensioni == null) {
+			return false;
+		}
+		return proprietaAudit.stream()
+				.filter(p -> p.getAmbiente() != null && p.getAmbiente().getValue().equals(ambiente.getValue()))
+				.anyMatch(p -> estensioni.stream()
+						.anyMatch(e -> p.getNomeGruppo().equals(e.getGruppo())
+								&& p.getNomeProprieta().equals(e.getNome())
+								&& e.getValore() != null && !e.getValore().isBlank()));
+	}
+
+	/**
+	 * Verifica che l'API abbia l'audit nell'ambiente indicato.
+	 */
+	public void checkApiAudit(UUID idApi, AmbienteEnum ambiente) {
+		this.apiService.runTransaction(() -> {
+			ApiEntity api = this.apiService.find(idApi)
+					.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", idApi.toString())));
+			checkApiAudit(api, ambiente);
+		});
+	}
+
+	/**
+	 * Verifica che l'API di una transazione, individuata come in fase di visualizzazione della transazione, abbia l'audit
+	 * nell'ambiente indicato.
+	 */
+	public void checkApiAudit(String nome, Integer versione, String erogatore, AmbienteEnum ambiente) {
+		this.apiService.runTransaction(() -> {
+			SoggettoEntity soggetto = this.soggettoService.findByNome(erogatore)
+					.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", erogatore)));
+			ApiEntity api = findAPI(nome, versione, soggetto);
+			if(api == null) {
+				throw new BadRequestException(ErrorCode.MON_400_AUDIT_API, Map.of("nomeApi", nome, "versioneApi", String.valueOf(versione), "ambiente", ambiente.getValue()));
+			}
+			checkApiAudit(api, ambiente);
+		});
+	}
+
+	private void checkApiAudit(ApiEntity api, AmbienteEnum ambiente) {
+		if(!isAuditAbilitato(this.configurazione.getMonitoraggio().getProprietaAudit(), api.getEstensioni(), ambiente)) {
+			throw new BadRequestException(ErrorCode.MON_400_AUDIT_API, Map.of("nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "ambiente", ambiente.getValue()));
+		}
+	}
+
 	public String getSoggettoNome(String nome) {
 
 		SoggettoEntity soggetto = this.soggettoService.findByNome(nome)
@@ -173,6 +264,12 @@ public class FiltriUtils {
 					throw new BadRequestException(ErrorCode.VAL_422_API_SERVICE_MISMATCH, Map.of("nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
 				}
 
+				// L'API richiesta esplicitamente deve essere configurata nell'ambiente: un'API senza
+				// configurazione (bozza legittima, Issue 412) non è censita su GovWay e non ha transazioni.
+				if(getApiConfig(api, ambiente) == null) {
+					throw new BadRequestException(ErrorCode.MON_400_API_AMBIENTE, Map.of("nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "ambiente", ambiente.getValue()));
+				}
+
 			}
 
 			AdesioneEntity adesione = null;
@@ -181,6 +278,27 @@ public class FiltriUtils {
 					.orElseThrow(() -> new NotFoundException(ErrorCode.ADE_404, Map.of("idAdesione", idAdesione.toString())));
 			}
 	
+			List<IdApi> apiLst = getIdApi(servizio, api, adesione, idAdesione, ambiente);
+
+			if(apiLst.isEmpty()) {
+				throw new BadRequestException(ErrorCode.API_404_FOR_SERVICE, Map.of("idServizio", idServizio.toString()));
+			}
+			
+			return apiLst;
+		});
+
+	}
+
+	private static ApiConfigEntity getApiConfig(ApiEntity api, AmbienteEnum ambiente) {
+		return ambiente.equals(AmbienteEnum.COLLAUDO) ? api.getCollaudo(): api.getProduzione();
+	}
+
+	/**
+	 * API del servizio su cui si interroga il monitoraggio di GovWay, come in {@link #getApi(UUID, UUID, UUID, AmbienteEnum)}.
+	 * Le API senza dati per l'ambiente non sono configurate su GovWay in quell'ambiente e non hanno transazioni.
+	 * Da invocare all'interno di una transazione.
+	 */
+	private List<IdApi> getIdApi(ServizioEntity servizio, ApiEntity api, AdesioneEntity adesione, UUID idAdesione, AmbienteEnum ambiente) {
 			List<IdApi> apiLst = new ArrayList<>();
 			
 			Set<ApiEntity> apiServizioLst = new HashSet<>();
@@ -195,7 +313,10 @@ public class FiltriUtils {
 			
 			for(ApiEntity ap: apiServizioLst) {
 				if(api == null || api.getId().equals(ap.getId())) {
-					ApiConfigEntity conf = ambiente.equals(AmbienteEnum.COLLAUDO) ? ap.getCollaudo(): ap.getProduzione();
+					ApiConfigEntity conf = getApiConfig(ap, ambiente);
+					if(conf == null) {
+						continue;
+					}
 					if(ap.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
 						
  						IdApi id = new IdApi();
@@ -213,13 +334,17 @@ public class FiltriUtils {
 							id.setFruizione(true);
 						}
 
-						if(adesione != null) {
-							id.setSoggetto(getSoggettoNome(adesione.getSoggetto().getNome()));
-						} else if(fruizione) {
-							// Fruizione: l'erogatore verso GovWay è l'ente erogatore (provider) indicato sul servizio.
-							// Coerente con il nuovo modello (vedi EServiceBuilder.getUrlInvocazione e AdesioneDTOConverter):
-							// per le fruizioni dominio.getSoggettoReferente() è il fruitore interno, non l'erogatore.
+						if(fruizione) {
+							// Fruizione: l'erogatore verso GovWay è l'ente erogatore (provider) indicato sul servizio,
+							// anche quando si filtra per adesione. Coerente con il nuovo modello (vedi EServiceBuilder.getUrlInvocazione
+							// e AdesioneDTOConverter): per le fruizioni dominio.getSoggettoReferente() è il fruitore interno, non l'erogatore.
 							id.setSoggetto(getSoggettoNome(servizio.getSoggettoErogatore().getNome()));
+							if(adesione != null) {
+								// Il fruitore è sempre il referente del dominio: l'adesione si distingue per l'applicativo fruitore.
+								id.setApplicativoFruitore(getApplicativoFruitore(adesione, ap, ambiente));
+							}
+						} else if(adesione != null) {
+							id.setSoggetto(getSoggettoNome(adesione.getSoggetto().getNome()));
 						} else {
 							// Erogazione: l'erogatore è il soggetto referente del dominio.
 							id.setSoggetto(getSoggettoNome(servizio.getDominio().getSoggettoReferente().getNome()));
@@ -253,13 +378,65 @@ public class FiltriUtils {
 				}
 			}
 
-			if(apiLst.isEmpty()) {
-				throw new BadRequestException(ErrorCode.API_404_FOR_SERVICE, Map.of("idServizio", idServizio.toString()));
-			}
-			
 			return apiLst;
-		});
+	}
 
+	/**
+	 * Indica se una transazione di GovWay, individuata dall'API (nome e versione) e dal soggetto erogatore con cui
+	 * GovWay la registra, compare nel monitoraggio del servizio nell'ambiente: stesso perimetro della lista delle
+	 * transazioni del servizio, senza filtri per adesione. Da invocare all'interno di una transazione.
+	 */
+	public boolean isTransazioneServizio(ServizioEntity servizio, AmbienteEnum ambiente, String nome, Integer versione, String erogatore) {
+		return isTransazioneApi(getIdApi(servizio, null, null, null, ambiente), nome, versione, erogatore);
+	}
+
+	/**
+	 * Indica se una transazione di GovWay, individuata dall'API (nome e versione) e dal soggetto erogatore con cui
+	 * GovWay la registra, riguarda una delle API su cui si interroga il monitoraggio.
+	 */
+	public static boolean isTransazioneApi(List<IdApi> lstIdApi, String nome, Integer versione, String erogatore) {
+		if(nome == null || versione == null || erogatore == null) {
+			return false;
+		}
+		return lstIdApi.stream()
+				.anyMatch(a -> nome.equals(a.getNome()) && versione.equals(a.getVersione()) && erogatore.equals(a.getSoggetto()));
+	}
+
+	/**
+	 * Applicativo GovWay con cui l'adesione fruisce l'API nell'ambiente: è il client associato all'adesione
+	 * per l'ambiente e per i profili dell'API (lo stesso nome con cui il configuratore censisce l'applicativo).
+	 * Il monitoraggio GovWay accetta un solo applicativo nel filtro: senza client o con più client distinti
+	 * il filtro per adesione non è applicabile.
+	 */
+	private String getApplicativoFruitore(AdesioneEntity adesione, ApiEntity api, AmbienteEnum ambiente) {
+		Set<String> profili = api.getAuthType().stream()
+				.map(AuthTypeEntity::getProfilo)
+				.collect(Collectors.toSet());
+
+		Set<String> applicativi = adesione.getClient().stream()
+				.filter(ca -> ca.getAmbiente().name().equals(ambiente.name()))
+				.filter(ca -> profili.contains(ca.getProfilo()))
+				.map(ClientAdesioneEntity::getClient)
+				.filter(Objects::nonNull)
+				.map(ClientEntity::getNome)
+				.collect(Collectors.toCollection(TreeSet::new));
+
+		Map<String, String> params = Map.of("idAdesione", adesione.getIdAdesione(),
+				"nomeApi", api.getNome(),
+				"versioneApi", String.valueOf(api.getVersione()),
+				"ambiente", ambiente.getValue());
+
+		if(applicativi.isEmpty()) {
+			throw new BadRequestException(ErrorCode.ADE_400_MONITORING_CLIENT_ASSENTE, params);
+		}
+
+		if(applicativi.size() > 1) {
+			Map<String, String> paramsMultipli = new HashMap<>(params);
+			paramsMultipli.put("applicativi", String.join(", ", applicativi));
+			throw new BadRequestException(ErrorCode.ADE_400_MONITORING_CLIENT_MULTIPLI, paramsMultipli);
+		}
+
+		return applicativi.iterator().next();
 	}
 	
 }

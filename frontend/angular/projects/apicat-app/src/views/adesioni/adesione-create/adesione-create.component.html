@@ -145,11 +145,14 @@
               <label class="label-bold" for="id_logico">{{ 'APP.LABEL.id_logico' | translate }}
                 <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_logico'"></span>
               </label>
-              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_logico')" [attr.aria-invalid]="(_hasControlError('id_logico')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('id_logico')) ? 'id_logico-error' : null" type="text" name="id_logico" id="id_logico" formControlName="id_logico" (change)="_onChangeIdLogico($event)">
+              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_logico')" [attr.aria-invalid]="(_hasControlError('id_logico')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('id_logico')) ? 'id_logico-error' : null" type="text" name="id_logico" id="id_logico" formControlName="id_logico" [attr.maxlength]="idLogicoMax" (change)="_onChangeIdLogico($event)">
               @if (f['id_logico'].invalid && (f['id_logico'].dirty || f['id_logico'].touched)) {
                 <p class="form-text text-danger" id="id_logico-error" aria-live="polite">
                   @if (f['id_logico'].errors && f['id_logico'].errors['required']) {
                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                  @if (f['id_logico'].errors && f['id_logico'].errors['maxlength']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['id_logico'].errors['maxlength'].requiredLength } }}</span>
                   }
                 </p>
               }

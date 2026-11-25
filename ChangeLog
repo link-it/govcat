@@ -1,3 +1,573 @@
+2026-11-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 484: nota del servizio in vetrina, in un pannello aperto dal pulsante accanto alle azioni
+	  della pagina; mostrata solo se servizio.note_vetrina la abilita per i ruoli dell'utente sul
+	  servizio (ruoli tecnici come i non tecnici, gestore solo se elencato) e se valorizzata. Testo di
+	  aiuto del campo note aggiornato.
+	Issue 446: finalità PDND nel rate limiting. Il riepilogo del servizio mostra per ambiente le finalità
+	  delle adesioni autorizzate (quota, assegnata, adesioni, condivisa, superata, stato non attivo,
+	  aumento in attesa, finalità non letta); la lista dei fruitori l'esito del confronto per API; la
+	  verifica dell'adesione il confronto con la quota dell'aderente e un chip dedicato, ed è disponibile
+	  anche in configurazione per chi porta avanti l'adesione autorizzata. Dati di esempio aggiornati.
+
+2026-11-25  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 484: nuova chiave servizio.note_vetrina del configurazione.json (abilitato, ruoli_abilitati)
+	  che stabilisce se mostrare le note del servizio nella pagina di vetrina e a quali ruoli
+	  dell'utente sul servizio (richiedente, referente, referente_superiore, gestore; i ruoli tecnici
+	  valgono come i corrispondenti non tecnici, il gestore solo se elencato). La chiave è esposta dalla
+	  GET /configurazione; se assente le note non sono mostrate in vetrina. Il dettaglio del servizio
+	  restituisce le note come prima; i ruoli dell'utente sono quelli della GET /servizi/{id}/grant.
+
+2026-11-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilità da tastiera e riflusso: indicatore del fuoco visibile (:focus-visible) al posto della
+	  rimozione globale; header e breadcrumb senza scorrimento orizzontale a 320 px; titoli delle schede,
+	  aiuti, alberi, riepiloghi della dashboard, sotto-step del wizard e gruppi di referenti
+	  raggiungibili da tastiera; tabindex sulle regioni scorrevoli solo se prive di elementi focusabili
+	  visibili; la fascia delle notifiche non intercetta più i clic sulla pagina.
+
+2026-11-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 446: il riepilogo del rate limiting confronta le quote delle adesioni con le finalità PDND.
+	  La nuova chiave adesione.rate_limiting.finalita del configurazione.json indica, per ambiente, la
+	  proprietà custom delle adesioni con il purposeId; per le adesioni autorizzate il backend legge
+	  dalla PDND titolo, stato e chiamate giornaliere della finalità e le confronta con la quota
+	  giornaliera dell'aderente (dell'API, se la proprietà è specifica per API, altrimenti la somma
+	  delle API): maggiore è un errore, minore va evidenziata. Una finalità usata da più adesioni è
+	  superata se la somma delle loro quote ne supera la quota. Gli esiti sono nei nuovi campi
+	  finalita del riepilogo del servizio, della lista dei fruitori e della verifica dell'adesione;
+	  superata e rientra restano invariati. La PDND è interrogata fuori dalla transazione, una volta
+	  per finalità e con una cache (pdnd.finalita.cache.*); se non risponde o non trova la finalità
+	  l'esito è non verificabile, senza errori. Il batch (scenario mTLS fruizioni PDND) configura su
+	  GovWay una policy per ogni periodo delle quote di rate limiting dell'adesione, prima ignorate,
+	  e legge la finalità dalla stessa chiave del configurazione.json; le property del configuratore
+	  .rateLimiting e .purposeId restano come ripiego e sono deprecate.
+
+2026-11-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 478: il toggle "Salta collaudo" del wizard adesione dipende dal dominio del servizio ed è
+	  bloccato se il servizio non prevede il collaudo; avviso in bozza finché il servizio non è in
+	  produzione e richiesta di produzione disabilitata anche nel menu Cambia stato; lo skip del
+	  servizio risulta non attivabile (nuovo significato di vincola_skip_collaudo); messaggio sul
+	  dominio con skip vincolato da servizi o adesioni; errore del toggle mostrato.
+
+2026-11-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 478: lo skip collaudo dell'adesione è consentito dal dominio del servizio, come per i servizi:
+	  un servizio con collaudo può avere adesioni che aderiscono solo in produzione, prima rifiutate con
+	  409 ADE.409.STATE.SKIP.COLLAUDO, che ora cita il dominio. Un servizio senza collaudo impone lo
+	  skip alle sue adesioni: creare un'adesione senza skip, o togliere lo skip a un'adesione, risponde
+	  409 ADE.409.STATE.SKIP.COLLAUDO.REQUIRED (le adesioni già presenti restano modificabili). Lo skip
+	  di un servizio non si attiva se ha adesioni che passano dal collaudo e si disattiva anche con
+	  adesioni che lo saltano; quello del dominio non si disattiva se lo usano adesioni ai suoi servizi,
+	  né un servizio con tali adesioni si sposta su un dominio senza skip (400 GEN.400.SKIP.COLLAUDO).
+	  Le adesioni archiviate non contano. Il campo vincola_skip_collaudo del servizio indica ora che lo
+	  skip non è attivabile. Un'adesione entra in produzione solo con il servizio pubblicato in
+	  produzione (409 ADE.409.STATE.SERVICE.NOT.PRODUCTION), come già imposto dalla console. Modificare
+	  un'adesione senza indicare skip_collaudo lo lascia invariato invece di rispondere 500.
+
+2026-11-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 470: il referente di un dominio, con l'organizzazione del dominio in sessione, aggiunge e
+	  rimuove i referenti del dominio dal pulsante "Referenti del dominio" della vista servizio (pagina
+	  /miei-domini/:id/referenti, con ritorno al servizio); Aggiungi e Rimuovi sono mostrati solo a chi
+	  può gestire i referenti, anche nelle pagine del gestore e dell'amministratore.
+
+	Issue 473: cambio di ruolo o rimozione di un utente referente dell'organizzazione con conferma che
+	  elenca servizi, domini e adesioni interessati, poi ripetuti con force; i referenti senza più un
+	  ruolo valido sono segnalati con "Ruolo non valido" in vista, wizard e liste referenti; il gestore
+	  può spostare comunque un servizio in un dominio di altra organizzazione; nuovo stile lnk-form-error.
+
+	Issue 474: le distribuzioni per applicativo, principal e token client id mostrano etichette univoche
+	  (applicativo con soggetto, principal con autenticazione, applicativo con client id); il principal
+	  usa il nuovo campo principal al posto di indirizzo, deprecato. Nel grafico a torta etichette non
+	  troncate e legenda sotto il grafico; il messaggio MON.404.STATS usa il parametro tipo inviato dal
+	  backend al posto di periodo, mai valorizzato.
+
+	Issue 475: il pulsante di eliminazione di un servizio non eliminabile resta visibile, disabilitato,
+	  con il motivo (adesioni, API o servizi del package) nel tooltip; il ripristino da archiviato con
+	  API riusate mostra il messaggio API.409 al posto di un errore generico; la conferma di
+	  archiviazione avvisa che le API tornano riusabili. Nuovo input ariaDisabled di lnk-button.
+
+	Test: lo spec di servizio-api-details ripristina la risposta di default di getDetails prima di ogni
+	  test, eliminando i due errori non gestiti della suite.
+
+2026-11-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 471: l'amministratore dell'organizzazione modifica servizi e adesioni solo se ha i ruoli nel
+	  grant (referente_superiore per l'erogatrice); il wizard adesione non somma più i ruoli globali del
+	  profilo; nella lista adesioni le linguette referente distinguono il lato erogatore e aderente.
+
+	Issue 472: rimosso il filtro sul ruolo referente (ruoli-servizio.ts): monitoraggio, gestione e menu
+	  del servizio usano direttamente i ruoli del grant; il solo ruolo operatore API dell'organizzazione
+	  non abilita più la modifica di servizi e adesioni né dei client dell'adesione.
+
+2026-11-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 475: le API dei servizi archiviati non occupano più nome e versione, come già avviene per i
+	  servizi: un servizio da rifare può riusare le API di quello archiviato, prima rifiutate con 409
+	  API.409. Un servizio archiviato le cui API sono state riusate non può tornare allo stato precedente
+	  (409 API.409). Monitoraggio e allarmi attribuiscono i dati del gateway all'API del servizio non
+	  archiviato. L'eliminazione di un servizio non eliminabile risponde con un codice che ne indica il
+	  motivo e cosa fare: SRV.400.NOT.DELETABLE.ADESIONI, SRV.400.NOT.DELETABLE.API o
+	  SRV.400.NOT.DELETABLE.PACKAGE, al posto di SRV.400.NOT.DELETABLE.
+
+	Issue 474: le statistiche per applicativo, per principal e per token riportano di nuovo le etichette,
+	  prima vuote perché le colonne del CSV di GovWay venivano lette con intestazioni diverse da quelle
+	  prodotte (Applicativo, Principal, Autenticazione, Token Client ID, Token Issuer). La distribuzione
+	  per principal ha i nuovi campi principal e autenticazione; il campo indirizzo è deprecato e
+	  riporta il principal finché la console non usa il nuovo campo.
+
+	Issue 473: un referente che ha perso il ruolo nell'organizzazione non blocca più le modifiche del
+	  servizio o del dominio, prima rifiutate a chiunque, gestore compreso, con 403
+	  AUT.403.REFERENT.NO.ROLE. I referenti già presenti si verificano solo quando la risorsa passa
+	  sotto un'altra organizzazione (servizio spostato su un dominio di un'altra organizzazione, dominio
+	  assegnato a un soggetto di un'altra organizzazione), con errore 422
+	  VAL.422.REFERENTI.ORGANIZZAZIONE che li elenca; con force il gestore sposta comunque il servizio.
+	  Togliere il ruolo o l'associazione a un utente referente di servizi, domini o adesioni
+	  dell'organizzazione risponde 409 ORG.409.UTENTE.REFERENTE con il numero e l'elenco dei riferimenti,
+	  e va confermato con il nuovo parametro force. Il referente non più valido è evidenziato con il
+	  nuovo campo ruolo_non_valido negli elenchi dei referenti di servizi, domini e adesioni. Gli errori
+	  sui referenti non ammessi indicano nome e cognome dell'utente; in creazione del servizio un
+	  referente non associato all'organizzazione dà AUT.403.ORG.MISSING invece di AUT.403.RESOURCE.
+
+2026-11-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 468: nella vista a gruppi dei servizi il filtro "Servizi archiviati" resta impostato
+	  entrando in un gruppo o tornando indietro dal breadcrumb, invece di essere azzerato.
+
+	Issue 464: nel dettaglio utente la nota sulle organizzazioni distingue le associazioni approvate,
+	  gestite dal dettaglio dell'organizzazione, dalla richiesta in attesa, che si gestisce dal dettaglio
+	  utente; Approva e Rifiuta sono disponibili senza passare da Modifica e il dialogo di approvazione
+	  distingue aggiunta e sostituzione dell'organizzazione (organizzazione_partenza).
+
+2026-11-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 466: le pagine di transazioni, statistiche e verifiche del servizio e le verifiche di soggetti
+	  e client non si aprono dall'indirizzo se la funzione è disabilitata in configurazione
+	  (monitoraggio.<funzione>_abilitate); gli errori del monitor nelle verifiche mostrano un messaggio
+	  leggibile invece della risposta grezza.
+
+	Issue 463: le pagine di amministrazione attendono la configurazione remota prima di valutare i
+	  permessi, così il coordinatore può ricaricarle o aprirle dall'indirizzo invece di essere rimandato
+	  a Servizi.
+
+	Issue 461: nelle statistiche le distribuzioni per token sono proposte solo per le erogazioni e quella
+	  per Principal solo per le fruizioni, come previsto dal monitoraggio; un report non disponibile mostra
+	  un messaggio leggibile invece dell'errore HTTP.
+
+	Issue 465: la pagina di gestione di un servizio, aperta dall'indirizzo da un utente senza ruoli sul
+	  servizio, rimanda alla vista del servizio invece di proporre modifica e cambi di stato.
+
+	Issue 462: il dettaglio di un'adesione il cui servizio non è visibile all'utente mantiene i propri
+	  referenti e non propone "Vai al Servizio"; la vista del servizio inesistente o non visibile mostra
+	  "Servizio non disponibile per il tuo profilo" invece dell'errore "[object Object]". I codici di
+	  errore con più varianti (es. SRV.404) usano la traduzione DEFAULT. Le statistiche riconoscono il
+	  404 anche quando lo stato arriva solo nel corpo della risposta (completamento della Issue 461).
+
+	Issue 467: il salvataggio della configurazione di un'API e l'adeguamento delle quote ai profili
+	  reinviano i dati di erogazione salvati non gestiti dal form, così url_prefix non viene più
+	  cancellato e la URL di invocazione dell'ambiente resta invariata.
+
+2026-11-18  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 472: il ruolo operatore API dell'organizzazione non dà più il ruolo referente su tutti i
+	  servizi e le adesioni dell'organizzazione: l'operatore gestisce, e monitora, solo i servizi e le
+	  adesioni di cui è referente, referente tecnico o richiedente, come previsto dalla matrice dei
+	  permessi. Prima poteva, tramite API, modificare qualsiasi servizio dell'organizzazione e nominarsi
+	  referente. Restano invariate la creazione di servizi e adesioni e la visibilità del catalogo.
+
+	Issue 471: l'amministratore dell'organizzazione di sessione vede in lista e in dettaglio i servizi
+	  della propria organizzazione in ogni stato e le adesioni ai servizi della propria organizzazione, e
+	  li autorizza come il referente del dominio; li trova anche in dashboard, tra i servizi in attesa e
+	  con il filtro ruolo_referente=amministratore_organizzazione. Come aderente consulta i servizi, anche
+	  riservati o privati, a cui la sua organizzazione ha aderito, ma non autorizza più le adesioni della
+	  propria organizzazione. La visibilità da amministratore, compresa quella già esistente sulle
+	  adesioni dell'organizzazione aderente, vale solo con l'organizzazione in sessione
+	  (X-Organization-Context, o l'unica organizzazione dell'utente). Il filtro ruolo_referente delle
+	  adesioni accetta anche amministratore_organizzazione_erogatrice e
+	  amministratore_organizzazione_aderente, per distinguere le adesioni ai servizi
+	  dell'organizzazione da quelle fatte dall'organizzazione.
+
+	Issue 470: il referente di un dominio può aggiungere e rimuovere i referenti del dominio, come
+	  previsto dalla matrice dei permessi, operando con l'organizzazione del dominio in sessione e
+	  ruolo operatore API o amministratore; non può modificare né eliminare il dominio e restano i
+	  vincoli sui referenti ammessi. Il referente tecnico resta escluso.
+
+	Issue 459: le eccezioni non gestite (NPE, errori SQL, ecc.) restituiscono 500 con detail SYS.500
+	  senza esporre il messaggio interno, che resta solo nel log. Ogni risposta 500 riporta un
+	  identificativo dell'errore (instance urn:uuid e params.idErrore), scritto nel log insieme
+	  all'eccezione per ritrovarne il dettaglio; le eccezioni di GovCat mantengono codice e parametri.
+	  I valori non convertibili fuori dal body (conversioni Spring, errori di definizione o
+	  istanziazione Jackson) restituiscono 400 VAL.400.FORMAT invece del messaggio con i nomi delle
+	  classi Java. Le ServiceException di Hibernate, prima dichiarate su un handler che non poteva
+	  riceverle, passano per l'handler generico. Le traduzioni di SYS.500 mostrano l'identificativo
+	  invece del placeholder {{dettagli}} mai valorizzato.
+
+	Issue 458: l'approvazione della richiesta di una nuova organizzazione da parte di un utente con
+	  associazioni senza ruolo ("Nessun ruolo", il valore dopo la registrazione) non va più in
+	  errore 500, sia da gestore sia da amministratore dell'organizzazione richiesta: le
+	  associazioni senza ruolo vengono mantenute (o sostituite, se indicate come organizzazione di
+	  partenza) e si aggiunge quella richiesta.
+
+	* [ReverseProxy]
+	Issue 460: govcat-web serve l'applicazione anche aprendo da indirizzo diretto, da segnalibro o con F5
+	  le pagine prima escluse (gestione dell'organizzazione, servizi generici, tassonomie, monitoraggio)
+	  invece della pagina di errore. Il filtro non elenca più le rotte: rimanda all'applicazione ogni
+	  richiesta GET/HEAD che non sia una risorsa statica o un endpoint del server (proxy, configurazione,
+	  CSP, actuator, errore), così le nuove rotte non richiedono di modificarlo.
+
+2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 457: gli errori di validazione indicano il campo coinvolto (params.campo) e lo stato HTTP
+	  coincide con il codice. Servizi, API, domini, organizzazioni e adesioni riportano il campo
+	  obbligatorio mancante o non valido (per esempio referenti, gruppi_auth_type, id_logico,
+	  codice_ente). I profili non ammessi in un'API hanno codici specifici con profilo e
+	  dominio/soggetto/tipo di dominio/compatibilità (VAL.400.PROFILO.DOMINIO, .SOGGETTO,
+	  .TIPO.DOMINIO, .COMPATIBILITA) invece di VAL.422 generico. Il soggetto non referente di un
+	  dominio restituisce SOG.400.NOT.REFERENTE e la visibilità componente fuori da un package
+	  SRV.400.VISIBILITY. WFL.400.TRANSITION e WFL.400.PROFILO sono restituiti con HTTP 400 invece
+	  di 403. WFL.400.DATA.NOT.MODIFIABLE diventa WFL.403.DATA.NOT.MODIFIABLE (HTTP 403 invariato)
+	  con l'elenco dei dati non modificabili. I referenti duplicati (SRV/ADE/ORG.409.REFERENT),
+	  ORG.409.ADERENTE e ADE.409.STATE.* sono restituiti con HTTP 409 invece di 400, e
+	  AUT.403.REFERENT.NOT.ELIGIBLE con 403. L'autorizzazione precede i controlli sui dati:
+	  l'aggiunta di un referente a un servizio da parte di chi non ha ruolo sul servizio risponde
+	  403 anche se il referente esiste già, e non consente più di aggiungere sé stessi come
+	  referente; la creazione di un servizio verifica il permesso di creare servizi prima dei dati.
+
+	Issue 456: quando le ricerche di monitoraggio di GovWay (transazioni, export e statistiche)
+	  rispondono 400, per esempio perché il soggetto non esiste per il profilo di interoperabilità
+	  usato, GovCat restituisce 409 MON.409.GOVWAY con soggetto, profilo e dettaglio di GovWay
+	  invece di 500 SYS.500 senza indicazione della causa. Gli altri errori imprevisti restano
+	  SYS.500.
+
+	Issue 455:il monitoraggio di un servizio con API non ancora configurate nell'ambiente (bozze
+	  legittime, Issue 412) non va più in errore 500: lista, export e statistiche escludono dal
+	  filtro le API senza configurazione e restituiscono i dati delle API configurate. Se l'API
+	  indicata esplicitamente non è configurata nell'ambiente si risponde 400 MON.400.API.AMBIENTE.
+
+	Issue 454: la modifica di un'API con un blocco configurazione_collaudo o configurazione_produzione
+	  parziale (per esempio solo le quote) non va più in errore 500: protocollo e dati_erogazione
+	  assenti restano invariati, come già url_invocazione, rate_limiting e specifica. Prima il
+	  protocollo assente causava un errore interno e i dati di erogazione assenti venivano azzerati,
+	  con conseguente 422 sulla URL dell'ambiente. Se l'ambiente non è ancora configurato il
+	  protocollo resta obbligatorio (400 VAL.400.REQUIRED). Il contratto documenta che le proprietà
+	  custom vanno in dati_custom.proprieta_custom e che i campi non previsti vengono ignorati.
+
+	Issue 453: il campo facoltativo deprecato dei domini non è più causa di errore 500 se assente:
+	  in creazione vale false, in modifica il valore resta invariato.
+
+	Issue 452:il cambio stato di adesioni e servizi con check_only=true verifica solo la
+	  transizione (permessi e dati obbligatori) senza eseguirla: stato, storico degli stati e
+	  notifiche restano invariati. Prima la modifica veniva salvata comunque al commit, perché
+	  il distacco dell'entità arrivava dopo il flush automatico.
+
+	Issue 451: con adesione.scelta_libera_organizzazione=false, l'amministratore e l'operatore API
+	  dell'organizzazione erogatrice non possono più creare adesioni per soggetti di altre
+	  organizzazioni: il ruolo per-organizzazione sull'erogatrice non esenta più dal controllo di
+	  appartenenza al soggetto aderente. Restano esentati gestore, coordinatore e referente (non
+	  tecnico) del servizio o del dominio, che possono aderire per conto di un aderente. L'errore
+	  AUT.403.ORG.ADHESION è restituito con HTTP 403 invece di 400.
+
+	Issue 450:l'amministratore e l'operatore API di un'organizzazione creano servizi solo nei
+	  domini della propria organizzazione di sessione (il soggetto referente del dominio deve
+	  appartenervi), altrimenti si risponde 403 AUT.403.AMM.ORG.DOMINIO.FUORI.ORG; lo stesso
+	  vincolo vale quando la modifica del servizio ne cambia il dominio. Senza organizzazione di
+	  sessione, la creazione richiede un ruolo di amministratore o operatore API
+	  sull'organizzazione del dominio: gli utenti senza organizzazione associata (ex referenti di
+	  servizio migrati dalla 2.3.x) non creano più servizi finché il gestore non li associa
+	  all'organizzazione. Gestore e coordinatore non hanno vincoli.
+
+	Issue 449: le API di monitoraggio verificano i ruoli dell'utente sul servizio secondo
+	  monitoraggio.ruoli_abilitati: lista ed export delle transazioni, ricerca per identificativo,
+	  dettaglio e statistiche rispondono 403 a chi non ha un ruolo abilitato (il gestore è sempre
+	  ammesso); come nel frontend, il ruolo referente ricavato dal ruolo operatore API
+	  dell'organizzazione non basta. Il dettaglio e la ricerca per identificativo restituiscono
+	  solo transazioni che compaiono nella lista di un servizio monitorabile dall'utente (API con
+	  nome e versione su GovWay e soggetto erogatore); quelle senza API solo al gestore. Il
+	  soggetto indicato nel path deve essere il soggetto referente del dominio del servizio,
+	  altrimenti si risponde 400.
+
+	Transazioni: l'export CSV dopo la ricerca di una transazione per identificativo
+	  (GET .../diagnostica/lista-transazioni-id) falliva con errore 500 quando l'API della
+	  transazione non ha tag.
+
+2026-11-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 448: nei dettagli di dominio, soggetto e servizio il vincolo sullo skip del collaudo
+	  impedisce solo di disattivarlo quando è già attivo; con lo skip spento il toggle resta
+	  attivabile, così i dati incoerenti si possono sanare dall'interfaccia.
+
+2026-11-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 441: dopo il refresh della pagina delle statistiche i tipi di distribuzione e i formati
+	  di esportazione restano limitati a quelli previsti dalla configurazione
+	  (monitoraggio.statistiche.tipi_distribuzione e formati_report).
+
+	Issue 443: in vetrina il messaggio di adesione già attiva e i banner di adesione considerano
+	  solo le adesioni dell'organizzazione corrente, non quelle di altre organizzazioni visibili
+	  a gestore e referenti; le adesioni archiviate non fanno più comparire il messaggio.
+
+	Accessibilità (D13): corretti i difetti rilevati dalla verifica automatica con gov-a11y
+	  (axe-core e IBM Equal Access): etichette delle checkbox e dei campi in sola lettura, nomi
+	  accessibili di menu, aside e pulsanti, gerarchia dei titoli nel wizard, contrasto del testo
+	  secondario, delle card della dashboard e degli avatar; sfondo delle modali reso solo inert;
+	  tooltip del wizard dei servizi contenuti nel landmark principale.
+
+2026-11-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 444: configurazione automatica delle adesioni a fruizioni (es. intermediate ModI): l'aggiunta
+	  dell'applicativo agli applicativi autorizzati non invia più il campo soggetto, che GovWay
+	  non prevede per le fruizioni e che faceva fallire la configurazione con un 400; per le
+	  erogazioni il soggetto aderente resta indicato.
+
+	Issue 440: statistiche e transazioni interrogano il monitoraggio di GovWay con il profilo di
+	  interoperabilità ricavato come nel batch di configurazione (ridefinizione del gestore
+	  sull'API, tipo gateway del soggetto, profilo_govway dei profili delle API del servizio,
+	  profilo di default dei soggetti, profilo di default del monitoraggio); prima le statistiche
+	  usavano sempre il profilo di default del monitoraggio e risultavano vuote sulle API con un
+	  profilo diverso. Le statistiche inviano il nome del soggetto su GovWay come le transazioni
+	  e, per i package, il profilo è ricavato dalle API dei servizi componenti.
+
+2026-11-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 438: nel wizard di creazione dei servizi la spunta "Sono il referente del servizio",
+	  attiva di default, indica come referente l'utente in sessione; senza spunta compare la
+	  select del referente. Il referente tecnico resta facoltativo; referenti in verticale.
+
+	Transazioni: tornando dal dettaglio di una transazione le date della ricerca ripristinata
+	  sono mostrate correttamente nel pannello di ricerca (prima "Invalid date").
+
+2026-11-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 433: nel wizard dei servizi la select del dominio propone di default solo i domini non
+	  deprecati, anche al gestore, che può includerli con la spunta "Includi domini deprecati";
+	  filtro dei domini deprecati (inclusi, esclusi, solo deprecati) nella ricerca avanzata dei domini.
+
+	Issue 434: nel wizard dei servizi la spunta "Intermediato" diventa la select "Implementato da"
+	  con "La tua organizzazione (<nome>)" e "Organizzazione esterna (servizio intermediato)", con
+	  testo di aiuto dedicato a ciascuna opzione; nella scheda in sola lettura è mostrata l'opzione.
+
+	Issue 435: nei testi del rate limiting (wizard dei servizi e delle adesioni, riepiloghi e
+	  dialog) "fruitore/fruitori" diventa "aderente/aderenti" (in inglese "subscriber/subscribers").
+
+	Issue 436: transazioni, statistiche, audit e vetrina dei servizi pubblicati in produzione si
+	  aprono sulla produzione, con il collaudo disponibile; il monitoraggio segue l'ambiente scelto
+	  in vetrina; un servizio ancora in collaudo non è trattato come senza collaudo.
+
+	Adesioni: nella creazione di un'adesione la select del servizio funziona anche al primo
+	  accesso della sessione (prima restava vuota con il servizio precompilato e non registrava
+	  il servizio scelto, impedendo il salvataggio).
+
+2026-11-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Adesioni: identificativo logico senza spazi ai lati e al massimo 255 caratteri, obbligatorio
+	  anche contro i soli spazi; avviso nel wizard se un'adesione di un servizio multi-adesione ne è
+	  priva; nella lista mostrato solo con le adesioni multiple abilitate.
+
+	Traduzioni (it/en) e colori dei chip mancanti per gli stati di adesione in configurazione manuale e
+	  automatica in produzione senza collaudo.
+
+	Servizi: transazioni, statistiche e gestione non più visibili all'operatore API dell'organizzazione
+	  erogatrice che non sia referente del servizio o del dominio; con il collaudo saltato transazioni e
+	  statistiche aprono la produzione e il collaudo è disabilitato; menu delle azioni del servizio, con
+	  la voce per tornare alla vetrina, anche in transazioni, statistiche e comunicazioni.
+
+	Statistiche: ripristinato il valore al passaggio del mouse su punti e barre dei grafici, con
+	  l'aggiornamento di ngx-charts alla 25.0.3 compatibile con Angular 21.
+
+2026-11-09  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 431: l'export della lista delle transazioni (GET .../diagnostica/lista-transazioni)
+	  falliva con errore 500 (LazyInitializationException sulla configurazione di ambiente
+	  dell'API) quando open-in-view è disabilitato. Un'API senza configurazione nell'ambiente
+	  è trattata come REST invece di generare un errore.
+
+	Issue 432: il monitoraggio delle fruizioni filtrato per adesione (statistiche e lista
+	  transazioni) restituiva sempre risultati vuoti perché inviava a GovWay il soggetto
+	  dell'adesione come erogatore. Ora l'erogatore è sempre l'ente erogatore del servizio e
+	  l'adesione filtra sull'applicativo fruitore, cioè il client dell'adesione per l'ambiente e
+	  il profilo dell'API; senza client o con più client distinti si ottiene un errore 400
+	  esplicito (ADE.400.MONITORING.CLIENT.ASSENTE/MULTIPLI). Le erogazioni non cambiano.
+
+2026-11-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #421: nella scelta del gruppo la freccia di un ramo lo apre e chiude senza selezionare il
+	  gruppo e chiudere la dialog.
+
+	Issue #424: monitoraggio delle fruizioni (transazioni, export, statistiche e verifiche) con il
+	  soggetto interno fruitore nel path e, nelle verifiche, l'ente erogatore come provider.
+
+	Issue #404: nel dettaglio delle transazioni ripristinato il contenuto di "Dettaglio messaggio",
+	  sempre visibile anche con le informazioni di audit (ultimo tab), con data di consegna della
+	  risposta e dimensione di consegna della richiesta corrette.
+
+	Issue #402: nelle dialog del rate limiting (vetrina e verifica dell'adesione) le card dei periodi si
+	  allargano fino a una larghezza massima e i dati delle quote si dispongono su colonne adattive,
+	  senza etichette a capo; su mobile la tabella dei fruitori della vetrina scorre al suo interno.
+
+	Issue #426: nell'adesione a un servizio intermediato organizzazione e soggetto aderente sono quelli
+	  del referente del dominio, bloccati, e i referenti si cercano in quell'organizzazione.
+
+	Issue #427: nel rifiuto di un'autorizzazione il motivo è precompilato con il prefisso
+	  "Autorizzazione in collaudo/produzione rifiutata per il seguente motivo: ", da completare.
+
+	Issue #423: storico dei cambi di stato di servizi e adesioni (API storico-stati): voce in fondo al
+	  menu di workflow (AppConfig.Workflow.showStatusHistory) che apre un pannello laterale con data,
+	  utente e stato da/a, paginato allo scorrimento; dati di esempio con statusHistoryMock.
+
+2026-11-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 422: il cambio di stato eseguito dal batch al termine della configurazione automatica
+	  di un'adesione ha come autore l'utente che ha richiesto la configurazione, cioè chi ha
+	  portato l'adesione nello stato in configurazione, e non più un utente fisso. La proprietà
+	  `configurazione-automatica.batch.utente_configuratore` diventa opzionale (non più
+	  valorizzata di default) ed è usata solo se il richiedente non risulta dallo storico. Se
+	  l'autore non è determinabile l'adesione va in configurazione KO senza invocare GovWay e si
+	  ripristina con il retry della configurazione automatica; prima la configurazione su GovWay
+	  veniva eseguita e ripetuta a ogni giro senza che l'adesione cambiasse stato.
+
+	Issue 423: nuove API GET /servizi/{id_servizio}/storico-stati e
+	  /adesioni/{id_adesione}/storico-stati con lo storico paginato dei cambi di stato, dal più
+	  recente: data, utente, stato precedente e stato. La creazione compare come ultimo elemento,
+	  senza stato precedente. Autorizzazione uguale a quella del dettaglio.
+
+2026-11-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #402: verifica del rate limiting dell'adesione da autorizzare (pulsante con esito e
+	  dialog per API e periodo con quote autorizzate, residue, richieste e in attesa); elenco
+	  fruitori riusabile, in sola lettura nella verifica, con ricerca lato server (q) e filtro
+	  per stato di autorizzazione; quota autorizzata nel riepilogo in vetrina.
+
+	Issue #420: etichette della dialog informazioni PDND (ID e-service, ID erogatore, ID versione,
+	  versioni al posto di descrittori) e titolo delle versioni nella forma "v. x".
+
+	Issue #404: informazioni di audit nelle transazioni (includi_audit per le API con audit):
+	  utente dell'audit nella lista accanto al richiedente e tab "Informazioni audit" nel dettaglio
+	  al posto del dettaglio messaggio; voce e pagina Audit separate predisposte ma nascoste.
+
+	Issue #402: dialog del rate limiting senza il titolo dell'API quando ci sono le tab, tab con
+	  nome troncato e completo nel title; nella verifica l'adesione in esame fuori dall'elenco fruitori
+	  e tabella dei fruitori adattata all'altezza della dialog.
+
+	Fix: nella lista dei servizi l'opzione "I miei servizi" vale solo per l'utente che l'ha scelta,
+	  non si applica ai gestori ed è azzerata al logout.
+
+2026-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #402 (evolutiva): rate limiting secondo la regola dei profili (periodi, quota totale e
+	  quota per fruitore, required e ruoli abilitati) con adeguamento al cambio di profilo; massimo
+	  per fruitore nell'adesione; riepilogo spostato in vetrina in una dialog con tab per API e
+	  fruitori paginati allo scorrimento; numeri nel formato della lingua; dati di esempio
+	  attivabili con AppConfig.Services.rateLimitingMock.
+
+2026-11-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 419: nell'export CSV dei servizi le URL di invocazione (principale e aggiuntive) di
+	  un ambiente sono riportate solo se lo stato del servizio lo prevede, con la stessa regola
+	  già usata dal CSV delle adesioni: collaudo per tutti gli stati tranne quelli del percorso
+	  senza collaudo, produzione per gli stati del percorso di produzione. Un servizio pubblicato
+	  in collaudo riporta quindi solo la URL di collaudo e uno pubblicato in produzione senza
+	  collaudo solo quella di produzione; prima la URL di produzione era sempre valorizzata. Per
+	  i servizi archiviati restano entrambe. Le colonne Backend URL non cambiano.
+
+2026-11-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 404: monitoraggio di audit. Le API di lista delle transazioni (`POST` di
+	  `/{ambiente}/erogazioni/{soggetto}/diagnostica/lista-transazioni`,
+	  `/{ambiente}/fruizioni/{soggetto}/diagnostica/lista-transazioni` e
+	  `/{ambiente}/diagnostica/lista-transazioni-id`) e di dettaglio
+	  (`GET /{ambiente}/diagnostica/{id_transazione}`) accettano il nuovo parametro
+	  `includi_audit` (default `false`): se `true` aggiungono le informazioni di audit lette
+	  dalla traccia della transazione su GovWay, nella lista pattern di audit, `user_id`,
+	  `user_location` e `loa`, nel dettaglio tutti i claim del token di audit (quelli non
+	  previsti dalle Linee Guida ModI in `altre_proprieta`, con il nome del claim senza il
+	  prefisso `ProfiloSicurezzaMessaggioAudit-` di GovWay, es. `X509-Issuer`). Per la lista
+	  GovCat recupera in parallelo il dettaglio di ogni transazione della pagina (thread
+	  configurabili con `monitor.audit.pool_size`, default 10); se il dettaglio di una
+	  transazione non è disponibile la riga resta senza audit. Il monitoraggio di audit si
+	  abilita in configurazione con `monitoraggio.audit_abilitato` e `monitoraggio.proprieta_audit`,
+	  le proprietà custom delle API che indicano il pattern di audit in ciascun ambiente: un'API
+	  ha l'audit in un ambiente se almeno una di queste proprietà è valorizzata. Nelle liste con
+	  `includi_audit` l'API va sempre indicata. Senza il parametro il comportamento non cambia.
+
+2026-10-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #402: rate limiting di servizi e adesioni con i campi dedicati. Quote complessive
+	  per API e ambiente (una per periodo, solo giorno per le API PDND) nella configurazione e
+	  nella creazione dell'API e nella riga API del wizard; quota del fruitore nel wizard
+	  adesioni; riepilogo per chi gestisce il servizio con quote dei fruitori modificabili e
+	  avviso di sforamento.
+
+2026-10-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 402: il rate limiting di servizi e adesioni si gestisce con campi dedicati, non più
+	  con proprietà custom. Per ogni API erogata dal soggetto del dominio e per ogni ambiente
+	  il servizio dichiara le quote (`rate_limiting` della configurazione di collaudo e di
+	  produzione dell'API), al più una voce per periodo (`minuto`, `ora`, `giorno`): quota
+	  totale, massimo per la somma dei fruitori, e quota fruitore, massimo per ciascun
+	  fruitore. Periodi ammessi e quote previste dipendono dal nuovo blocco `rate_limiting`
+	  dei profili in configurazione (`periodi`, `quota_totale`, `quota_fruitore`, ciascuna
+	  quota con `required` e `ruoli_abilitati`); se assente vale il default, esposto dall'API
+	  di configurazione: sola quota totale con tutti i periodi, oppure, per i profili con
+	  `pdnd_type`, quota totale e quota fruitore con il solo periodo `giorno`. Un'API con più
+	  profili segue la regola più restrittiva. Il fruitore indica la propria quota per API e
+	  per uno dei periodi dichiarati dal servizio, senza superare la quota fruitore, con le
+	  nuove API `GET` e `PUT /adesioni/{id_adesione}/collaudo/rate-limiting` e
+	  `/adesioni/{id_adesione}/produzione/rate-limiting`. L'aderente modifica la quota secondo
+	  il workflow dei dati di collaudo e di produzione, chi gestisce il servizio in ogni stato
+	  tranne archiviato. Chi gestisce il servizio consulta il riepilogo con
+	  `GET /servizi/{id_servizio}/rate-limiting`, che confronta le quote dichiarate con la
+	  somma di quelle assegnate ai fruitori delle adesioni non archiviate (lo sforamento della
+	  quota totale è solo segnalato), e l'elenco paginato delle quote dei fruitori con
+	  `GET /servizi/{id_servizio}/rate-limiting/fruitori`. Entrambi distinguono le adesioni
+	  già autorizzate per l'ambiente (quota, numero di fruitori e quota residua autorizzati,
+	  flag `autorizzata` e filtro `autorizzate` sull'elenco, che accetta anche il filtro
+	  libero `q` su soggetto, organizzazione e id logico), così chi autorizza un'adesione
+	  vede la quota già impegnata. Gli stati autorizzati sono configurabili
+	  (`adesione.rate_limiting.stati_autorizzati.collaudo` e `.produzione`); per default sono
+	  ricavati dai nomi degli stati del workflow: per il collaudo da `autorizzato_collaudo`
+	  in poi, compresi gli stati di produzione con collaudo, per la produzione da
+	  `autorizzato_produzione` in poi, anche senza collaudo. Le nuove API
+	  `GET /adesioni/{id_adesione}/collaudo/rate-limiting/verifica` e
+	  `/adesioni/{id_adesione}/produzione/rate-limiting/verifica`, riservate a chi gestisce il
+	  servizio, indicano se le quote dell'adesione rientrano nella quota totale residua al netto
+	  delle altre adesioni autorizzate (le richieste in attesa sono solo informative); l'esito
+	  non blocca l'autorizzazione. Non si può rimuovere un periodo né
+	  portare la quota fruitore sotto quote già assegnate ad adesioni non archiviate. La
+	  scheda adesione mostra le quote dedicate, se presenti, al posto delle proprietà custom.
+	  Script di upgrade del database `V2.5.1__rate_limiting.sql`. Le proprietà custom di
+	  rate limiting esistenti non vengono migrate e il configuratore continua a leggerle.
+
 2026-11-03  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.5.0

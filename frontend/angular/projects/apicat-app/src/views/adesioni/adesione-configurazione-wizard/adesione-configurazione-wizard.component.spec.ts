@@ -324,41 +324,29 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
 
   it('canChangeStatoMapper: true per gestore', () => {
     mockAuthService.isGestore.mockReturnValue(true);
-    component._ruoliReferenteProfilo = [];
+    component.grant = { ruoli: [] } as any;
     expect(component.canChangeStatoMapper('')).toBe(true);
     expect(mockAuthService.isGestore).toHaveBeenCalled();
   });
 
-  it('canChangeStatoMapper: false con profilo ruoli vuoto e non gestore', () => {
+  it('canChangeStatoMapper: false con grant senza ruoli e non gestore', () => {
     mockAuthService.isGestore.mockReturnValue(false);
-    component._ruoliReferenteProfilo = [];
+    component.grant = { ruoli: [] } as any;
     expect(component.canChangeStatoMapper('')).toBe(false);
   });
 
-  it('canChangeStatoMapper: true per referente_servizio nel profilo', () => {
+  it('canChangeStatoMapper: true per i referenti del servizio o del dominio (referente_superiore nel grant)', () => {
     mockAuthService.isGestore.mockReturnValue(false);
-    component._ruoliReferenteProfilo = ['referente_servizio'];
+    component.grant = { ruoli: ['referente_superiore'] } as any;
+    expect(component.canChangeStatoMapper('')).toBe(true);
+
+    component.grant = { ruoli: ['referente_tecnico_superiore'] } as any;
     expect(component.canChangeStatoMapper('')).toBe(true);
   });
 
-  it('canChangeStatoMapper: true per referente_dominio nel profilo', () => {
+  it('canChangeStatoMapper: false per gli altri ruoli del grant (es. referente, richiedente)', () => {
     mockAuthService.isGestore.mockReturnValue(false);
-    component._ruoliReferenteProfilo = ['referente_dominio'];
-    expect(component.canChangeStatoMapper('')).toBe(true);
-  });
-
-  it('canChangeStatoMapper: true per referente_tecnico_servizio/dominio', () => {
-    mockAuthService.isGestore.mockReturnValue(false);
-    component._ruoliReferenteProfilo = ['referente_tecnico_servizio'];
-    expect(component.canChangeStatoMapper('')).toBe(true);
-
-    component._ruoliReferenteProfilo = ['referente_tecnico_dominio'];
-    expect(component.canChangeStatoMapper('')).toBe(true);
-  });
-
-  it('canChangeStatoMapper: false per ruoli non abilitati (es. richiedente_servizio)', () => {
-    mockAuthService.isGestore.mockReturnValue(false);
-    component._ruoliReferenteProfilo = ['richiedente_servizio'];
+    component.grant = { ruoli: ['referente', 'richiedente'] } as any;
     expect(component.canChangeStatoMapper('')).toBe(false);
   });
 
@@ -425,22 +413,32 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
 
   // -------- showSkipCollaudo --------
 
-  it('showSkipCollaudo should return true when isBozza and service skip_collaudo', () => {
+  it('showSkipCollaudo should return true when isBozza and the service domain allows skip, even if the service has testing', () => {
     component.isBozza = true;
-    component.adesione = { servizio: { skip_collaudo: true } };
+    component.adesione = { servizio: { skip_collaudo: false, dominio: { skip_collaudo: true } } };
     expect(component.showSkipCollaudo).toBe(true);
   });
 
   it('showSkipCollaudo should return false when not bozza', () => {
     component.isBozza = false;
-    component.adesione = { servizio: { skip_collaudo: true } };
+    component.adesione = { servizio: { skip_collaudo: true, dominio: { skip_collaudo: true } } };
     expect(component.showSkipCollaudo).toBe(false);
   });
 
-  it('showSkipCollaudo should return false when service does not allow skip', () => {
+  it('showSkipCollaudo should return false when the service domain does not allow skip', () => {
     component.isBozza = true;
-    component.adesione = { servizio: { skip_collaudo: false } };
+    component.adesione = { servizio: { skip_collaudo: true, dominio: { skip_collaudo: false } } };
     expect(component.showSkipCollaudo).toBe(false);
+  });
+
+  it('attesaPubblicazioneProduzione should be true only for a draft that skips testing on a service not yet in production', () => {
+    component.isBozza = true;
+    component.adesione = { skip_collaudo: true, servizio: { stato: 'pubblicato_collaudo' } };
+    expect(component.attesaPubblicazioneProduzione).toBe(true);
+    component.adesione.servizio.stato = 'pubblicato_produzione';
+    expect(component.attesaPubblicazioneProduzione).toBe(false);
+    component.adesione = { skip_collaudo: false, servizio: { stato: 'pubblicato_collaudo' } };
+    expect(component.attesaPubblicazioneProduzione).toBe(false);
   });
 
   // -------- _otherActions --------
@@ -707,9 +705,12 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
       skip_collaudo: false,
       stato: 'bozza'
     };
+    const showMessage = vi.spyOn(Tools, 'showMessage').mockImplementation(() => {});
     mockApiService.putElement.mockReturnValue(throwError(() => 'err'));
     component.toggleSkipCollaudo();
     expect(component.saveSkipCollaudo).toBe(false);
+    expect(showMessage).toHaveBeenCalledWith('Error', 'danger', true);
+    showMessage.mockRestore();
   });
 
   it('toggleSkipCollaudo should not change the flag when the service is published without testing', () => {
@@ -725,6 +726,8 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     component.toggleSkipCollaudo();
     expect(mockApiService.putElement).not.toHaveBeenCalled();
     component.adesione.servizio.stato = 'pubblicato_produzione';
+    expect(component.skipCollaudoVincolato).toBe(true);
+    component.adesione.servizio.skip_collaudo = false;
     expect(component.skipCollaudoVincolato).toBe(false);
   });
 
@@ -854,6 +857,37 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     });
   });
 
+  describe('verifica del rate limiting (Issue 446)', () => {
+    const _setup = (stato: string, canChange: boolean) => {
+      Tools.Configurazione = { adesione: { workflow: { cambi_stato: [
+        { stato_attuale: 'richiesto_collaudo', stato_successivo: { nome: 'autorizzato_collaudo', ruoli_abilitati: ['gestore'] } },
+        { stato_attuale: 'autorizzato_collaudo', stato_successivo: { nome: 'in_configurazione_collaudo', ruoli_abilitati: ['gestore'] } }
+      ] } } };
+      (component as any).stepWizardSezione = { collaudo: [
+        { code: 'in_compilazione', descrizione: '', stati: ['bozza'] },
+        { code: 'in_approvazione', descrizione: '', stati: ['richiesto_collaudo'] },
+        { code: 'in_configurazione', descrizione: '', stati: ['autorizzato_collaudo', 'in_configurazione_collaudo'] }
+      ] };
+      component.adesione = { id_adesione: '1', stato, servizio: { nome: 'PetStore', versione: 1, stato: 'pubblicato_collaudo' }, soggetto: { nome: 'Ente' } };
+      mockAuthService.canChangeStatus.mockImplementation(() => canChange);
+    };
+
+    it('should offer the check in approval and, for the PDND purposes, to who moves on the authorized subscription', () => {
+      _setup('richiesto_collaudo', true);
+      expect(component.canVerificareRateLimiting('collaudo')).toBe(true);
+      _setup('autorizzato_collaudo', true);
+      expect(component.canApprovare('collaudo')).toBe(false);
+      expect(component.canVerificareRateLimiting('collaudo')).toBe(true);
+    });
+
+    it('should not offer the check to who cannot move on the subscription, nor while it is being filled in', () => {
+      _setup('autorizzato_collaudo', false);
+      expect(component.canVerificareRateLimiting('collaudo')).toBe(false);
+      _setup('bozza', true);
+      expect(component.canVerificareRateLimiting('collaudo')).toBe(false);
+    });
+  });
+
   // -------- Fase Produzione: sblocco per servizio pubblicato in produzione --------
   describe('rifiuto della richiesta (Issue 401)', () => {
     const _setup = (canChange: (type: string) => boolean) => {
@@ -965,6 +999,43 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     it('NON e` terminale in uno stato intermedio (in_configurazione_produzione)', () => {
       component.adesione = { stato: 'in_configurazione_produzione' };
       expect((component as any)._workflowReachedSectionFinal('produzione')).toBe(false);
+    });
+  });
+
+  describe('referenti con servizio non visibile', () => {
+    const _utente = { id_utente: 'u1', nome: 'Mario', cognome: 'Rossi', email_aziendale: 'mario@test.it' };
+
+    beforeEach(() => {
+      vi.spyOn(Tools, 'OnError').mockImplementation(() => {});
+      component.id = 1;
+      component.adesione = { servizio: { id_servizio: 's1', dominio: { id_dominio: 'd1' } } };
+    });
+
+    it('mantiene i referenti dell\'adesione e nasconde "Vai al Servizio" se il servizio risponde 404', () => {
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }))
+        .mockReturnValueOnce(throwError(() => ({ status: 404 })))
+        .mockReturnValueOnce(throwError(() => ({ status: 404 })));
+
+      (component as any).loadReferents();
+
+      expect(component.referents.length).toBe(1);
+      expect(component.serviceReferents).toEqual([]);
+      expect(component._servizioAccessibile).toBe(false);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+      expect(component.referentiLoading).toBe(false);
+    });
+
+    it('lascia "Vai al Servizio" se falliscono solo i referenti del dominio', () => {
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ content: [] }))
+        .mockReturnValueOnce(throwError(() => ({ status: 500 })))
+        .mockReturnValueOnce(of({ content: [] }));
+
+      (component as any).loadReferents();
+
+      expect(component._servizioAccessibile).toBe(true);
+      expect(Tools.OnError).not.toHaveBeenCalled();
     });
   });
 });

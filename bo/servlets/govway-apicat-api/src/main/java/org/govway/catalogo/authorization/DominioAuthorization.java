@@ -26,6 +26,8 @@ import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
@@ -124,12 +126,34 @@ public class DominioAuthorization extends DefaultAuthorization<DominioCreate,Dom
 			if (this.coreAuthorization.getUtenteSessione() == null) {
 				throw e;
 			}
-			requireAmmOrgSu(orgAttuale);
+			requireAmmOrgOReferenteSu(entity, orgAttuale);
 			return;
 		}
 		if (!this.coreAuthorization.isAdmin() && !this.coreAuthorization.isCoordinatore()) {
-			requireAmmOrgSu(orgAttuale);
+			requireAmmOrgOReferenteSu(entity, orgAttuale);
 		}
+	}
+
+	/**
+	 * Gestione dei referenti del dominio: oltre all'amministratore dell'organizzazione del
+	 * dominio, è ammesso il referente (non tecnico) del dominio, purché operi nel contesto
+	 * dell'organizzazione del dominio con ruolo OPERATORE_API o AMMINISTRATORE_ORGANIZZAZIONE.
+	 * Il referente tecnico non è ammesso.
+	 */
+	private void requireAmmOrgOReferenteSu(DominioEntity dominio, OrganizzazioneEntity orgDominio) {
+		if (isReferenteDominio(dominio) && this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+				RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			requireOrgSessione(orgDominio);
+			return;
+		}
+		requireAmmOrgSu(orgDominio);
+	}
+
+	private boolean isReferenteDominio(DominioEntity dominio) {
+		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
+		return utente != null && dominio.getReferenti().stream()
+				.anyMatch(r -> TIPO_REFERENTE.REFERENTE.equals(r.getTipo())
+						&& r.getReferente().getId().equals(utente.getId()));
 	}
 
 	private void requireAmmOrgSu(OrganizzazioneEntity orgDominio) {
@@ -137,6 +161,10 @@ public class DominioAuthorization extends DefaultAuthorization<DominioCreate,Dom
 				RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
+		requireOrgSessione(orgDominio);
+	}
+
+	private void requireOrgSessione(OrganizzazioneEntity orgDominio) {
 		OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
 		if (orgSessione == null || !orgSessione.getId().equals(orgDominio.getId())) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_DOMINIO_FUORI_ORG,

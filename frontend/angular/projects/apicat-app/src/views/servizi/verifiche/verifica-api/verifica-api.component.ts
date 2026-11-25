@@ -30,6 +30,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { ViewType } from '../verifiche.component';
+import { soggettoMonitoraggio } from '../../monitoraggio-soggetti';
 
 @Component({
   selector: 'ui-verifica-api',
@@ -192,7 +193,7 @@ export class VerificaApiComponent {
       error: (error: any) => {
         this._result = {
           esito: 'http_error',
-          dettagli: (JSON.stringify(error) || 'Http error') + '\n\n' + _path
+          dettagli: this.utilService.GetErrorMsg(error)
         };
         this._showDetails = true;
         this._loading = false;
@@ -301,7 +302,7 @@ export class VerificaApiComponent {
       error: (error: any) => {
         this._vesa[index].result = {
           esito: 'http_error',
-          dettagli: (JSON.stringify(error) || 'Http error') + '\n\n' + path
+          dettagli: this.utilService.GetErrorMsg(error)
         };
         this._vesa[index].loading = false;
         this._vesa[index].open = false;
@@ -406,12 +407,8 @@ export class VerificaApiComponent {
     return this._isValidOk(data);
   }
 
-  _getSoggettoId(verifica: string) {
-    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.soggetto_erogatore?.nome;
-  }
-
   _getSoggettoNome(verifica: string) {
-    return this.service?.soggetto_erogatore?.nome || this.service?.dominio?.soggetto_referente?.nome
+    return soggettoMonitoraggio(this.service);
   }
 
   scrollToBottom() {

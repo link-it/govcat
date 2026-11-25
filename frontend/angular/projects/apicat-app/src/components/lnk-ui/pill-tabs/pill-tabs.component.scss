@@ -45,7 +45,7 @@
   cursor: pointer;
   font-size: 13.5px;
   font-weight: 550;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
   white-space: nowrap;
   flex-shrink: 0;
   scroll-snap-align: start;
@@ -66,6 +66,14 @@
 
 .lnk-pill-tabs__label {
   display: inline-block;
+}
+
+.lnk-pill-tabs--truncate .lnk-pill-tabs__label {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 
 .lnk-pill-tabs__count {

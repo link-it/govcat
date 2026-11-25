@@ -132,6 +132,7 @@ import org.govway.catalogo.oidc.TokenApiDelegate;
 import org.govway.catalogo.monitoraggioutils.allarmi.AllarmiClient;
 import org.govway.catalogo.monitoraggioutils.transazioni.TransazioneBuilder;
 import org.govway.catalogo.pdnd.controllers.PDNDClientFactory;
+import org.govway.catalogo.services.RateLimitingRegole;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ConfigurazioneStepWizard;
@@ -285,6 +286,10 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		if(configurazione.getGenerale() != null && configurazione.getGenerale().getPdndVersion() == null) {
 			configurazione.getGenerale().setPdndVersion(PDNDClientFactory.VERSIONE_DEFAULT);
 		}
+
+		// La regola del rate limiting e` letta anche dalla console: ai profili che non la dichiarano
+		// si assegna il default effettivo, come per la versione delle API PDND
+		RateLimitingRegole.applicaDefault(configurazione);
 
 		configurazione.getMonitoraggio().setLimitata(monitoraggioClient.isLimitata());
 		if (configurazione.getMonitoraggio() != null) {

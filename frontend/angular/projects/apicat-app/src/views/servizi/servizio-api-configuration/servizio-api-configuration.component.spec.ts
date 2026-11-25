@@ -2798,6 +2798,98 @@ describe('ServizioApiConfigurationComponent', () => {
     });
   });
 
+  describe('rate limiting complessivo (Issue #402)', () => {
+    const buildApi = (produzione: any = {}, extra: any = {}) => ({
+      nome: 'API1', versione: 1, ruolo: EROGATO_SOGGETTO_DOMINIO,
+      configurazione_collaudo: { protocollo: 'rest', dati_erogazione: { url: 'http://c' } },
+      configurazione_produzione: { protocollo: 'rest', dati_erogazione: { url: 'http://p' }, ...produzione },
+      proprieta_custom: [], gruppi_auth_type: [], ...extra
+    });
+    const load = (api: any) => {
+      component.rawData = JSON.stringify(api);
+      component.environmentId = 'produzione';
+      component.service = { stato: 'bozza' };
+      (component as any).mapApiDetailsToFormValues();
+    };
+    const save = () => {
+      component.id = 10 as any;
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      mockApiService.putElement.mockReturnValue(of({}));
+      component._onSaveApi({});
+      return mockApiService.putElement.mock.calls.at(-1)[2].configurazione_produzione;
+    };
+
+    it('should keep the saved url_prefix and the other data not handled by the form', () => {
+      load(buildApi({ dati_erogazione: { url: 'http://p', url_prefix: 'https://api.ente.it', nome_gateway: 'gw', versione_gateway: 2 } }));
+      const datiErogazione = save().dati_erogazione;
+      expect(datiErogazione.url_prefix).toBe('https://api.ente.it');
+      expect(datiErogazione.url).toBe('http://p');
+    });
+
+    it('should send the values edited in the form over the saved ones', () => {
+      load(buildApi({ dati_erogazione: { url: 'http://p', url_prefix: 'https://api.ente.it', nome_gateway: 'gw' } }));
+      component._formGroup.get('url')?.setValue('http://nuova');
+      component._formGroup.get('nome_gateway')?.setValue('');
+      const datiErogazione = save().dati_erogazione;
+      expect(datiErogazione.url).toBe('http://nuova');
+      expect(datiErogazione.nome_gateway).toBeUndefined();
+      expect(datiErogazione.url_prefix).toBe('https://api.ente.it');
+    });
+
+    it('should load the saved quotas and send the full list', () => {
+      load(buildApi({ rate_limiting: [{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }] }));
+      expect(component._rateLimitingVisibile).toBe(true);
+      expect(component._rateLimitingCtrl.length).toBe(2);
+      component._rateLimitingCtrl.removeAt(1);
+      expect(save().rate_limiting).toEqual([{ quota: 300, periodo: 'giorno' }]);
+      component._rateLimitingCtrl.clear();
+      expect(save().rate_limiting).toEqual([]);
+    });
+
+    it('should not send the quotas when the environment is not editable or the API is provided by the subscriber', () => {
+      mockAuthenticationService.canEditField.mockReturnValue(false);
+      load(buildApi({ rate_limiting: [{ quota: 300, periodo: 'giorno' }] }));
+      expect(component._rateLimitingCtrl.disabled).toBe(true);
+      expect(save()).not.toHaveProperty('rate_limiting');
+      mockAuthenticationService.canEditField.mockReturnValue(true);
+
+      load(buildApi({}, { ruolo: 'erogato_soggetto_aderente' }));
+      expect(component._rateLimitingVisibile).toBe(false);
+      expect(save()).not.toHaveProperty('rate_limiting');
+    });
+
+    it('should follow the rule of the API profiles, adapting the saved quotas', () => {
+      (Tools.Configurazione as any).servizio.api.profili = [
+        { codice_interno: 'PDND', rate_limiting: { periodi: ['giorno'], quota_totale: { required: false }, quota_fruitore: { required: false } } }
+      ];
+      load(buildApi({ rate_limiting: [{ quota: 1000, quota_fruitore: 100, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }] }, { gruppi_auth_type: [{ profilo: 'PDND' }] }));
+      expect(component._regolaRateLimiting.periodi).toEqual(['giorno']);
+      expect(component._rateLimitingAdeguato).toBe(true);
+      expect(component._rateLimitingCtrl.length).toBe(1);
+      expect(component._rateLimitingCtrl.at(0).get('periodo')?.disabled).toBe(true);
+      expect(save().rate_limiting).toEqual([{ quota: 1000, quota_fruitore: 100, periodo: 'giorno' }]);
+    });
+
+    it('should keep read-only the quotas not enabled for the user roles', () => {
+      (Tools.Configurazione as any).servizio.api.profili = [
+        { codice_interno: 'P', rate_limiting: { periodi: ['giorno'], quota_totale: { ruoli_abilitati: ['gestore'] }, quota_fruitore: {} } }
+      ];
+      component._grant = { ruoli: ['referente'] } as any;
+      load(buildApi({ rate_limiting: [{ quota: 1000, quota_fruitore: 100, periodo: 'giorno' }] }, { gruppi_auth_type: [{ profilo: 'P' }] }));
+      const riga = component._rateLimitingCtrl.at(0);
+      expect(riga.get('quota')?.disabled).toBe(true);
+      expect(riga.get('quota_fruitore')?.disabled).toBe(false);
+      riga.get('quota_fruitore')?.setValue(50);
+      expect(save().rate_limiting).toEqual([{ quota: 1000, quota_fruitore: 50, periodo: 'giorno' }]);
+
+      (Tools.Configurazione as any).servizio.api.profili[0].rate_limiting.quota_fruitore = { ruoli_abilitati: ['gestore'] };
+      load(buildApi({ rate_limiting: [{ quota: 1000, quota_fruitore: 100, periodo: 'giorno' }] }, { gruppi_auth_type: [{ profilo: 'P' }] }));
+      expect(save()).not.toHaveProperty('rate_limiting');
+    });
+  });
+
   describe('URL di invocazione per ambiente', () => {
     const buildApi = (collaudo: any = {}, produzione: any = {}) => ({
       nome: 'API1', versione: 1, ruolo: EROGATO_SOGGETTO_DOMINIO,

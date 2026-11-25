@@ -43,6 +43,7 @@ public class ConfigurazioneItemProcessorTest {
 
     private ConfigurazioneItemProcessor processor;
     private AdesioneEntity testAdesione;
+    private UtenteEntity richiedente;
     private String statoConfJson;
 
     @BeforeEach
@@ -56,6 +57,12 @@ public class ConfigurazioneItemProcessorTest {
         testAdesione.setStato("collaudo_ready");
         testAdesione.setTentativi(0);
         testAdesione.setStati(new HashSet<>());
+
+        // Utente che ha richiesto la configurazione automatica (cambio di stato verso lo stato in configurazione)
+        richiedente = new UtenteEntity();
+        richiedente.setId(10L);
+        richiedente.setPrincipal("richiedente");
+        testAdesione.getStati().add(stato("collaudo_ready", richiedente, 1000L));
         
         // Setup servizio and related entities
         ServizioEntity servizio = new ServizioEntity();
@@ -106,12 +113,6 @@ public class ConfigurazioneItemProcessorTest {
         successResult.setChiaveRestituita(chiaveMap);
         successResult.setMessaggioErrore("Configuration successful");
         
-        // Mock utente repository response
-        UtenteEntity mockUtente = new UtenteEntity();
-        mockUtente.setId(1L);
-        when(utenteRepository.findOne(any(UtenteSpecification.class)))
-            .thenReturn(Optional.of(mockUtente));
-        
         // Mock soggettoDTOFactory
         when(soggettoDTOFactory.getNomeGateway(any(SoggettoEntity.class)))
             .thenReturn("TestGateway");
@@ -133,7 +134,8 @@ public class ConfigurazioneItemProcessorTest {
         assertNull(result.getStatoConfigurazione());
         assertEquals(1, result.getTentativi());
         assertNull(result.getMessaggioConfigurazione());
-        assertEquals(1, result.getStati().size());
+        assertEquals(2, result.getStati().size());
+        assertSame(richiedente, statoFinale(result).getUtente());
         
         // Verify interactions
         verify(updateService).updateIntermediateState(any(AdesioneEntity.class));
@@ -226,12 +228,6 @@ public class ConfigurazioneItemProcessorTest {
         successResult.setChiaveRestituita(chiaveMap2);
         successResult.setMessaggioErrore("Configuration successful");
         
-        // Mock utente repository response
-        UtenteEntity mockUtente = new UtenteEntity();
-        mockUtente.setId(1L);
-        when(utenteRepository.findOne(any(UtenteSpecification.class)))
-            .thenReturn(Optional.of(mockUtente));
-        
         // Mock soggettoDTOFactory
         when(soggettoDTOFactory.getNomeGateway(any(SoggettoEntity.class)))
             .thenReturn("TestGateway");
@@ -264,12 +260,6 @@ public class ConfigurazioneItemProcessorTest {
         chiaveMap3.put("test-key", "test-value");
         successResult.setChiaveRestituita(chiaveMap3);
         successResult.setMessaggioErrore("Configuration successful");
-        
-        // Mock utente repository response
-        UtenteEntity mockUtente = new UtenteEntity();
-        mockUtente.setId(1L);
-        when(utenteRepository.findOne(any(UtenteSpecification.class)))
-            .thenReturn(Optional.of(mockUtente));
         
         // Mock soggettoDTOFactory
         when(soggettoDTOFactory.getNomeGateway(any(SoggettoEntity.class)))
@@ -321,6 +311,120 @@ public class ConfigurazioneItemProcessorTest {
         assertThrows(Exception.class, () -> {
             processor.configurazioneExecutor();
         });
+    }
+
+    @Test
+    void testProcessSuccessAutoreRichiedentePiuRecente() throws Exception {
+        // Lo stato in configurazione richiesto piu' volte: autore e' l'ultimo richiedente
+        UtenteEntity primoRichiedente = new UtenteEntity();
+        primoRichiedente.setId(11L);
+        testAdesione.getStati().add(stato("collaudo_ready", primoRichiedente, 500L));
+        UtenteEntity altroStato = new UtenteEntity();
+        altroStato.setId(12L);
+        testAdesione.getStati().add(stato("altro_stato", altroStato, 2000L));
+
+        ConfigurazioneItemProcessor spyProcessor = spyConEsito(esitoOk());
+
+        AdesioneEntity result = spyProcessor.process(testAdesione);
+
+        assertEquals("collaudo_configurato", result.getStato());
+        assertSame(richiedente, statoFinale(result).getUtente());
+        verifyNoInteractions(utenteRepository);
+    }
+
+    @Test
+    void testProcessSuccessFallbackUtenteConfiguratore() throws Exception {
+        // Nessun richiedente nello storico: si usa l'utente della proprieta'
+        testAdesione.getStati().clear();
+        UtenteEntity configuratore = new UtenteEntity();
+        configuratore.setId(20L);
+        when(utenteRepository.findOne(any(UtenteSpecification.class))).thenReturn(Optional.of(configuratore));
+
+        ConfigurazioneItemProcessor spyProcessor = spyConEsito(esitoOk());
+
+        AdesioneEntity result = spyProcessor.process(testAdesione);
+
+        assertEquals("collaudo_configurato", result.getStato());
+        assertSame(configuratore, statoFinale(result).getUtente());
+    }
+
+    @Test
+    void testProcessSuccessFallbackSeRichiedenteNullo() throws Exception {
+        // Ultima occorrenza dello stato senza utente (es. dati storici): si usa l'utente della proprieta'
+        testAdesione.getStati().add(stato("collaudo_ready", null, 3000L));
+        UtenteEntity configuratore = new UtenteEntity();
+        configuratore.setId(20L);
+        when(utenteRepository.findOne(any(UtenteSpecification.class))).thenReturn(Optional.of(configuratore));
+
+        ConfigurazioneItemProcessor spyProcessor = spyConEsito(esitoOk());
+
+        AdesioneEntity result = spyProcessor.process(testAdesione);
+
+        assertSame(configuratore, statoFinale(result).getUtente());
+    }
+
+    @Test
+    void testProcessKoSenzaAutoreNonInvocaGovWay() throws Exception {
+        // Nessun richiedente e proprieta' non valorizzata: KO senza invocare il configuratore
+        testAdesione.getStati().clear();
+        ReflectionTestUtils.setField(processor, "utenteConfiguratore", "");
+        ConfigurazioneItemProcessor spyProcessor = spy(processor);
+
+        AdesioneEntity result = spyProcessor.process(testAdesione);
+
+        assertEquals("collaudo_ready", result.getStato());
+        assertEquals(AdesioneEntity.STATO_CONFIGURAZIONE.KO, result.getStatoConfigurazione());
+        assertNotNull(result.getMessaggioConfigurazione());
+        assertEquals(0, result.getTentativi());
+        assertTrue(result.getStati().isEmpty());
+        verify(spyProcessor, never()).configurazioneExecutor();
+        verifyNoInteractions(utenteRepository);
+    }
+
+    @Test
+    void testProcessKoSeUtenteConfiguratoreInesistente() throws Exception {
+        // Nessun richiedente e principal di fallback inesistente: KO senza invocare il configuratore
+        testAdesione.getStati().clear();
+        when(utenteRepository.findOne(any(UtenteSpecification.class))).thenReturn(Optional.empty());
+        ConfigurazioneItemProcessor spyProcessor = spy(processor);
+
+        AdesioneEntity result = spyProcessor.process(testAdesione);
+
+        assertEquals(AdesioneEntity.STATO_CONFIGURAZIONE.KO, result.getStatoConfigurazione());
+        assertEquals(0, result.getTentativi());
+        verify(spyProcessor, never()).configurazioneExecutor();
+    }
+
+    private StatoAdesioneEntity stato(String stato, UtenteEntity utente, long data) {
+        StatoAdesioneEntity s = new StatoAdesioneEntity();
+        s.setUuid(UUID.randomUUID().toString());
+        s.setStato(stato);
+        s.setUtente(utente);
+        s.setData(new Date(data));
+        s.setAdesione(testAdesione);
+        return s;
+    }
+
+    private StatoAdesioneEntity statoFinale(AdesioneEntity adesione) {
+        return adesione.getStati().stream()
+            .filter(s -> "collaudo_configurato".equals(s.getStato()))
+            .findFirst().orElseThrow();
+    }
+
+    private EsitoConfigurazioneAdesione esitoOk() {
+        EsitoConfigurazioneAdesione esito = new EsitoConfigurazioneAdesione();
+        esito.setEsito(AbstractEsitoConfigurazione.ESITO.OK);
+        esito.setChiaveRestituita(new HashMap<>(Map.of("test-key", "test-value")));
+        return esito;
+    }
+
+    private ConfigurazioneItemProcessor spyConEsito(EsitoConfigurazioneAdesione esito) throws Exception {
+        when(soggettoDTOFactory.getNomeGateway(any(SoggettoEntity.class))).thenReturn("TestGateway");
+        when(soggettoDTOFactory.getTipoGateway(any(SoggettoEntity.class), any())).thenReturn("ModI");
+        ConfigurazioneItemProcessor spyProcessor = spy(processor);
+        doReturn(mockExecutor).when(spyProcessor).configurazioneExecutor();
+        when(mockExecutor.configura(any(ConfigurazioneAdesioneInput.class))).thenReturn(esito);
+        return spyProcessor;
     }
 
 }

@@ -68,6 +68,7 @@ import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazione;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.ProfiloOrganizationUpdate;
@@ -2883,6 +2884,146 @@ public class UtentiTest {
         assertEquals(1, resp.getBody().getOrganizzazioni().size());
         assertEquals(orgY.getIdOrganizzazione(),
                 resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+    }
+
+    // ==================== Approvazione con associazioni senza ruolo (Issue 458) ====================
+
+    private Utente richiediOrganizzazione(Utente utente, UUID idOrgRichiesta, UUID idOrgPartenza) {
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(idOrgRichiesta);
+        req.setIdOrganizzazionePartenza(idOrgPartenza);
+        return controller.updateProfiloOrganization(req).getBody();
+    }
+
+    private Optional<UtenteOrganizzazione> associazioneSu(Utente utente, UUID idOrg) {
+        return utente.getOrganizzazioni().stream()
+                .filter(uo -> idOrg.equals(uo.getOrganizzazione().getIdOrganizzazione()))
+                .findFirst();
+    }
+
+    @Test
+    public void testApprovazione_DaGestore_AssociazioneSenzaRuolo_SenzaPartenza_OK() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("appr458-gest-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("appr458-gest-y");
+        Utente utente = creaUtenteAssociatoA("appr458.gest.noruolo",
+                List.of(orgX.getIdOrganizzazione()), null);
+        richiediOrganizzazione(utente, orgY.getIdOrganizzazione(), null);
+
+        autenticaPrincipal(UTENTE_GESTORE);
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertEquals(2, resp.getBody().getOrganizzazioni().size());
+        UtenteOrganizzazione x = associazioneSu(resp.getBody(), orgX.getIdOrganizzazione())
+                .orElseThrow(() -> new AssertionError("Associazione senza ruolo su X deve essere mantenuta"));
+        assertNull(x.getRuoloOrganizzazione(), "L'associazione su X deve restare senza ruolo");
+        UtenteOrganizzazione y = associazioneSu(resp.getBody(), orgY.getIdOrganizzazione())
+                .orElseThrow(() -> new AssertionError("Associazione su Y deve essere aggiunta"));
+        assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API, y.getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testApprovazione_DaAmmOrgTarget_AssociazioneSenzaRuolo_SenzaPartenza_OK() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("appr458-amm-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("appr458-amm-y");
+        Utente utente = creaUtenteAssociatoA("appr458.amm.noruolo",
+                List.of(orgX.getIdOrganizzazione()), null);
+        creaUtenteAssociatoA("appr458.amm.target",
+                List.of(orgY.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        richiediOrganizzazione(utente, orgY.getIdOrganizzazione(), null);
+
+        autenticaPrincipal("appr458.amm.target");
+        setOrgContextSu(orgY.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgY.getIdOrganizzazione(), null);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertEquals(2, resp.getBody().getOrganizzazioni().size());
+        assertNull(associazioneSu(resp.getBody(), orgX.getIdOrganizzazione())
+                .orElseThrow(() -> new AssertionError("Associazione su X deve essere mantenuta"))
+                .getRuoloOrganizzazione());
+        assertNull(associazioneSu(resp.getBody(), orgY.getIdOrganizzazione())
+                .orElseThrow(() -> new AssertionError("Associazione su Y deve essere aggiunta"))
+                .getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testApprovazione_DaGestore_AssociazioneSenzaRuolo_ConPartenza_OK() {
+        // Swap di A (senza ruolo) verso C, mantenendo B (senza ruolo)
+        Organizzazione orgA = creaOrgConNomeMultiOrg("appr458-swap-a");
+        Organizzazione orgB = creaOrgConNomeMultiOrg("appr458-swap-b");
+        Organizzazione orgC = creaOrgConNomeMultiOrg("appr458-swap-c");
+        Utente utente = creaUtenteAssociatoA("appr458.swap.noruolo",
+                List.of(orgA.getIdOrganizzazione(), orgB.getIdOrganizzazione()), null);
+        richiediOrganizzazione(utente, orgC.getIdOrganizzazione(), orgA.getIdOrganizzazione());
+
+        autenticaPrincipal(UTENTE_GESTORE);
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgC.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        assertEquals(2, resp.getBody().getOrganizzazioni().size());
+        assertFalse(associazioneSu(resp.getBody(), orgA.getIdOrganizzazione()).isPresent(),
+                "Associazione di partenza A deve essere rimossa");
+        assertNull(associazioneSu(resp.getBody(), orgB.getIdOrganizzazione())
+                .orElseThrow(() -> new AssertionError("Associazione senza ruolo su B deve essere mantenuta"))
+                .getRuoloOrganizzazione());
+        assertEquals(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE,
+                associazioneSu(resp.getBody(), orgC.getIdOrganizzazione())
+                .orElseThrow(() -> new AssertionError("Associazione su C deve essere aggiunta"))
+                .getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testApprovazione_DaAmmOrgTarget_AssociazioneSenzaRuolo_ConPartenza_OK() {
+        // Swap di A (operatore) verso C; B senza ruolo deve restare
+        Organizzazione orgA = creaOrgConNomeMultiOrg("appr458-ammswap-a");
+        Organizzazione orgB = creaOrgConNomeMultiOrg("appr458-ammswap-b");
+        Organizzazione orgC = creaOrgConNomeMultiOrg("appr458-ammswap-c");
+        Utente utente = creaUtenteAssociatoA("appr458.ammswap.user",
+                List.of(orgA.getIdOrganizzazione()), RuoloOrganizzazioneEnum.OPERATORE_API);
+        // Aggiunge l'associazione senza ruolo su B (come gestore)
+        autenticaPrincipal(UTENTE_GESTORE);
+        UtenteUpdate aggiuntaB = buildApprovazioneUpdate(utente, orgA.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        UtenteOrganizzazioneCreate senzaRuoloB = new UtenteOrganizzazioneCreate();
+        senzaRuoloB.setIdOrganizzazione(orgB.getIdOrganizzazione());
+        aggiuntaB.setOrganizzazioni(List.of(aggiuntaB.getOrganizzazioni().get(0), senzaRuoloB));
+        controller.updateUtente(utente.getIdUtente(), aggiuntaB);
+
+        creaUtenteAssociatoA("appr458.ammswap.target",
+                List.of(orgC.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        richiediOrganizzazione(utente, orgC.getIdOrganizzazione(), orgA.getIdOrganizzazione());
+
+        autenticaPrincipal("appr458.ammswap.target");
+        setOrgContextSu(orgC.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgC.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertEquals(2, resp.getBody().getOrganizzazioni().size());
+        assertFalse(associazioneSu(resp.getBody(), orgA.getIdOrganizzazione()).isPresent(),
+                "Associazione di partenza A deve essere rimossa");
+        assertNull(associazioneSu(resp.getBody(), orgB.getIdOrganizzazione())
+                .orElseThrow(() -> new AssertionError("Associazione senza ruolo su B deve essere mantenuta"))
+                .getRuoloOrganizzazione());
+        assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API,
+                associazioneSu(resp.getBody(), orgC.getIdOrganizzazione())
+                .orElseThrow(() -> new AssertionError("Associazione su C deve essere aggiunta"))
+                .getRuoloOrganizzazione());
     }
 
     @Test

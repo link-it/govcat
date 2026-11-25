@@ -18,8 +18,8 @@ describe('VerificaApiComponent', () => {
 
   const mockApi = { nome: 'TestApi', versione: 1 };
   const mockService = {
-    soggetto_erogatore: { nome: 'SoggettoInterno' },
-    dominio: { soggetto_referente: { nome: 'SoggettoRef' } }
+    soggetto_erogatore: { nome: 'EnteRemoto' },
+    dominio: { soggetto_referente: { nome: 'SoggettoInterno' } }
   };
 
   function makeChanges(map: Record<string, any>): SimpleChanges {
@@ -161,12 +161,12 @@ describe('VerificaApiComponent', () => {
 
   // ========== _getSoggettoNome ==========
 
-  it('should return soggetto nome from service for erogazioni', () => {
-    component.service = { soggetto_erogatore: { nome: 'SoggettoInterno' }, dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
-    expect(component._getSoggettoNome('erogazioni')).toBe('SoggettoInterno');
+  it('should return the referent of the domain, the internal subject, also for a fruition (Issue #424)', () => {
+    component.service = { fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
+    expect(component._getSoggettoNome('fruizioni')).toBe('SoggettoRef');
   });
 
-  it('should return soggetto referente when soggetto_erogatore is missing', () => {
+  it('should return soggetto referente for erogazioni', () => {
     component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
     expect(component._getSoggettoNome('erogazioni')).toBe('SoggettoRef');
   });
@@ -411,18 +411,24 @@ describe('VerificaApiComponent', () => {
     });
 
     it('should set http_error result on error', () => {
-      mockApiService.getMonitor.mockImplementation(() => throwError(() => ({ message: 'Network fail' })));
+      const errore = { status: 404, message: 'Network fail' };
+      mockUtilService.GetErrorMsg.mockReturnValue('Risorsa non trovata');
+      mockApiService.getMonitor.mockImplementation(() => throwError(() => errore));
       component._loadEsito();
       expect(component._result.esito).toBe('http_error');
-      expect(component._result.dettagli).toContain('Network fail');
+      expect(mockUtilService.GetErrorMsg).toHaveBeenCalledWith(errore);
+      expect(component._result.dettagli).toBe('Risorsa non trovata');
       expect(component._showDetails).toBe(true);
       expect(component._loading).toBe(false);
     });
 
-    it('should include path in error dettagli', () => {
-      mockApiService.getMonitor.mockImplementation(() => throwError(() => ({ message: 'fail' })));
+    it('should show a readable message instead of the raw error on failure', () => {
+      mockUtilService.GetErrorMsg.mockReturnValue('404: Not Found');
+      mockApiService.getMonitor.mockImplementation(() => throwError(() => ({ status: 404, message: 'fail' })));
       component._loadEsito();
-      expect(component._result.dettagli).toContain('collaudo/erogazioni/SoggettoInterno/TestApi/1/certificati/scaduti');
+      expect(mockApiService.getMonitor.mock.calls[0][0]).toBe('collaudo/erogazioni/SoggettoInterno/TestApi/1/certificati/scaduti');
+      expect(component._result.dettagli).toBe('404: Not Found');
+      expect(component._result.dettagli).not.toContain('{');
     });
 
     it('should handle default viewType case (unrecognized)', () => {
@@ -646,11 +652,13 @@ describe('VerificaApiComponent', () => {
     });
 
     it('should set http_error result on error', () => {
-      mockApiService.getMonitor.mockImplementation(() => throwError(() => ({ message: 'timeout' })));
+      const errore = { status: 0, message: 'timeout' };
+      mockUtilService.GetErrorMsg.mockReturnValue('timeout');
+      mockApiService.getMonitor.mockImplementation(() => throwError(() => errore));
       component._loadInScadenza('some/path', 1);
       expect(component._vesa[1].result.esito).toBe('http_error');
-      expect(component._vesa[1].result.dettagli).toContain('timeout');
-      expect(component._vesa[1].result.dettagli).toContain('some/path');
+      expect(mockUtilService.GetErrorMsg).toHaveBeenCalledWith(errore);
+      expect(component._vesa[1].result.dettagli).toBe('timeout');
       expect(component._vesa[1].loading).toBe(false);
       expect(component._vesa[1].open).toBe(false);
     });
@@ -828,30 +836,6 @@ describe('VerificaApiComponent', () => {
 
     it('should return #111111 for unknown esito', () => {
       expect(component._getColorLabelHex({ esito: 'something_else' })).toBe('#111111');
-    });
-  });
-
-  // ========== _getSoggettoId ==========
-
-  describe('_getSoggettoId', () => {
-    it('should return dominio.soggetto_referente.nome for erogazioni', () => {
-      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } }, soggetto_erogatore: { nome: 'SoggettoInt' } };
-      expect(component._getSoggettoId('erogazioni')).toBe('SoggettoRef');
-    });
-
-    it('should return soggetto_erogatore.nome for fruizioni', () => {
-      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } }, soggetto_erogatore: { nome: 'SoggettoInt' } };
-      expect(component._getSoggettoId('fruizioni')).toBe('SoggettoInt');
-    });
-
-    it('should return soggetto_erogatore.nome for any non-erogazioni verifica', () => {
-      component.service = { soggetto_erogatore: { nome: 'SoggettoInt' } };
-      expect(component._getSoggettoId('applicativi')).toBe('SoggettoInt');
-    });
-
-    it('should return undefined when service has no matching property', () => {
-      component.service = {};
-      expect(component._getSoggettoId('erogazioni')).toBeUndefined();
     });
   });
 

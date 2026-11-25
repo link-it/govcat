@@ -41,7 +41,7 @@
       <!-- Header -->
       <div class="create-header d-flex justify-content-between align-items-start gap-3 mb-5">
         <div class="flex-grow-1">
-          <h2 class="create-title mb-1">{{ 'APP.SERVICES.WIZARD.Title' | translate }}</h2>
+          <h1 class="create-title mb-1">{{ 'APP.SERVICES.WIZARD.Title' | translate }}</h1>
           <p class="create-subtitle mb-0">{{ 'APP.SERVICES.CREATE.Subtitle' | translate }}</p>
           <p class="create-mandatory-hint mt-2 mb-0">
             <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}
@@ -97,7 +97,7 @@
             <span class="ps-num">1</span>
             <div class="ps-meta">
               <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionGeneraleTag' | translate }}</span>
-              <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionGeneraleTitle' | translate }}</h3>
+              <h2 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionGeneraleTitle' | translate }}</h2>
               <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionGeneraleDesc' | translate }}</p>
             </div>
           </header>
@@ -108,7 +108,7 @@
                 <label class="label-bold" for="tipo">{{ 'APP.LABEL.tipo' | translate }}
                   <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tipo'"></span>
                 </label>
-                <ng-select class="select-custom" id="tipo" [class.gl-field-error-outline]="_hasControlError('tipo')"
+                <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('tipo')"
                   [items]="_tipiServizio"
                   bindValue="value"
                   labelForId="tipo"
@@ -141,17 +141,18 @@
               </div>
             </div>
 
-            <!-- Flag strutturale: fruizione (intermediario) -->
+            <!-- Fruizione (intermediario): organizzazione di contesto o esterna -->
             <div class="row">
               @if ((_updateData | mapper:_canSetFruizioneMapper)) {
                 <div class="col-12">
                   <div class="form-group fruizione">
-                    <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }}</label>
-                    <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input #chkFruizione class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
-                      <label class="custom-control-label" aria-hidden="true" (click)="chkFruizione.click()"></label>
-                    </div>
-                    <ui-input-help field="fruizione" context="SERVICE"></ui-input-help>
+                    <label class="label-bold" for="fruizione">{{ 'APP.SERVICES.INTERMEDIAZIONE.Label' | translate }}</label>
+                    <ng-select class="select-custom" [items]="_opzioniIntermediazione" bindValue="value" labelForId="fruizione"
+                      [clearable]="false" [searchable]="false" formControlName="fruizione" (change)="_onChangeFruizione($event?.value)">
+                      <ng-template ng-label-tmp let-item="item">{{ item.label | translate:item.params }}</ng-template>
+                      <ng-template ng-option-tmp let-item="item">{{ item.label | translate:item.params }}</ng-template>
+                    </ng-select>
+                    <ui-input-help [field]="_opzioneIntermediazione().help" context="SERVICE"></ui-input-help>
                   </div>
                 </div>
               }
@@ -210,6 +211,12 @@
                     <div class=""><span class="small text-muted">{{ item.descrizione }}</span></div>
                   </ng-template>
                 </ng-select>
+                @if (_isGestore()) {
+                  <div class="form-check mt-2 mb-0">
+                    <input class="form-check-input" type="checkbox" id="includi_domini_deprecati" [checked]="_includiDominiDeprecati" (change)="_onIncludiDominiDeprecati($any($event.target).checked)">
+                    <label class="form-check-label" for="includi_domini_deprecati">{{ 'APP.DOMINI.LABEL.IncludiDeprecati' | translate }}</label>
+                  </div>
+                }
                 @if (f['id_dominio'].invalid && (f['id_dominio'].dirty || f['id_dominio'].touched)) {
                   <p class="form-text text-danger" id="id_dominio-error" aria-live="polite">
                     @if (f['id_dominio'].errors?.['required']) {
@@ -262,7 +269,7 @@
                     <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }}
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_erogatore'"></span>
                     </label>
-                    <ng-select class="select-custom" id="id_soggetto_erogatore" [class.gl-field-error-outline]="_hasControlError('id_soggetto_erogatore')"
+                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_soggetto_erogatore')"
                       [items]="_elencoSoggetti"
                       bindValue="id_soggetto"
                       bindLabel="nome"
@@ -293,7 +300,7 @@
             <span class="ps-num">2</span>
             <div class="ps-meta">
               <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionClassificazioneTag' | translate }}</span>
-              <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionClassificazioneTitle' | translate }}</h3>
+              <h2 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionClassificazioneTitle' | translate }}</h2>
               <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionClassificazioneDesc' | translate }}</p>
             </div>
           </header>
@@ -305,7 +312,7 @@
                   <label class="label-bold" for="visibilita">{{ 'APP.LABEL.VisibilitaServizio' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'"></span>
                   </label>
-                  <ng-select class="select-custom" id="visibilita" [class.gl-field-error-outline]="_hasControlError('visibilita')"
+                  <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('visibilita')"
                     [items]="_tipiVisibilitaServizio"
                     bindValue="value"
                     bindLabel="label"
@@ -356,22 +363,22 @@
                 @if (_showPackage && (_updateData | mapper:_isGestoreMapper)) {
                   <div class="form-group package">
                     @if (!isComponente) {
-                      <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}
+                      <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.package' | translate }}
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'"></span>
-                      </label>
+                      </span>
                     }
                     <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input #chkPackage class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
-                      <label class="custom-control-label" aria-hidden="true" (click)="chkPackage.click()"></label>
+                      <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
+                      <label class="custom-control-label" for="package"><span class="visually-hidden">{{ 'APP.LABEL.package' | translate }}</span></label>
                     </div>
                     <ui-input-help field="package" context="SERVICE"></ui-input-help>
                   </div>
                 }
                 <div class="form-group skip_collaudo mt-2">
-                  <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
+                  <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.SkipCollaudo' | translate }}</span>
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo" [attr.aria-describedby]="_motivoSkipCollaudo ? 'skip_collaudo-motivo' : null">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chkSkipCollaudo.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo" [attr.aria-describedby]="_motivoSkipCollaudo ? 'skip_collaudo-motivo' : null">
+                    <label class="custom-control-label" for="skip_collaudo"><span class="visually-hidden">{{ 'APP.LABEL.SkipCollaudo' | translate }}</span></label>
                   </div>
                   @if (_motivoSkipCollaudo; as motivo) {
                     <p class="field-notice mb-0" id="skip_collaudo-motivo"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{{ motivo | translate }}</span></p>
@@ -391,44 +398,50 @@
               <span class="ps-num">3</span>
               <div class="ps-meta">
                 <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionReferentiTag' | translate }}</span>
-                <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionReferentiTitle' | translate }}</h3>
+                <h2 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionReferentiTitle' | translate }}</h2>
                 <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionReferentiDesc' | translate }}</p>
               </div>
             </header>
             <div class="lnk-phase-section-body">
-              <div class="row referenti">
-                <div class="col-6 form-group referente">
-                  <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }}
-                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
-                  </label>
-                  <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')" [errorId]="'referente-error'"
-                    [items]="(referenti$ | async) || []"
-                    [typeahead]="referentiInput$"
-                    [minTermLength]="minLengthTerm"
-                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                    bindValue="id_utente"
-                    bindLabel="nome_completo"
-                    labelForId="referente"
-                    [editableSearchTerm]="true"
-                    formControlName="referente"
-                    (change)="onChangeReferente($event)">
-                    <ng-template ng-label-tmp let-item="item">{{ item.nome }} {{ item.cognome }}</ng-template>
-                    <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                      <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
-                      <div class=""><span class="small text-muted">{{ item.email_aziendale }}</span></div>
-                    </ng-template>
-                  </ng-select>
-                  @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
-                    <p class="form-text text-danger" id="referente-error" aria-live="polite">
-                      @if (f['referente'].errors?.['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
-                    </p>
+              <div class="referenti">
+                <div class="form-group referente">
+                  <div class="form-check mb-1">
+                    <input class="form-check-input" type="checkbox" id="selfReferente" [checked]="_isSelfReferente" (change)="_onChangeSelfReferente($any($event.target).checked)">
+                    <label class="form-check-label label-bold" for="selfReferente">{{ 'APP.LABEL.referente_self_servizio' | translate }}</label>
+                  </div>
+                  @if (!_isSelfReferente) {
+                    <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }}
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
+                    </label>
+                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')" [errorId]="'referente-error'"
+                      [items]="(referenti$ | async) || []"
+                      [typeahead]="referentiInput$"
+                      [minTermLength]="minLengthTerm"
+                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                      bindValue="id_utente"
+                      bindLabel="nome_completo"
+                      labelForId="referente"
+                      [editableSearchTerm]="true"
+                      formControlName="referente"
+                      (change)="onChangeReferente($event)">
+                      <ng-template ng-label-tmp let-item="item">{{ item.nome }} {{ item.cognome }}</ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                        <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                        <div class=""><span class="small text-muted">{{ item.email_aziendale }}</span></div>
+                      </ng-template>
+                    </ng-select>
+                    @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
+                      <p class="form-text text-danger" id="referente-error" aria-live="polite">
+                        @if (f['referente'].errors?.['required']) {
+                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        }
+                      </p>
+                    }
                   }
                   <ui-input-help field="referente" context="SERVICE"></ui-input-help>
                 </div>
-                <div class="col-6 form-group referente_tecnico">
+                <div class="form-group referente_tecnico mt-3">
                   <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.referente_tecnico' | translate }}</label>
                   <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')" [errorId]="'referente_tecnico-error'"
                     [items]="(referentiTecnici$ | async) || []"
@@ -461,7 +474,7 @@
             <span class="ps-num">4</span>
             <div class="ps-meta">
               <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionDescrizioneTag' | translate }}</span>
-              <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionDescrizioneTitle' | translate }}</h3>
+              <h2 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionDescrizioneTitle' | translate }}</h2>
               <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionDescrizioneDesc' | translate }}</p>
             </div>
           </header>
@@ -557,9 +570,9 @@
             <span class="ps-num">5</span>
             <div class="ps-meta">
               <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionAllegatiTag' | translate }}</span>
-              <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionAllegatiTitle' | translate }}
+              <h2 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionAllegatiTitle' | translate }}
                 <span class="ps-count">{{ _selectedAllegati.length }}</span>
-              </h3>
+              </h2>
               <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionAllegatiDesc' | translate }}</p>
             </div>
           </header>
@@ -608,9 +621,9 @@
             <span class="ps-num">6</span>
             <div class="ps-meta">
               <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionGruppiTag' | translate }}</span>
-              <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionGruppiTitle' | translate }}
+              <h2 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionGruppiTitle' | translate }}
                 <span class="ps-count">{{ _selectedGruppi.length }}</span>
-              </h3>
+              </h2>
               <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionGruppiDesc' | translate }}</p>
             </div>
           </header>
@@ -649,7 +662,7 @@
               <span class="ps-num">7</span>
               <div class="ps-meta">
                 <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionAdesioneTag' | translate }}</span>
-                <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionAdesioneTitle' | translate }}</h3>
+                <h2 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionAdesioneTitle' | translate }}</h2>
                 <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionAdesioneDesc' | translate }}</p>
               </div>
             </header>
@@ -657,11 +670,11 @@
               @if (_hasFlagConsentiNonSottoscrivibile) {
                 <div class="form-group adesione_disabilitata">
                   @if (!isComponente) {
-                    <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</label>
+                    <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</span>
                   }
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata" [attr.aria-describedby]="_adesioneBloccata.disabilitata ? 'adesione_disabilitata-dominio' : null">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chkAdesioneDisabilitata.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata" [attr.aria-describedby]="_adesioneBloccata.disabilitata ? 'adesione_disabilitata-dominio' : null">
+                    <label class="custom-control-label" for="adesione_disabilitata"><span class="visually-hidden">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</span></label>
                   </div>
                   @if (_adesioneBloccata.disabilitata) {
                     <p class="form-text text-muted mb-0" id="adesione_disabilitata-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
@@ -671,10 +684,10 @@
               }
               @if (_hasAdesioniMultiple) {
                 <div class="form-group multi_adesione">
-                  <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
+                  <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.multi_adesione' | translate }}</span>
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" [attr.aria-describedby]="_adesioneBloccata.multi ? 'multi_adesione-dominio' : null">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chkMultiAdesione.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" [attr.aria-describedby]="_adesioneBloccata.multi ? 'multi_adesione-dominio' : null">
+                    <label class="custom-control-label" for="multi_adesione"><span class="visually-hidden">{{ 'APP.LABEL.multi_adesione' | translate }}</span></label>
                   </div>
                   @if (_adesioneBloccata.multi) {
                     <p class="form-text text-muted mb-0" id="multi_adesione-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>

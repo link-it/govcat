@@ -53,7 +53,7 @@ public class ServizioBuilder {
 	public ServizioBuilder() {
 	}
 
-	private Collection<Servizio> toListEntries(ServizioEntity servizioEntity) {
+	private Collection<Servizio> toListEntries(ServizioEntity servizioEntity, String statoArchiviato) {
 		List<Servizio> serviziCSV = new ArrayList<>();
 
 		this.logger.debug("Servizio: " + servizioEntity.getNome() + " v" + servizioEntity.getVersione());
@@ -69,6 +69,11 @@ public class ServizioBuilder {
 		String nomeFruitore = fruitore != null ? fruitore.getNome() : "";
 		String organizzazioneFruitore = getNomeOrganizzazione(fruitore);
 		String intermediato = servizioEntity.isFruizione() ? "Sì" : "No";
+
+		// Ambienti previsti dallo stato del servizio: le URL di invocazione di un ambiente non
+		// previsto non sono esposte, altrimenti la URL risolta dal template sembrerebbe attiva.
+		boolean hasCollaudo = hasCollaudo(servizioEntity.getStato(), statoArchiviato);
+		boolean hasProduzione = hasProduzione(servizioEntity.getStato(), statoArchiviato);
 
 		DominioEntity dominioEntity = servizioEntity.getDominio();
 		String nomeDominio = dominioEntity != null ? dominioEntity.getNome() : "";
@@ -125,15 +130,19 @@ public class ServizioBuilder {
 			s.setReferentiDominio(referentiDominio);
 			s.setReferentiTecniciDominio(referentiTecniciDominio);
 
-			// URL Invocazione: la principale nelle colonne storiche, le aggiuntive in quelle in coda
-			List<UrlInvocazioneRisolta> urlCollaudo = this.eServiceBuilder.getUrlInvocazioni(api, true);
-			List<UrlInvocazioneRisolta> urlProduzione = this.eServiceBuilder.getUrlInvocazioni(api, false);
+			// URL Invocazione: la principale nelle colonne storiche, le aggiuntive in quelle in coda.
+			// Valorizzate solo per gli ambienti previsti dallo stato del servizio.
+			if(hasCollaudo) {
+				List<UrlInvocazioneRisolta> urlCollaudo = this.eServiceBuilder.getUrlInvocazioni(api, true);
+				s.setUrlInvocazioneCollaudo(urlCollaudo.get(0).url());
+				s.setUrlInvocazioneAggiuntiveCollaudo(formatUrlInvocazioneAggiuntive(urlCollaudo));
+			}
 
-			s.setUrlInvocazioneCollaudo(urlCollaudo.get(0).url());
-			s.setUrlInvocazioneProduzione(urlProduzione.get(0).url());
-
-			s.setUrlInvocazioneAggiuntiveCollaudo(formatUrlInvocazioneAggiuntive(urlCollaudo));
-			s.setUrlInvocazioneAggiuntiveProduzione(formatUrlInvocazioneAggiuntive(urlProduzione));
+			if(hasProduzione) {
+				List<UrlInvocazioneRisolta> urlProduzione = this.eServiceBuilder.getUrlInvocazioni(api, false);
+				s.setUrlInvocazioneProduzione(urlProduzione.get(0).url());
+				s.setUrlInvocazioneAggiuntiveProduzione(formatUrlInvocazioneAggiuntive(urlProduzione));
+			}
 
 			// Backend URL (Connettore)
 			if(api.getCollaudo() != null) {
@@ -147,6 +156,31 @@ public class ServizioBuilder {
 		}
 
 		return serviziCSV;
+	}
+
+	/**
+	 * Collaudo previsto da ogni stato tranne quelli del percorso "senza collaudo", con la stessa
+	 * regola del CSV delle adesioni. Lo stato archiviato non dice da quale ambiente proviene il
+	 * servizio: vale per entrambi, come prima dell'introduzione del filtro.
+	 */
+	private boolean hasCollaudo(String stato, String statoArchiviato) {
+		if(stato == null || stato.equals(statoArchiviato)) {
+			return true;
+		}
+
+		return !stato.contains("senza_collaudo");
+	}
+
+	/**
+	 * Produzione prevista dagli stati del percorso di produzione (con o senza collaudo), con la
+	 * stessa regola del CSV delle adesioni. Lo stato archiviato vale per entrambi gli ambienti.
+	 */
+	private boolean hasProduzione(String stato, String statoArchiviato) {
+		if(stato == null || stato.equals(statoArchiviato)) {
+			return true;
+		}
+
+		return stato.contains("produzione");
 	}
 
 	/**
@@ -253,12 +287,16 @@ public class ServizioBuilder {
 		return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
 
-	public byte[] getCSVEsteso(Collection<ServizioEntity> servizi) {
+	/**
+	 * @param statoArchiviato nome dello stato archiviato nel workflow dei servizi: per i servizi
+	 *        archiviati le URL di invocazione sono riportate per entrambi gli ambienti.
+	 */
+	public byte[] getCSVEsteso(Collection<ServizioEntity> servizi, String statoArchiviato) {
 
 		Collection<Servizio> serviziCSV = new ArrayList<Servizio>();
 
 		for(ServizioEntity servizio:servizi) {
-			serviziCSV.addAll(toListEntries(servizio));
+			serviziCSV.addAll(toListEntries(servizio, statoArchiviato));
 		}
 
 		String csv = "";

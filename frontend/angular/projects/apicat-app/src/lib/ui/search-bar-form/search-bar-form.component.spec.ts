@@ -288,6 +288,28 @@ describe('SearchBarFormComponent', () => {
         expect(component._onSearch).toHaveBeenCalledWith(true, false);
     });
 
+    it('should restore the serialized dates of the date fields as Date, leaving plain dates as strings', () => {
+        component.searchFields = [
+            { field: 'data_da', type: 'date' },
+            { field: 'giorno', type: 'date' },
+            { field: 'q', type: 'string' }
+        ];
+        component.formGroup = new FormGroup({
+            data_da: new FormControl(null),
+            giorno: new FormControl(null),
+            q: new FormControl(null)
+        });
+        vi.spyOn(component, '_onSearch').mockImplementation(() => {});
+
+        component._restoreSearch({ data_da: '2026-11-11T08:00:00.000Z', giorno: '2026-11-11', q: '2026-11-11T08:00:00.000Z' });
+
+        const _dataDa = component.formGroup.get('data_da')?.value;
+        expect(_dataDa instanceof Date).toBe(true);
+        expect(_dataDa.toISOString()).toBe('2026-11-11T08:00:00.000Z');
+        expect(component.formGroup.get('giorno')?.value).toBe('2026-11-11');
+        expect(component.formGroup.get('q')?.value).toBe('2026-11-11T08:00:00.000Z');
+    });
+
     it('should toggle _isOpen and call dropdown show/hide', () => {
         const dropdownShowSpy = vi.fn();
         const dropdownHideSpy = vi.fn();
@@ -342,6 +364,17 @@ describe('SearchBarFormComponent', () => {
         expect(formGroupSpy).toHaveBeenCalled();
         expect(markAllAsTouchedSpy).toHaveBeenCalled();
         expect(onSearchSpy).toHaveBeenCalled();
+    });
+
+    it('should keep the given fields when clearing the search', () => {
+        component.simple = false;
+        component.formGroup = new FormGroup({ q: new FormControl('testo'), archiviati: new FormControl('solo') });
+        const emitSpy = vi.spyOn(component.onSearch, 'emit');
+
+        component._clearSearch(null, ['archiviati']);
+
+        expect(component.formGroup.getRawValue()).toEqual({ q: null, archiviati: 'solo' });
+        expect(emitSpy).toHaveBeenCalledWith({ q: null, archiviati: 'solo' });
     });
 
     it('should close search dropdown', () => {

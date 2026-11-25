@@ -38,3 +38,21 @@ export const TRANSAZIONI_ROUTES: Routes = [
     ]
   }
 ];
+
+export const AUDIT_ROUTES: Routes = [
+  {
+    path: '',
+    children: [
+      {
+        path: '',
+        data: { breadcrumb: 'Audit', audit: true },
+        component: TransazioniComponent
+      },
+      {
+        path: ':tid',
+        data: { breadcrumb: 'Dettaglio audit', audit: true },
+        component: TransazioneDetailsComponent
+      }
+    ]
+  }
+];

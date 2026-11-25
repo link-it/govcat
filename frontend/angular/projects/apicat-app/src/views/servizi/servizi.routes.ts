@@ -28,6 +28,7 @@ import { ServiceBreadcrumbsResolver } from './route-resolver/service-breadcrumbs
 import { ForbidAnonymousGuard } from '@app/guard/forbid-anonymous.guard';
 import { CategorieGuard } from '@app/guard/categorie.guard';
 import { MonitoraggioGuard } from '@app/guard/monitoraggio.guard';
+import { gestioneServizioGuard } from '@app/guard/gestione-servizio.guard';
 
 export const SERVIZI_ROUTES: Routes = [
   {
@@ -55,14 +56,14 @@ export const SERVIZI_ROUTES: Routes = [
       {
         // Default: il dettaglio del servizio e' ora il wizard a fasi.
         path: ':id',
-        canActivate: [ForbidAnonymousGuard],
+        canActivate: [ForbidAnonymousGuard, gestioneServizioGuard],
         data: { breadcrumb: 'Dettaglio servizio' },
         component: ServizioWorkflowWizardComponent
       },
       {
         // Vista/modifica classica, accessibile su rotta dedicata.
         path: ':id/classic',
-        canActivate: [ForbidAnonymousGuard],
+        canActivate: [ForbidAnonymousGuard, gestioneServizioGuard],
         data: { breadcrumb: 'Dettaglio servizio' },
         component: ServizioDetailsComponent
       },
@@ -134,19 +135,25 @@ export const SERVIZI_ROUTES: Routes = [
       {
         path: ':id/transazioni',
         canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
-        data: { breadcrumb: 'Transazioni' },
+        data: { breadcrumb: 'Transazioni', funzione: 'transazioni' },
         loadChildren: () => import('./transazioni/transazioni.routes').then(m => m.TRANSAZIONI_ROUTES)
       },
       {
         path: ':id/statistiche',
         canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
-        data: { breadcrumb: 'Statistiche' },
+        data: { breadcrumb: 'Statistiche', funzione: 'statistiche' },
         loadChildren: () => import('./statistiche/statistiche.routes').then(m => m.STATISTICHE_ROUTES)
+      },
+      {
+        path: ':id/audit',
+        canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
+        data: { breadcrumb: 'Audit', audit: true },
+        loadChildren: () => import('./transazioni/transazioni.routes').then(m => m.AUDIT_ROUTES)
       },
       {
         path: ':id/verifiche',
         canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
-        data: { breadcrumb: 'Verifiche' },
+        data: { breadcrumb: 'Verifiche', funzione: 'verifiche' },
         loadChildren: () => import('./verifiche/verifiche.routes').then(m => m.VERIFICHE_ROUTES)
       }
     ]

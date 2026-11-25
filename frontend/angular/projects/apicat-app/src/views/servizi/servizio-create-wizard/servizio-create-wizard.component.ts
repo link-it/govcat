@@ -48,6 +48,7 @@ import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { motivoSkipCollaudoBloccato } from '../servizio-verifica-stato';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
+import { OpzioneIntermediazione, opzioneIntermediazione, opzioniIntermediazione } from '../opzioni-intermediazione';
 import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
 
 /**
@@ -176,7 +177,11 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     _hasAdesioniMultiple: boolean = false;
 
     _isFruizione: boolean = false;
+    /** Opzioni della select che imposta `fruizione` (organizzazione di contesto o esterna). */
+    _opzioniIntermediazione: OpzioneIntermediazione[] = opzioniIntermediazione(null);
     showReferenti: boolean = true;
+    /** Spunta "Sono il referente del servizio": il referente è l'utente in sessione. */
+    _isSelfReferente: boolean = true;
 
     // create-only: nessuna API/componente ancora associata
     hasApi: boolean = false;
@@ -196,6 +201,8 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     /** Domini per la select: ricerca paginata con caricamento allo scroll. */
     dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
+    /** Senza la spunta la select propone solo i domini non deprecati. */
+    _includiDominiDeprecati: boolean = false;
     /** Dominio di default (dominio unico, senza selezione nel form). */
     _dominioDefault: any = null;
     /** Opzioni di adesione imposte dal dominio selezionato. */
@@ -307,6 +314,7 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.loadAnagrafiche();
+        this._opzioniIntermediazione = opzioniIntermediazione(this.authenticationService.getCurrentOrganization()?.nome);
 
         if (this._isGestore() && this._showPackage) {
             this._tipiVisibilitaServizio = [...this._tipiVisibilitaServizio, { value: 'componente', label: 'componente' }];
@@ -498,6 +506,23 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
         return !!_cambioStato?.dati_obbligatori?.includes('referenti');
     }
 
+    /** Con la spunta "Sono il referente del servizio" la select del referente non è richiesta. */
+    private _validatoriReferente() {
+        return (!this._isSelfReferente && this._isReferenteRequired()) ? [Validators.required] : [];
+    }
+
+    _onChangeSelfReferente(self: boolean) {
+        this._isSelfReferente = self;
+        const _referente = this._formGroup.get('referente');
+        if (!_referente) { return; }
+        if (self) {
+            _referente.setValue(null);
+            this.selectedReferente = null;
+        }
+        _referente.setValidators(this._validatoriReferente());
+        _referente.updateValueAndValidity();
+    }
+
     _initForm(data: any = null) {
         if (!data) { return; }
         const _group: any = {};
@@ -507,7 +532,7 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
             switch (key) {
                 case 'referente':
                     value = data[key] ? data[key] : null;
-                    _group[key] = new FormControl(value, this._isReferenteRequired() ? [Validators.required] : []);
+                    _group[key] = new FormControl(value, this._validatoriReferente());
                     break;
                 case 'versione':
                     value = data[key] ? data[key] : '';
@@ -702,8 +727,12 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
         this.enableDisableControlAdesioneConsentita();
     }
 
-    _onChangeFruizione(event: any) {
-        this._isFruizione = event.target.checked;
+    _opzioneIntermediazione(): OpzioneIntermediazione {
+        return opzioneIntermediazione(this._opzioniIntermediazione, this._formGroup.get('fruizione')?.value);
+    }
+
+    _onChangeFruizione(fruizione: boolean) {
+        this._isFruizione = !!fruizione;
         if (!this._isFruizione) {
             this._formGroup.get('id_organizzazione_interna')?.setValue(null);
             this._formGroup.get('id_soggetto_erogatore')?.setValue(null);
@@ -722,7 +751,7 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
             controls.referente.updateValueAndValidity();
             this.showReferenti = false;
         } else {
-            controls.referente.setValidators(Validators.required);
+            controls.referente.setValidators(this._validatoriReferente());
             controls.referente.updateValueAndValidity();
             this.showReferenti = true;
         }
@@ -827,7 +856,7 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     getDomini(term: string | null = null, page: number = 0): Observable<PaginaTypeahead<any>> {
         const _options: any = { params: { page } };
         if (term) { _options.params.q = term; }
-        if (!this.authenticationService.isGestore()) {
+        if (!this._includiDominiDeprecati) {
             _options.params.deprecato = false;
         }
         return this.apiService.getList('domini', _options).pipe(map((resp: any) => paginaDaRisposta(resp)));
@@ -896,6 +925,11 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
 
     _initDominiSelect(defaultValue: any[] = []) {
         this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    _onIncludiDominiDeprecati(includi: boolean) {
+        this._includiDominiDeprecati = includi;
+        this._initDominiSelect(this.selectedDominio ? [this.selectedDominio] : []);
     }
 
     private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
@@ -998,8 +1032,9 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
 
         if (!body.package) {
             _newBody.referenti = [];
-            if (body.referente) {
-                _newBody.referenti.push({ id_utente: body.referente, tipo: 'referente' });
+            const _referente = this._isSelfReferente ? this.authenticationService.getUser()?.id_utente : body.referente;
+            if (_referente) {
+                _newBody.referenti.push({ id_utente: _referente, tipo: 'referente' });
             }
             if (body.referente_tecnico) {
                 _newBody.referenti.push({ id_utente: body.referente_tecnico, tipo: 'referente_tecnico' });

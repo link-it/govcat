@@ -1,0 +1,38 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<button #pulsante type="button" class="btn btn-default btn-md gl-button snv-btn" (click)="toggle()" (keydown.escape)="chiudi()"
+        [attr.aria-expanded]="aperta()" [attr.aria-controls]="aperta() ? idPannello : null"
+        [attr.aria-label]="'APP.SERVICES.NOTA_VETRINA.Mostra' | translate" [title]="'APP.SERVICES.NOTA_VETRINA.Titolo' | translate">
+  <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+  <span class="snv-dot" aria-hidden="true"></span>
+</button>
+
+@if (aperta()) {
+  @let p = posizione();
+  <div class="snv-pannello" role="dialog" [id]="idPannello" [attr.aria-labelledby]="idTitolo"
+       [style.top.px]="p.top" [style.right.px]="p.right" (keydown.escape)="chiudi()">
+    <span class="snv-freccia" [style.right.px]="p.freccia" aria-hidden="true"></span>
+    <div class="snv-hd">
+      <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+      <h2 class="snv-titolo" [id]="idTitolo">{{ 'APP.SERVICES.NOTA_VETRINA.Titolo' | translate }}</h2>
+      <button #chiudiEl type="button" class="btn-close snv-chiudi" [attr.aria-label]="'APP.BUTTON.Close' | translate" (click)="chiudi()"></button>
+    </div>
+    <p class="snv-testo">{{ nota() }}</p>
+  </div>
+}

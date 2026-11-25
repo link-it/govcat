@@ -21,6 +21,7 @@ package batch;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.govway.catalogo.core.business.utils.ProfiloGovwayResolver;
 import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneReader;
 import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneReader.RiferimentoProprietaCustom;
 import org.govway.catalogo.core.dto.DTOAdesione;
@@ -35,6 +37,7 @@ import org.govway.catalogo.core.dto.DTOAdesioneAPI;
 import org.govway.catalogo.core.dto.DTOApi;
 import org.govway.catalogo.core.dto.DTOBasicClient;
 import org.govway.catalogo.core.dto.DTOClient;
+import org.govway.catalogo.core.dto.DTOQuotaRateLimiting;
 import org.govway.catalogo.core.dto.DTOSoggetto;
 import org.govway.catalogo.core.dto.HttpsClient;
 import org.govway.catalogo.core.dto.HttpsPdndClient;
@@ -46,6 +49,7 @@ import org.govway.catalogo.core.dto.PdndClient;
 import org.govway.catalogo.core.dto.SignClient;
 import org.govway.catalogo.core.dto.SignPdndClient;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.AdesioneRateLimitingEntity;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
@@ -78,10 +82,6 @@ public class AdesioneDTOConverter {
 
 	/** profilo_govway dichiarato dai profili di autenticazione dell'adesione, nullo se non determinabile. */
 	private String profiloGovwayProfili;
-
-	// ModI e` il nome corrente del profilo ModIPA: i due valori sono equivalenti (cfr. ProfiloGovwayService)
-	private static final String PROFILO_MODI = "ModI";
-	private static final String PROFILO_MODIPA = "ModIPA";
 
 	/** Suffisso delle classi dato specifiche dei profili di fruizione PDND (collaudo_pdnd, produzione_pdnd). */
 	private static final String SUFFISSO_CLASSE_DATO_PDND = "_pdnd";
@@ -158,41 +158,13 @@ public class AdesioneDTOConverter {
 	 * configurazione.
 	 */
 	private String calcolaProfiloGovwayProfili() {
-		String scelto = null;
-
-		for(ApiEntity apiEntity: adesione.getServizio().getApi()) {
-			for(AuthTypeEntity authTypeEntity: apiEntity.getAuthType()) {
-				String profiloGovway;
-				try {
-					profiloGovway = getConfReader().getProfiloGovwayProfilo(authTypeEntity.getProfilo());
-				} catch (IOException e) {
-					logger.error("[AdesioneDTOConverter] errore nella lettura di profilo_govway del profilo {}", authTypeEntity.getProfilo(), e);
-					return null;
-				}
-
-				if(profiloGovway == null) {
-					continue;
-				}
-
-				if(scelto == null) {
-					scelto = profiloGovway;
-				} else if(!isProfiloEquivalente(scelto, profiloGovway)) {
-					logger.warn("[AdesioneDTOConverter] i profili dell'adesione {} dichiarano profili di interoperabilità diversi ({} e {}): il profilo del soggetto viene risolto dai default della configurazione",
-							adesione.getIdAdesione(), scelto, profiloGovway);
-					return null;
-				}
-			}
+		try {
+			return ProfiloGovwayResolver.getProfiloGovwayProfili(adesione.getServizio().getApi(),
+					getConfReader()::getProfiloGovwayProfilo, "dell'adesione " + adesione.getIdAdesione());
+		} catch (IOException e) {
+			logger.error("[AdesioneDTOConverter] errore nella lettura di profilo_govway dei profili dell'adesione {}", adesione.getIdAdesione(), e);
+			return null;
 		}
-
-		return scelto;
-	}
-
-	private static boolean isProfiloEquivalente(String profilo1, String profilo2) {
-		return normalizzaProfilo(profilo1).equals(normalizzaProfilo(profilo2));
-	}
-
-	private static String normalizzaProfilo(String profilo) {
-		return PROFILO_MODI.equals(profilo) ? PROFILO_MODIPA : profilo;
 	}
 
 	private ConfigurazioneReader getConfReader() {
@@ -314,6 +286,8 @@ public class AdesioneDTOConverter {
 		List<DTOAdesioneAPI> adesioneList = buildAdesioneList(client, profilo, authTypeEntity, apiEntity);
 
 		DTOApi apiDto = buildDTOApi(apiEntity, estensioniMap, adesioneList);
+		apiDto.setRateLimiting(getRateLimiting(apiEntity));
+		setFinalita(apiDto, apiEntity);
 		api.add(apiDto);
 
 		adesione.getClient().stream()
@@ -353,6 +327,54 @@ public class AdesioneDTOConverter {
 				.filter(v -> v != null && !v.isBlank())
 				.findAny()
 				.orElse(null);
+	}
+
+	/** Quote dell'aderente per l'API nell'ambiente di configurazione (Issue 446). */
+	private List<DTOQuotaRateLimiting> getRateLimiting(ApiEntity apiEntity) {
+		return adesione.getRateLimiting().stream()
+				.filter(r -> ambienteConfigurazione.equals(r.getAmbiente()) && isStessaApi(r.getApi(), apiEntity))
+				.sorted(Comparator.comparing(AdesioneRateLimitingEntity::getPeriodo))
+				.map(r -> new DTOQuotaRateLimiting(DTOQuotaRateLimiting.PERIODO.valueOf(r.getPeriodo().name()), r.getQuota()))
+				.toList();
+	}
+
+	/**
+	 * Finalità PDND dell'aderente per l'API, dalla proprietà custom indicata in
+	 * adesione.rate_limiting.finalita per l'ambiente (Issue 446): quella specifica per l'API se c'è,
+	 * altrimenti quella dell'adesione. Se la chiave non è configurata il DTO non la riporta e lo
+	 * scenario ricade sulla property del configuratore.
+	 */
+	private void setFinalita(DTOApi apiDto, ApiEntity apiEntity) {
+		RiferimentoProprietaCustom riferimento;
+		try {
+			riferimento = getConfReader().getProprietaFinalitaAdesione(ambienteConfigurazione.toString().toLowerCase());
+		} catch (IOException e) {
+			logger.error("[AdesioneDTOConverter] errore nella lettura di adesione.rate_limiting.finalita", e);
+			riferimento = null;
+		}
+
+		if (riferimento == null) {
+			return;
+		}
+
+		RiferimentoProprietaCustom proprieta = riferimento;
+		List<EstensioneAdesioneEntity> estensioni = adesione.getEstensioni() != null ? adesione.getEstensioni() : List.of();
+		String finalita = estensioni.stream()
+				.filter(e -> ambienteConfigurazione.equals(e.getAmbiente())
+						&& proprieta.nomeGruppo().equals(e.getGruppo()) && proprieta.nomeProprieta().equals(e.getNome())
+						&& e.getValore() != null && !e.getValore().isBlank())
+				.filter(e -> e.getApi() == null || isStessaApi(e.getApi(), apiEntity))
+				// prima quella specifica per l'API
+				.sorted(Comparator.comparing(e -> e.getApi() == null))
+				.map(e -> e.getValore().trim())
+				.findFirst()
+				.orElse(null);
+
+		apiDto.setFinalita(true, finalita);
+	}
+
+	private static boolean isStessaApi(ApiEntity api, ApiEntity altra) {
+		return api == altra || (api.getId() != null && api.getId().equals(altra.getId()));
 	}
 
 	private DTOApi buildDTOApi(ApiEntity apiEntity, Map<String, String> map, List<DTOAdesioneAPI> list) {

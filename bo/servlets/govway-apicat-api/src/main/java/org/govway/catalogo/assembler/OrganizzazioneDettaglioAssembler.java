@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.OrganizzazioniController;
@@ -39,6 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssemblerSupport<OrganizzazioneEntity, Organizzazione> {
+
+	/** Parametro dell'errore che indica il campo della richiesta coinvolto */
+	private static final String CAMPO = "campo";
 
 	@Autowired
 	private Configurazione configurazione;
@@ -129,7 +133,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
+					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION, Map.of(CAMPO, "aderente"));
 				}
 				
 				for(SoggettoEntity s: entity.getSoggetti()) {
@@ -143,7 +147,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		if(src.isReferente() != null) {
 			if(!src.isReferente() && entity.isReferente()) {
 				if(isVincolaReferente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
+					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION, Map.of(CAMPO, "referente"));
 				}
 
 				for(SoggettoEntity s: entity.getSoggetti()) {
@@ -158,7 +162,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 
 			if(src.isIntermediata().booleanValue() != entity.isIntermediata()) {
 				if(!isCambioConsentito(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
+					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION, Map.of(CAMPO, "intermediata"));
 				}
 			}
 
@@ -167,7 +171,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 
 		// Un'organizzazione intermediata non può essere né referente né aderente
 		if(entity.isIntermediata() && (entity.isReferente() || entity.isAderente())) {
-			throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
+			throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION, Map.of(CAMPO, "intermediata"));
 		}
 
 		if(src.getIdSoggettoDefault()!=null) {
@@ -176,19 +180,19 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getCodiceFiscaleSoggetto()==null) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(CAMPO, "codice_fiscale_soggetto"));
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceEnteAbilitato()) {
 			if(entity.getCodiceEnte()==null) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(CAMPO, "codice_ente"));
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getIdTipoUtente()==null) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(CAMPO, "id_tipo_utente"));
 			}
 		}
 
@@ -206,24 +210,24 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 
 		// Un'organizzazione intermediata non può essere né referente né aderente
 		if(entity.isIntermediata() && (entity.isReferente() || entity.isAderente())) {
-			throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
+			throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION, Map.of(CAMPO, "intermediata"));
 		}
 
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getCodiceFiscaleSoggetto()==null) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(CAMPO, "codice_fiscale_soggetto"));
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceEnteAbilitato()) {
 			if(entity.getCodiceEnte()==null) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(CAMPO, "codice_ente"));
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getIdTipoUtente()==null) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(CAMPO, "id_tipo_utente"));
 			}
 		}
 

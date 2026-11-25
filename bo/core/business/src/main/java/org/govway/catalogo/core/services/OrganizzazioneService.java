@@ -28,8 +28,11 @@ import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
 import org.govway.catalogo.core.exceptions.NotFoundException;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
@@ -305,6 +308,27 @@ public class OrganizzazioneService extends AbstractService {
 		Set<Long> org2 = raccogliIdOrganizzazioni(u2);
 		org1.retainAll(org2);
 		return !org1.isEmpty();
+	}
+
+	/**
+	 * Servizi non archiviati e non in fruizione dell'organizzazione di cui l'utente e` referente.
+	 */
+	public Page<ServizioEntity> findServiziConReferente(UtenteEntity utente, OrganizzazioneEntity organizzazione, String statoArchiviato, Pageable pageable) {
+		return this.servizioRepo.findConReferenteInOrganizzazione(utente, organizzazione, statoArchiviato, pageable);
+	}
+
+	/**
+	 * Domini dell'organizzazione di cui l'utente e` referente.
+	 */
+	public Page<DominioEntity> findDominiConReferente(UtenteEntity utente, OrganizzazioneEntity organizzazione, Pageable pageable) {
+		return this.dominioRepo.findConReferenteInOrganizzazione(utente, organizzazione, pageable);
+	}
+
+	/**
+	 * Adesioni non archiviate dell'organizzazione (soggetto aderente) di cui l'utente e` referente.
+	 */
+	public Page<AdesioneEntity> findAdesioniConReferente(UtenteEntity utente, OrganizzazioneEntity organizzazione, String statoArchiviato, Pageable pageable) {
+		return this.adesioneRepo.findConReferenteInOrganizzazione(utente, organizzazione, statoArchiviato, pageable);
 	}
 
 	private Set<Long> raccogliIdOrganizzazioni(UtenteEntity u) {

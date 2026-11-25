@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
@@ -44,10 +45,12 @@ import org.govway.catalogo.assembler.DocumentoAllegatoAssembler;
 import org.govway.catalogo.assembler.GruppoItemAssembler;
 import org.govway.catalogo.assembler.ItemMessaggioServizioAssembler;
 import org.govway.catalogo.assembler.OrganizzazioneItemAssembler;
+import org.govway.catalogo.assembler.RateLimitingAssembler;
 import org.govway.catalogo.assembler.ReferenteServizioAssembler;
 import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.assembler.ServizioGruppoItemAssembler;
 import org.govway.catalogo.assembler.ServizioItemAssembler;
+import org.govway.catalogo.assembler.StoricoStatiAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.AbstractServizioAuthorization;
 import org.govway.catalogo.authorization.CoreAuthorization;
@@ -68,6 +71,7 @@ import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification.TipoMieiServizi;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecificationUtils;
 import org.govway.catalogo.core.dao.specifications.TagSpecification;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
@@ -78,7 +82,6 @@ import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
-import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
@@ -89,10 +92,12 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.TagEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.core.services.ServizioService.MotivoNonEliminabile;
 import org.govway.catalogo.core.services.TagService;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.core.services.UtenteService;
@@ -104,7 +109,13 @@ import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
+import org.govway.catalogo.services.ApiUnivocitaService;
 import org.govway.catalogo.services.DisclaimerService;
+import org.govway.catalogo.services.RateLimitingFinalitaService;
+import org.govway.catalogo.services.RateLimitingFinalitaService.Finalita;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAdesione;
+import org.govway.catalogo.services.RateLimitingFinalitaService.FinalitaAssegnata;
+import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.servlets.api.ServiziApi;
 import org.govway.catalogo.servlets.model.Allegato;
 import org.govway.catalogo.servlets.model.AllegatoItemCreate;
@@ -135,12 +146,15 @@ import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
 import org.govway.catalogo.servlets.model.OkKoEnum;
 import org.govway.catalogo.servlets.model.PageMetadata;
+import org.govway.catalogo.servlets.model.PagedModelItemRateLimitingFruitore;
+import org.govway.catalogo.servlets.model.RateLimitingServizio;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
 import org.govway.catalogo.servlets.model.PagedModelComponente;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
+import org.govway.catalogo.servlets.model.PagedModelItemStoricoStato;
 import org.govway.catalogo.servlets.model.PagedModelItemServizioGruppo;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.Referente;
@@ -196,6 +210,9 @@ public class ServiziController implements ServiziApi {
 
 	@Autowired
 	private GruppoService gruppoService;
+
+	@Autowired
+	private DominioService dominioService;
 
 	@Autowired
 	private EServiceBuilder serviceBuilder;
@@ -287,6 +304,21 @@ public class ServiziController implements ServiziApi {
 	@Autowired
 	private DisclaimerService disclaimerService;
 
+	@Autowired
+	private RateLimitingService rateLimitingService;
+
+	@Autowired
+	private ApiUnivocitaService apiUnivocitaService;
+
+	@Autowired
+	private RateLimitingAssembler rateLimitingAssembler;
+
+	@Autowired
+	private RateLimitingFinalitaService rateLimitingFinalitaService;
+
+	@Autowired
+	private StoricoStatiAssembler storicoStatiAssembler;
+
 	private AbstractServizioAuthorization getServizioAuthorization(ServizioEntity entity) {
 		if(entity.is_package()) {
 			return this.packageAuthorization;
@@ -359,7 +391,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<Referente> createReferenteServizio(UUID idServizio, Boolean force, ReferenteCreate referente) {
+	public ResponseEntity<Referente> createReferenteServizio(UUID idServizio, Boolean forceParam, ReferenteCreate referente) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -373,15 +405,22 @@ public class ServiziController implements ServiziApi {
 				// e superano entrambe il controllo di duplicazione.
 				this.service.lock(entity);
 
+				// L'autorizzazione a modificare i referenti precede i controlli sul referente (utente,
+				// duplicato): chi non ha ruolo sul servizio riceve 403 e non SRV.409.REFERENT (Issue 457).
+				// Il grant dipende solo dai ruoli dell'utente sul servizio, non dal referente da aggiungere.
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+				boolean force = isForce(forceParam, grant.getRuoli());
+				if(!force) {
+					this.getServizioAuthorization(entity).authorizeModificaDati(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				}
+
 				ReferenteServizioEntity referenteEntity = referenteAssembler.toEntity(referente, entity);
 				
 				checkReferente(referenteEntity);
 				
 				entity.getReferenti().add(referenteEntity);
-				
-				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
-				if(!isForce(force, grant.getRuoli())) {
+				if(!force) {
 					this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
 				}
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -420,32 +459,28 @@ public class ServiziController implements ServiziApi {
 		return realForce;
 	}
 	
+	/**
+	 * In creazione: i referenti indicati nella richiesta devono poter essere referenti del servizio.
+	 */
 	private void checkReferenti(ServizioEntity servizioEntity) {
+		CoreAuthorization.getOrganizzazioneReferenti(servizioEntity).ifPresent(organizzazione ->
+			servizioEntity.getReferenti().forEach(r -> this.coreAuthorization.checkReferente(r.getReferente(), organizzazione)));
+	}
 
-		OrganizzazioneEntity organizzazione = servizioEntity.getDominio().getSoggettoReferente().getOrganizzazione();
-		if(servizioEntity.isFruizione()) {
-			return;
-		}
-		
-		for(ReferenteServizioEntity referenteEntity: servizioEntity.getReferenti()) {
-
-			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
-
-			if(!admin && !this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE,
-						Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
-			}
-
-			if(!admin && !this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-						Map.of("orgNome", organizzazione.getNome(),
-								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-			}
-		}
+	/**
+	 * In modifica i referenti gia` presenti si verificano solo se il servizio passa sotto un'altra
+	 * organizzazione (spostamento su un dominio di un'altra organizzazione, o da fruizione a
+	 * erogazione): le altre modifiche non toccano i referenti e non vanno bloccate da un referente
+	 * che nel frattempo ha perso il ruolo nell'organizzazione (Issue 473).
+	 */
+	private void checkReferentiCambioOrganizzazione(ServizioEntity servizioEntity, OrganizzazioneEntity organizzazionePrecedente) {
+		CoreAuthorization.getOrganizzazioneReferenti(servizioEntity)
+			.filter(organizzazione -> organizzazionePrecedente == null || !organizzazionePrecedente.getId().equals(organizzazione.getId()))
+			.ifPresent(organizzazione -> this.coreAuthorization.checkReferentiNuovaOrganizzazione(
+					servizioEntity.getReferenti().stream().map(ReferenteServizioEntity::getReferente).toList(), organizzazione));
 	}
 
 	private void checkReferente(ReferenteServizioEntity referenteEntity) {
-
 
 		if(referenteEntity.getServizio().is_package()) {
 			for(PackageServizioEntity componente: referenteEntity.getServizio().getComponenti()) {
@@ -455,28 +490,8 @@ public class ServiziController implements ServiziApi {
 			}
 		}
 
-		OrganizzazioneEntity organizzazione = referenteEntity.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
-		if(referenteEntity.getServizio().isFruizione()) {
-			return;
-		}
-
-		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
-			return;
-		}
-
-		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
-
-		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
-					Map.of("orgNome", organizzazione.getNome(),
-							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-		}
-
-
+		CoreAuthorization.getOrganizzazioneReferenti(referenteEntity.getServizio())
+			.ifPresent(organizzazione -> this.coreAuthorization.checkReferente(referenteEntity.getReferente(), organizzazione));
 	}
 
 
@@ -592,8 +607,15 @@ public class ServiziController implements ServiziApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
+				// L'autorizzazione alla creazione precede la validazione dei dati: chi non puo` creare
+				// servizi riceve 403 e non gli errori sul contenuto della richiesta (Issue 457)
+				boolean isPackage = Boolean.TRUE.equals(servizioCreate.isPackage());
+				(isPackage ? this.packageAuthorization : this.servizioAuthorization).authorizeCreate(servizioCreate);
 				ServizioEntity entity = this.dettaglioAssembler.toEntity(servizioCreate);
-				this.getServizioAuthorization(entity).authorizeCreate(servizioCreate);
+				this.getServizioAuthorization(entity).authorizeDominio(entity.getDominio(), true);
+				if(servizioCreate.getReferenti() == null && !isPackage) {
+					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of("campo", "referenti"));
+				}
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				this.checkReferenti(entity);
 				this.logger.debug("Autorizzazione completata con successo");
@@ -836,6 +858,100 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+	/** Riepilogo letto dal DB, da completare con le finalita` lette dalla PDND fuori dalla transazione. */
+	private record RiepilogoRateLimiting(RateLimitingServizio model, Map<org.govway.catalogo.core.orm.entity.AmbienteEnum, List<FinalitaAssegnata>> finalita) {}
+
+	@Override
+	public ResponseEntity<RateLimitingServizio> getRateLimitingServizio(UUID idServizio) {
+		try {
+			RiepilogoRateLimiting riepilogo = this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				ServizioEntity entity = this.findOne(idServizio);
+				this.rateLimitingService.authorizeGestioneServizio(entity);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				return new RiepilogoRateLimiting(this.rateLimitingAssembler.toRiepilogo(entity, this.rateLimitingService.getQuoteAssegnate(entity)),
+						this.rateLimitingFinalitaService.getFinalitaAssegnate(entity));
+			});
+
+			RateLimitingServizio model = riepilogo.model();
+			model.setFinalita(this.rateLimitingAssembler.toFinalitaServizio(this.rateLimitingFinalitaService.leggiFinalita(riepilogo.finalita())));
+
+			this.logger.info("Invocazione completata con successo");
+			return ResponseEntity.ok(model);
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Pagina dei fruitori letta dal DB, con le finalita` indicate da ciascuno (stesso ordine del
+	 * contenuto) e quelle assegnate nell'ambiente, da completare fuori dalla transazione.
+	 */
+	private record FruitoriRateLimiting(PagedModelItemRateLimitingFruitore list, List<List<FinalitaAdesione>> finalitaFruitori,
+			List<FinalitaAssegnata> finalitaAssegnate) {}
+
+	@Override
+	public ResponseEntity<PagedModelItemRateLimitingFruitore> listRateLimitingFruitoriServizio(UUID idServizio,
+			org.govway.catalogo.servlets.model.AmbienteEnum ambiente, Boolean autorizzate, String q, Integer page, Integer size) {
+		try {
+			org.govway.catalogo.core.orm.entity.AmbienteEnum ambienteEntity = org.govway.catalogo.core.orm.entity.AmbienteEnum.valueOf(ambiente.name());
+
+			FruitoriRateLimiting fruitori = this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				ServizioEntity entity = this.findOne(idServizio);
+				this.rateLimitingService.authorizeGestioneServizio(entity);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				Page<AdesioneEntity> adesioni = this.rateLimitingService.getAdesioniNonArchiviate(entity, ambienteEntity, autorizzate, q, page, size);
+
+				PagedModelItemRateLimitingFruitore list = new PagedModelItemRateLimitingFruitore();
+				list.setContent(adesioni.getContent().stream()
+						.map(a -> this.rateLimitingAssembler.toFruitore(a, this.rateLimitingService.isAutorizzata(a, ambienteEntity),
+								this.rateLimitingService.getRateLimiting(a, ambienteEntity)))
+						.toList());
+				list.setPage(new PageMetadata().size((long)adesioni.getSize()).number((long)adesioni.getNumber()).totalElements(adesioni.getTotalElements()).totalPages((long)adesioni.getTotalPages()));
+
+				List<List<FinalitaAdesione>> finalitaFruitori = adesioni.getContent().stream()
+						.map(a -> this.rateLimitingFinalitaService.getFinalitaAdesione(a, ambienteEntity))
+						.toList();
+				boolean usate = finalitaFruitori.stream().anyMatch(f -> !f.isEmpty());
+				return new FruitoriRateLimiting(list, finalitaFruitori,
+						usate ? this.rateLimitingFinalitaService.getFinalitaAssegnate(entity, ambienteEntity) : List.of());
+			});
+
+			PagedModelItemRateLimitingFruitore list = fruitori.list();
+			if(this.rateLimitingFinalitaService.isAbilitata(ambienteEntity)) {
+				Map<String, Finalita> finalita = this.rateLimitingFinalitaService.leggiFinalita(ambienteEntity, fruitori.finalitaAssegnate(),
+						fruitori.finalitaFruitori().stream().flatMap(List::stream).toList());
+				for(int i = 0; i < list.getContent().size(); i++) {
+					list.getContent().get(i).setFinalita(this.rateLimitingAssembler.toFinalitaAdesione(fruitori.finalitaFruitori().get(i), finalita));
+				}
+			}
+
+			this.logger.info("Invocazione completata con successo");
+			return ResponseEntity.ok(list);
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
 	@Override
 	public ResponseEntity<PagedModelItemComunicazione> listComunicazioniServizio(UUID idServizio, Integer page, Integer size, List<String> sort) {
 		try {
@@ -884,6 +1000,47 @@ public class ServiziController implements ServiziApi {
 
 
 				list.setContent(content.stream().sorted(c).collect(Collectors.toList()));
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(list);
+			});
+
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<PagedModelItemStoricoStato> listStoricoStatiServizio(UUID idServizio, Integer page, Integer size) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+
+				if(page < 0 || size < 1) {
+					throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+				}
+
+				ServizioEntity entity = this.findOne(idServizio);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// size+1 righe: l'ultima serve solo a ricavare lo stato precedente dell'ultimo cambio della pagina
+				List<StoricoStatiAssembler.CambioStato> cambi = this.service.findStatiServizio(entity, (long) page * size, (long) size + 1).stream()
+						.map(s -> new StoricoStatiAssembler.CambioStato(s.getData(), s.getUtente(), s.getStato()))
+						.toList();
+				long totaleCambi = this.service.countStatiServizio(entity);
+				StoricoStatiAssembler.CambioStato creazione = new StoricoStatiAssembler.CambioStato(entity.getDataCreazione(), entity.getRichiedente(),
+						this.configurazione.getServizio().getWorkflow().getStatoIniziale());
+
+				PagedModelItemStoricoStato list = this.storicoStatiAssembler.toModel(cambi, totaleCambi, creazione, page, size);
 
 				this.logger.info("Invocazione completata con successo");
 
@@ -1040,6 +1197,7 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
+				OrganizzazioneEntity organizzazioneReferentiPrecedente = CoreAuthorization.getOrganizzazioneReferenti(entity).orElse(null);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -1053,6 +1211,12 @@ public class ServiziController implements ServiziApi {
 					boolean nomeCambiato = !entity.getNome().equalsIgnoreCase(nome);
 					boolean versioneCambiata = !entity.getVersione().equals(versione);
 					boolean dominioCambiato = !Objects.equals(getIdDominio(entity), idDominioRichiesto);
+
+					if(dominioCambiato && idDominioRichiesto != null) {
+						DominioEntity dominioRichiesto = this.dominioService.find(idDominioRichiesto)
+								.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominioRichiesto.toString())));
+						this.getServizioAuthorization(entity).authorizeDominio(dominioRichiesto, false);
+					}
 
 					if(nomeCambiato || versioneCambiata || dominioCambiato) {
 						Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
@@ -1076,11 +1240,12 @@ public class ServiziController implements ServiziApi {
 
 				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
+				// Con force il gestore puo` spostare il servizio anche con referenti non validi
+				// nella nuova organizzazione, da sistemare poi (sono evidenziati nella scheda)
 				if(!isForce(force, grant.getRuoli())) {
 					this.getServizioAuthorization(entity).authorizeModifica(entity, lstClassiDato);
+					this.checkReferentiCambioOrganizzazione(entity, organizzazioneReferentiPrecedente);
 				}
-
-				this.checkReferenti(entity);
 
 				this.service.save(entity);
 				Servizio model = this.dettaglioAssembler.toModel(entity);
@@ -1103,6 +1268,25 @@ public class ServiziController implements ServiziApi {
 
 	private boolean isCheckOnly(Boolean checkOnly) {
 		return checkOnly != null && checkOnly;
+	}
+
+	/**
+	 * In check_only la transazione e` annullata e le query non forzano il flush:
+	 * le modifiche applicate per la verifica non arrivano al database.
+	 */
+	private <T> T runTransaction(boolean checkOnly, Supplier<T> supplier) {
+		return checkOnly ? this.service.runTransactionSenzaModifiche(supplier) : this.service.runTransaction(supplier);
+	}
+
+	/**
+	 * Codice di errore che spiega perche` il servizio non e` eliminabile e cosa fare.
+	 */
+	private static ErrorCode toErrorCode(MotivoNonEliminabile motivo) {
+		return switch(motivo) {
+			case ADESIONI -> ErrorCode.SRV_400_NOT_DELETABLE_ADESIONI;
+			case API -> ErrorCode.SRV_400_NOT_DELETABLE_API;
+			case PACKAGE -> ErrorCode.SRV_400_NOT_DELETABLE_PACKAGE;
+		};
 	}
 
 	private static UUID getIdDominio(ServizioEntity entity) {
@@ -1135,7 +1319,8 @@ public class ServiziController implements ServiziApi {
 	@Override
 	public ResponseEntity<Servizio> updateStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate, Boolean checkOnly) {
 		try {
-			return this.service.runTransaction(() -> {
+			// check_only: la transizione e` solo verificata, nessuna modifica (entita`, storico, notifiche) viene salvata
+			return this.runTransaction(isCheckOnly(checkOnly), () -> {
 				this.logger.info("Invocazione in corso ...");
 
 				ServizioEntity entity = this.cambiaStatoServizio(idServizio, statoServizioUpdate, checkOnly);
@@ -1203,6 +1388,13 @@ public class ServiziController implements ServiziApi {
 					entity.getNome(), entity.getVersione(), idDominio, configurazione.getServizio().getWorkflow().getStatoArchiviato());
 			if(conflitto.isPresent()) {
 				throw toConflittoServizio(entity.getNome(), entity.getVersione(), idDominio, conflitto.get());
+			}
+
+			// Le api dei servizi archiviati non occupano nome e versione: nel frattempo un altro
+			// servizio puo` averle riusate, e il ripristino le riporterebbe in conflitto.
+			if(entity.getDominio() != null) {
+				this.apiUnivocitaService.checkUnivocitaApiServizio(entity,
+						entity.getDominio().getSoggettoReferente(), entity.isFruizione(), entity.getSoggettoErogatore());
 			}
 		}
 
@@ -1377,19 +1569,10 @@ public class ServiziController implements ServiziApi {
 
 				if(!anounymous) {
 					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
-					Specification<ServizioEntity> specSR = ServizioSpecificationUtils.byReferenteServizio(utente);
-					Specification<ServizioEntity> specGR = ServizioSpecificationUtils.byReferenteDominio(utente);
-					Specification<ServizioEntity> specRich = ServizioSpecificationUtils.byRichiedente(utente);
-					Specification<ServizioEntity> specSRInAttesa = specSR.and(ServizioSpecificationUtils.byStati(getStatiReferenteServizio()));
-					Specification<ServizioEntity> specGRInAttesa = specGR.and(ServizioSpecificationUtils.byStati(getStatiReferenteDominio()));
-					Specification<ServizioEntity> specRichInAttesa = specRich.and(ServizioSpecificationUtils.byStati(getStatiRichiedenteServizio()));
-					specInAttesa = specSRInAttesa.or(specGRInAttesa).or(specRichInAttesa);
 					boolean isWhiteListed = this.coreAuthorization.isWhiteListed();
-					if(admin || isWhiteListed) {
-						Specification<ServizioEntity> inAttesaAdmin = ServizioSpecificationUtils.byStati(getStatiAdmin());
-						specInAttesa = specInAttesa.or(inAttesaAdmin);
-					} else {
-						specification.setUtente(Optional.of(utente));
+					specInAttesa = getSpecInAttesa(utente, admin || isWhiteListed);
+					if(!admin && !isWhiteListed) {
+						applicaFiltroUtente(specification, utente);
 					}
 
 				} else {
@@ -1411,7 +1594,8 @@ public class ServiziController implements ServiziApi {
 						if(ruoloReferente != null && !ruoloReferente.isEmpty()) {
 							// Validazione: i ruoli di adesione non sono ammessi per il filtro servizi
 							for(RuoloReferenteEnum r : ruoloReferente) {
-								if(r == RuoloReferenteEnum.REFERENTE_ADESIONE || r == RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE || r == RuoloReferenteEnum.RICHIEDENTE_ADESIONE) {
+								if(r == RuoloReferenteEnum.REFERENTE_ADESIONE || r == RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE || r == RuoloReferenteEnum.RICHIEDENTE_ADESIONE
+										|| r == RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE) {
 									throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 								}
 							}
@@ -1436,6 +1620,14 @@ public class ServiziController implements ServiziApi {
 										break;
 									case RICHIEDENTE_SERVIZIO:
 										specRuolo = ServizioSpecificationUtils.byRichiedente(utenteRuolo);
+										break;
+									case AMMINISTRATORE_ORGANIZZAZIONE:
+									case AMMINISTRATORE_ORGANIZZAZIONE_EROGATRICE:
+										// Servizi di cui l'organizzazione di sessione e` titolare
+										// (stessa regola con cui ruoli_referente riporta il ruolo)
+										specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()
+												.map(ServizioSpecificationUtils::byOrganizzazioneTitolare)
+												.orElse(null);
 										break;
 									default:
 										break;
@@ -1514,6 +1706,15 @@ public class ServiziController implements ServiziApi {
 								Specification<ServizioEntity> specRefServizio = ServizioSpecificationUtils.byReferenteServizio(utente)
 										.and(ServizioSpecificationUtils.byStati(statiReferente));
 								specRuolo = (specRuolo != null) ? specRuolo.or(specRefServizio) : specRefServizio;
+							}
+
+							// Se amministratore dell'organizzazione di sessione -> servizi di cui l'organizzazione
+							// è titolare negli stati "referente_superiore", come il referente di dominio
+							Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+							if(idOrganizzazioneAmministrata.isPresent() && !statiReferenteSuperiore.isEmpty()) {
+								Specification<ServizioEntity> specAmmOrg = ServizioSpecificationUtils.byOrganizzazioneTitolare(idOrganizzazioneAmministrata.get())
+										.and(ServizioSpecificationUtils.byStati(statiReferenteSuperiore));
+								specRuolo = (specRuolo != null) ? specRuolo.or(specAmmOrg) : specAmmOrg;
 							}
 						}
 
@@ -1676,19 +1877,10 @@ public class ServiziController implements ServiziApi {
 
 				if(!anounymous) {
 					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
-					Specification<ServizioEntity> specSR = ServizioSpecificationUtils.byReferenteServizio(utente);
-					Specification<ServizioEntity> specGR = ServizioSpecificationUtils.byReferenteDominio(utente);
-					Specification<ServizioEntity> specRich = ServizioSpecificationUtils.byRichiedente(utente);
-					Specification<ServizioEntity> specSRInAttesa = specSR.and(ServizioSpecificationUtils.byStati(getStatiReferenteServizio()));
-					Specification<ServizioEntity> specGRInAttesa = specGR.and(ServizioSpecificationUtils.byStati(getStatiReferenteDominio()));
-					Specification<ServizioEntity> specRichInAttesa = specRich.and(ServizioSpecificationUtils.byStati(getStatiRichiedenteServizio()));
-					specInAttesa = specSRInAttesa.or(specGRInAttesa).or(specRichInAttesa);
 					boolean isWhiteListed = this.coreAuthorization.isWhiteListed();
-					if(admin || isWhiteListed) {
-						Specification<ServizioEntity> inAttesaAdmin = ServizioSpecificationUtils.byStati(getStatiAdmin());
-						specInAttesa = specInAttesa.or(inAttesaAdmin);
-					} else {
-						specification.setUtente(Optional.of(utente));
+					specInAttesa = getSpecInAttesa(utente, admin || isWhiteListed);
+					if(!admin && !isWhiteListed) {
+						applicaFiltroUtente(specification, utente);
 					}
 
 				} else {
@@ -1726,7 +1918,7 @@ public class ServiziController implements ServiziApi {
 						Pageable.unpaged()
 						).toList();
 
-				byte[] csv = this.servizioBuilder.getCSVEsteso(findAll);
+				byte[] csv = this.servizioBuilder.getCSVEsteso(findAll, getStatoArchiviatoServizio());
 
 				Resource resource = new ByteArrayResource(csv);
 				this.logger.info("Invocazione completata con successo");
@@ -1823,6 +2015,40 @@ public class ServiziController implements ServiziApi {
 		}
 		specification.setIdOrganizzazioneVisibilita(
 				Optional.of(this.coreAuthorization.getOrganizationContext().getIdOrganizzazione()));
+	}
+
+	/**
+	 * Filtro di visibilita` per utente (referenze, classi, richiedente, servizi pubblici) esteso,
+	 * per l'amministratore dell'organizzazione di sessione, ai servizi di cui l'organizzazione e`
+	 * titolare (in ogni stato) e a quelli a cui ha aderito.
+	 */
+	private void applicaFiltroUtente(ServizioSpecification specification, UtenteEntity utente) {
+		specification.setUtente(Optional.of(utente));
+		specification.setIdOrganizzazioneAmministrata(this.coreAuthorization.getIdOrganizzazioneAmministrataSessione());
+	}
+
+	/**
+	 * Servizi in attesa di un'azione dell'utente: quelli negli stati in cui agisce secondo il proprio
+	 * ruolo (referente del servizio o del dominio, richiedente, amministratore dell'organizzazione
+	 * titolare come il referente del dominio) e, per gestore, coordinatore e white list, quelli
+	 * negli stati del gestore.
+	 */
+	private Specification<ServizioEntity> getSpecInAttesa(UtenteEntity utente, boolean statiAdmin) {
+		Specification<ServizioEntity> specInAttesa = ServizioSpecificationUtils.byReferenteServizio(utente)
+				.and(ServizioSpecificationUtils.byStati(getStatiReferenteServizio()))
+				.or(ServizioSpecificationUtils.byReferenteDominio(utente)
+						.and(ServizioSpecificationUtils.byStati(getStatiReferenteDominio())))
+				.or(ServizioSpecificationUtils.byRichiedente(utente)
+						.and(ServizioSpecificationUtils.byStati(getStatiRichiedenteServizio())));
+		Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+		if(idOrganizzazioneAmministrata.isPresent()) {
+			specInAttesa = specInAttesa.or(ServizioSpecificationUtils.byOrganizzazioneTitolare(idOrganizzazioneAmministrata.get())
+					.and(ServizioSpecificationUtils.byStati(getStatiReferenteDominio())));
+		}
+		if(statiAdmin) {
+			specInAttesa = specInAttesa.or(ServizioSpecificationUtils.byStati(getStatiAdmin()));
+		}
+		return specInAttesa;
 	}
 
 	private List<String> getStatiAdmin() {
@@ -2181,19 +2407,20 @@ public class ServiziController implements ServiziApi {
 
 				this.getServizioAuthorization(entity).authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");
-				if (service.isEliminabile(entity)) {
-				    // Cancellazione degli allegati del servizio
-				    AllegatoServizioSpecification spec = new AllegatoServizioSpecification();
-				    spec.setIdServizio(Optional.of(idServizio));
-				    Page<AllegatoServizioEntity> allegati = service.findAllAllegatiServizio(spec, Pageable.unpaged());
-				    for (AllegatoServizioEntity allegato : allegati.getContent()) {
-				        this.service.delete(allegato);
-				    }
-
-				    service.delete(entity);
-				} else {
-				    throw new BadRequestException(ErrorCode.SRV_400_NOT_DELETABLE);
+				Optional<MotivoNonEliminabile> motivo = service.getMotivoNonEliminabile(entity);
+				if (motivo.isPresent()) {
+				    throw new BadRequestException(toErrorCode(motivo.get()));
 				}
+
+				// Cancellazione degli allegati del servizio
+				AllegatoServizioSpecification spec = new AllegatoServizioSpecification();
+				spec.setIdServizio(Optional.of(idServizio));
+				Page<AllegatoServizioEntity> allegati = service.findAllAllegatiServizio(spec, Pageable.unpaged());
+				for (AllegatoServizioEntity allegato : allegati.getContent()) {
+				    this.service.delete(allegato);
+				}
+
+				service.delete(entity);
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.noContent().build();
 			});
@@ -2257,6 +2484,7 @@ public class ServiziController implements ServiziApi {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 						this.logger.info("POST getUtenteSessione");
 						specification.setUtente(Optional.of(utente));
+						specification.setIdOrganizzazioneAmministrata(this.coreAuthorization.getIdOrganizzazioneAmministrataSessione());
 					}
 				}
 				
@@ -2294,6 +2522,7 @@ public class ServiziController implements ServiziApi {
 						// Usa un UtenteEntity "vuoto" come gia` fa il filtro principale (vedi ramo `anounymous` sopra),
 						// evitando l'NPE di Optional.of(null).
 						specVisibilita.setUtente(Optional.of(utenteSessione != null ? utenteSessione : new UtenteEntity()));
+						specVisibilita.setIdOrganizzazioneAmministrata(this.coreAuthorization.getIdOrganizzazioneAmministrataSessione());
 						specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 						specVisibilita.setUtenteAdmin(Optional.of(false));
 					}
@@ -2388,7 +2617,7 @@ public class ServiziController implements ServiziApi {
 			if(this.coreAuthorization.isAnounymous()) {
 				aspec.setUtente(Optional.of(new UtenteEntity()));
 			} else {
-				aspec.setUtente(Optional.of(utente));
+				applicaFiltroUtente(aspec, utente);
 			}
 		}
 

@@ -94,3 +94,33 @@ describe('ServizioWorkflowWizardComponent - rifiuto (Issue 401)', () => {
     expect(component._changingStatus).toBe(false);
   });
 });
+
+describe('ServizioWorkflowWizardComponent - quote nella riga API (Issue #402)', () => {
+  const build = (): any => {
+    const component: any = Object.create(ServizioWorkflowWizardComponent.prototype);
+    component._apiRateLimiting = {};
+    component._selectedFase = 'collaudo';
+    component.servizioApiList = [
+      { id_api: 'a1', ruolo: 'erogato_soggetto_dominio' },
+      { id_api: 'a2', ruolo: 'erogato_soggetto_aderente' }
+    ];
+    component.apiService = {
+      getDetails: vi.fn().mockReturnValue(of({
+        configurazione_collaudo: { rate_limiting: [{ quota: 20, periodo: 'ora' }, { quota: 300, periodo: 'giorno' }] },
+        configurazione_produzione: {}
+      }))
+    };
+    component._loadApiRateLimiting();
+    return component;
+  };
+
+  it('should read the quotas only for the domain APIs, sorted by period, for the phase environment', () => {
+    const component = build();
+    expect(component.apiService.getDetails).toHaveBeenCalledTimes(1);
+    expect(component.apiService.getDetails).toHaveBeenCalledWith('api', 'a1');
+    expect(component.apiRateLimiting({ id_api: 'a1' }).map((q: any) => q.periodo)).toEqual(['giorno', 'ora']);
+    expect(component.apiRateLimiting({ id_api: 'a2' })).toEqual([]);
+    component._selectedFase = 'produzione';
+    expect(component.apiRateLimiting({ id_api: 'a1' })).toEqual([]);
+  });
+});

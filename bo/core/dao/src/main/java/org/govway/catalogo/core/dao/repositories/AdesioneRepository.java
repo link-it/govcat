@@ -19,10 +19,13 @@
  */
 package org.govway.catalogo.core.dao.repositories;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -59,5 +62,39 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
     // sulla collezione lazy caricava tutte le adesioni del servizio (collo di bottiglia per i servizi popolari).
     @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AdesioneEntity a WHERE a.servizio.id = ?1")
     public boolean existsByServizioId(Long idServizio);
+
+    // Esistenza di adesioni non archiviate del servizio con il flag skip_collaudo indicato (Issue 478):
+    // con skip=false vincola l'attivazione dello skip collaudo sul servizio.
+    @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.skipCollaudo = ?2 AND a.stato <> ?3")
+    public boolean existsByServizioIdAndSkipCollaudoNonArchiviate(Long idServizio, boolean skipCollaudo, String statoArchiviato);
+
+    // Esistenza di adesioni non archiviate con skip_collaudo ai servizi del dominio (Issue 478):
+    // lo skip collaudo dell'adesione e` consentito dal dominio del servizio, che non puo` quindi disattivarlo.
+    @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AdesioneEntity a WHERE a.servizio.dominio.id = ?1 AND a.skipCollaudo = true AND a.stato <> ?2")
+    public boolean existsSkipCollaudoByDominioIdNonArchiviate(Long idDominio, String statoArchiviato);
+
+    // Adesioni non archiviate del servizio, con soggetto e organizzazione aderente (riepilogo delle
+    // quote di rate limiting assegnate ai fruitori). Il pattern (gia` in maiuscolo, "%" per nessun
+    // filtro) si confronta con nome del soggetto, nome dell'organizzazione e id logico.
+    String SELECT_FRUITORI = "SELECT a FROM AdesioneEntity a JOIN FETCH a.soggetto s LEFT JOIN FETCH s.organizzazione o ";
+    String COUNT_FRUITORI = "SELECT COUNT(a) FROM AdesioneEntity a JOIN a.soggetto s LEFT JOIN s.organizzazione o ";
+    String WHERE_FRUITORI = "WHERE a.servizio.id = ?1 AND a.stato <> ?2 "
+            + "AND (UPPER(s.nome) LIKE ?3 OR UPPER(o.nome) LIKE ?3 OR UPPER(a.idLogico) LIKE ?3) ";
+
+    @Query(value = SELECT_FRUITORI + WHERE_FRUITORI, countQuery = COUNT_FRUITORI + WHERE_FRUITORI)
+    Page<AdesioneEntity> findByServizioNonArchiviate(Long idServizio, String statoArchiviato, String pattern, Pageable pageable);
+
+    @Query(value = SELECT_FRUITORI + WHERE_FRUITORI + "AND a.stato IN ?4",
+            countQuery = COUNT_FRUITORI + WHERE_FRUITORI + "AND a.stato IN ?4")
+    Page<AdesioneEntity> findByServizioNonArchiviateInStati(Long idServizio, String statoArchiviato, String pattern, Collection<String> stati, Pageable pageable);
+
+    @Query(value = SELECT_FRUITORI + WHERE_FRUITORI + "AND a.stato NOT IN ?4",
+            countQuery = COUNT_FRUITORI + WHERE_FRUITORI + "AND a.stato NOT IN ?4")
+    Page<AdesioneEntity> findByServizioNonArchiviateNotInStati(Long idServizio, String statoArchiviato, String pattern, Collection<String> stati, Pageable pageable);
+
+    // Adesioni non archiviate dell'organizzazione (soggetto aderente) di cui l'utente e` referente
+    @Query(value = "SELECT a FROM AdesioneEntity a WHERE a.stato <> ?3 AND a.soggetto.organizzazione = ?2"
+            + " AND EXISTS (SELECT r FROM ReferenteAdesioneEntity r WHERE r.adesione = a AND r.referente = ?1)")
+    public Page<AdesioneEntity> findConReferenteInOrganizzazione(UtenteEntity referente, OrganizzazioneEntity organizzazione, String statoArchiviato, Pageable pageable);
 
 }

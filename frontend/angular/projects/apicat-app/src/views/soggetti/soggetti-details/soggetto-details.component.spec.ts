@@ -361,10 +361,34 @@ describe('SoggettoDetailsComponent', () => {
       expect(component._formGroup.controls['referente'].value).toBe(true);
     });
 
-    it('should disable skip_collaudo when soggetto.vincola_skip_collaudo is true', () => {
+    it('should disable skip_collaudo when soggetto.vincola_skip_collaudo is true and skip_collaudo is active', () => {
       component.soggetto = {
         aderente: false,
         referente: false,
+        skip_collaudo: true,
+        vincola_skip_collaudo: true,
+        organizzazione: { id_organizzazione: 'org1', nome: 'Org1' }
+      };
+      const data = {
+        nome: 'Test',
+        descrizione: '',
+        organizzazione: { id_organizzazione: 'org1', nome: 'Org1' },
+        aderente: false,
+        referente: false,
+        vincola_aderente: false,
+        vincola_referente: false,
+        skip_collaudo: true,
+        vincola_skip_collaudo: true
+      };
+      component._initForm(data);
+      expect(component._formGroup.controls['skip_collaudo'].disabled).toBe(true);
+    });
+
+    it('should enable skip_collaudo when soggetto.vincola_skip_collaudo is true but skip_collaudo is off', () => {
+      component.soggetto = {
+        aderente: false,
+        referente: false,
+        skip_collaudo: false,
         vincola_skip_collaudo: true,
         organizzazione: { id_organizzazione: 'org1', nome: 'Org1' }
       };
@@ -377,10 +401,10 @@ describe('SoggettoDetailsComponent', () => {
         vincola_aderente: false,
         vincola_referente: false,
         skip_collaudo: false,
-        vincola_skip_collaudo: false
+        vincola_skip_collaudo: true
       };
       component._initForm(data);
-      expect(component._formGroup.controls['skip_collaudo'].disabled).toBe(true);
+      expect(component._formGroup.controls['skip_collaudo'].enabled).toBe(true);
     });
 
     it('should enable skip_collaudo when soggetto.vincola_skip_collaudo is false', () => {

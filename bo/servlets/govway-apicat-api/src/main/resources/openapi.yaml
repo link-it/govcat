@@ -923,6 +923,8 @@ paths:
       - "Organizzazioni"
       description: "Aggiorna il ruolo di un utente nell'organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
       operationId: "updateRuoloUtenteOrganizzazione"
+      parameters:
+      - $ref: "#/components/parameters/force_referente_query_optional"
       requestBody:
         description: "Nuovo ruolo dell'utente nell'organizzazione"
         content:
@@ -944,6 +946,8 @@ paths:
           $ref: "#/components/responses/403Forbidden"
         "404":
           $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
@@ -955,6 +959,8 @@ paths:
       - "Organizzazioni"
       description: "Rimuove l'associazione di un utente dall'organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
       operationId: "removeUtenteOrganizzazione"
+      parameters:
+      - $ref: "#/components/parameters/force_referente_query_optional"
       responses:
         "204":
           description: "Associazione rimossa con successo"
@@ -966,6 +972,8 @@ paths:
           $ref: "#/components/responses/403Forbidden"
         "404":
           $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
@@ -2790,6 +2798,112 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PagedModelItemComunicazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/storico-stati:
+    parameters:
+    - $ref: "#/components/parameters/id_servizio"
+    get:
+      tags:
+      - "Servizi"
+      description: "Storico dei cambi di stato di un servizio, dal piu' recente. L'ultimo elemento e' la creazione, senza stato precedente"
+      operationId: "listStoricoStatiServizio"
+      parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemStoricoStato"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/rate-limiting:
+    parameters:
+    - $ref: "#/components/parameters/id_servizio"
+    get:
+      tags:
+      - "Servizi"
+      description: "Riepilogo del rate limiting del servizio: per ogni API erogata dal soggetto del dominio e per ogni ambiente, le quote complessive dichiarate e la somma delle quote assegnate ai fruitori delle adesioni non archiviate, con la parte delle adesioni gia` autorizzate per l'ambiente. Riservato a chi gestisce il servizio."
+      operationId: "getRateLimitingServizio"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingServizio"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/rate-limiting/fruitori:
+    parameters:
+    - $ref: "#/components/parameters/id_servizio"
+    get:
+      tags:
+      - "Servizi"
+      description: "Adesioni non archiviate del servizio con le quote di rate limiting assegnate ai fruitori nell'ambiente indicato. Riservato a chi gestisce il servizio, che modifica le quote con l'API di rate limiting dell'adesione."
+      operationId: "listRateLimitingFruitoriServizio"
+      parameters:
+        - $ref: "#/components/parameters/ambiente_query"
+        - name: "autorizzate"
+          in: "query"
+          description: "true: solo le adesioni autorizzate per l'ambiente; false: solo quelle non ancora autorizzate; assente: tutte le adesioni non archiviate"
+          required: false
+          schema:
+            type: "boolean"
+        - name: "q"
+          in: "query"
+          description: "Testo libero per filtrare i fruitori: adesioni il cui soggetto, organizzazione o id logico lo contiene, senza distinzione fra maiuscole e minuscole"
+          required: false
+          schema:
+            $ref: "#/components/schemas/GenericSearchString"
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemRateLimitingFruitore"
         "400":
           $ref: "#/components/responses/400BadRequest"
         "401":
@@ -5368,6 +5482,38 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/storico-stati:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Storico dei cambi di stato di un'adesione, dal piu' recente. L'ultimo elemento e' la creazione, senza stato precedente"
+      operationId: "listStoricoStatiAdesione"
+      parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemStoricoStato"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /adesioni/{id_adesione}/collaudo/client/{id_allegato}/download:
     parameters:
     - $ref: "#/components/parameters/id_adesione"
@@ -5564,6 +5710,186 @@ paths:
           $ref: "#/components/responses/404NotFound"
         "409":
           $ref: "#/components/responses/409Conflict"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/collaudo/rate-limiting:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Quote di rate limiting assegnate al fruitore in collaudo"
+      operationId: "getRateLimitingCollaudoAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingAdesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    put:
+      tags:
+      - "Adesioni"
+      description: "Sostituisce integralmente le quote di rate limiting assegnate al fruitore in collaudo. Ogni quota si riferisce a un'API del servizio erogata dal soggetto del dominio e a uno dei periodi per cui il servizio dichiara un rate limiting in collaudo. Modificabile dall'aderente secondo il workflow dei dati di collaudo e da chi gestisce il servizio in ogni stato tranne archiviato."
+      operationId: "updateRateLimitingCollaudoAdesione"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateLimitingAdesione'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingAdesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/produzione/rate-limiting:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Quote di rate limiting assegnate al fruitore in produzione"
+      operationId: "getRateLimitingProduzioneAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingAdesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    put:
+      tags:
+      - "Adesioni"
+      description: "Sostituisce integralmente le quote di rate limiting assegnate al fruitore in produzione. Ogni quota si riferisce a un'API del servizio erogata dal soggetto del dominio e a uno dei periodi per cui il servizio dichiara un rate limiting in produzione. Modificabile dall'aderente secondo il workflow dei dati di produzione e da chi gestisce il servizio in ogni stato tranne archiviato."
+      operationId: "updateRateLimitingProduzioneAdesione"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateLimitingAdesione'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingAdesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/collaudo/rate-limiting/verifica:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Verifica se le quote di rate limiting assegnate al fruitore in collaudo rientrano nella quota totale residua del servizio, al netto delle quote delle altre adesioni gia` autorizzate per l'ambiente. Solo informativa: non blocca l'autorizzazione dell'adesione. Riservata a chi gestisce il servizio."
+      operationId: "verificaRateLimitingCollaudoAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingVerifica"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/produzione/rate-limiting/verifica:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Verifica se le quote di rate limiting assegnate al fruitore in produzione rientrano nella quota totale residua del servizio, al netto delle quote delle altre adesioni gia` autorizzate per l'ambiente. Solo informativa: non blocca l'autorizzazione dell'adesione. Riservata a chi gestisce il servizio."
+      operationId: "verificaRateLimitingProduzioneAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingVerifica"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
@@ -5985,6 +6311,351 @@ components:
       enum:
         - "collaudo"
         - "produzione"
+    RateLimitingApi:
+      description: "Quote di rate limiting dichiarate dal servizio per un periodo: almeno una fra la quota totale e la quota fruitore, secondo quelle previste dalla regola dei profili dell'API. Se ci sono entrambe, la quota fruitore non supera la quota totale."
+      type: "object"
+      required:
+        - periodo
+      properties:
+        periodo:
+          $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+        quota:
+          description: "Quota totale: numero massimo di richieste nel periodo per la somma dei fruitori"
+          type: "integer"
+          format: "int32"
+          minimum: 1
+        quota_fruitore:
+          description: "Quota fruitore: numero massimo di richieste nel periodo per ciascun fruitore. La quota assegnata a un'adesione non puo` superarla."
+          type: "integer"
+          format: "int32"
+          minimum: 1
+    RateLimitingAdesioneApi:
+      description: "Quota di rate limiting assegnata al fruitore per un'API e un periodo"
+      type: "object"
+      required:
+        - id_api
+        - quota
+        - periodo
+      properties:
+        id_api:
+          $ref: "#/components/schemas/IdApi"
+        quota:
+          description: "Numero massimo di richieste nel periodo"
+          type: "integer"
+          format: "int32"
+          minimum: 1
+        periodo:
+          $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+    RateLimitingAdesione:
+      description: "Quote di rate limiting assegnate al fruitore in un ambiente"
+      type: "object"
+      required:
+        - rate_limiting
+      properties:
+        rate_limiting:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingAdesioneApi"
+    RateLimitingRiepilogo:
+      description: "Quote dichiarate dal servizio per un periodo, confrontate con la somma delle quote assegnate ai fruitori delle adesioni non archiviate"
+      type: "object"
+      required:
+        - periodo
+        - quota_assegnata
+        - numero_fruitori
+        - quota_autorizzata
+        - numero_fruitori_autorizzati
+        - superata
+      properties:
+        periodo:
+          $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+        quota:
+          description: "Quota totale dichiarata dal servizio, assente se non prevista"
+          type: "integer"
+          format: "int32"
+        quota_fruitore:
+          description: "Quota fruitore dichiarata dal servizio, assente se non prevista"
+          type: "integer"
+          format: "int32"
+        quota_assegnata:
+          description: "Somma delle quote assegnate ai fruitori"
+          type: "integer"
+          format: "int64"
+        quota_residua:
+          description: "Quota totale meno quota assegnata, assente se la quota totale non e` prevista: negativa quando le quote assegnate superano la quota totale"
+          type: "integer"
+          format: "int64"
+        numero_fruitori:
+          description: "Numero di adesioni con una quota assegnata per il periodo"
+          type: "integer"
+          format: "int32"
+        quota_autorizzata:
+          description: "Somma delle quote assegnate ai fruitori delle adesioni autorizzate per l'ambiente (vedi stati_autorizzati nella configurazione delle adesioni); compresa in quota_assegnata"
+          type: "integer"
+          format: "int64"
+        numero_fruitori_autorizzati:
+          description: "Numero di adesioni autorizzate per l'ambiente con una quota assegnata per il periodo; compreso in numero_fruitori"
+          type: "integer"
+          format: "int32"
+        quota_residua_autorizzata:
+          description: "Quota totale meno quota autorizzata, assente se la quota totale non e` prevista: negativa quando le quote autorizzate superano la quota totale"
+          type: "integer"
+          format: "int64"
+        superata:
+          description: "Le quote assegnate ai fruitori superano la quota totale (sempre false se la quota totale non e` prevista). E` solo un avviso: nessun salvataggio viene bloccato."
+          type: "boolean"
+    RateLimitingServizioApi:
+      type: "object"
+      required:
+        - id_api
+        - nome
+        - versione
+        - collaudo
+        - produzione
+      properties:
+        id_api:
+          $ref: "#/components/schemas/IdApi"
+        nome:
+          $ref: "#/components/schemas/String255"
+        versione:
+          type: "integer"
+          format: "int32"
+        collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingRiepilogo"
+        produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingRiepilogo"
+    RateLimitingServizio:
+      description: "Riepilogo del rate limiting delle API del servizio erogate dal soggetto del dominio"
+      type: "object"
+      required:
+        - api
+      properties:
+        api:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingServizioApi"
+        finalita:
+          $ref: "#/components/schemas/RateLimitingServizioFinalita"
+    RateLimitingServizioFinalita:
+      description: "Finalita` PDND usate dalle adesioni autorizzate del servizio, per ambiente, ordinate per purpose_id. Un ambiente e` assente se la configurazione non indica la proprieta` della finalita` per quell'ambiente (vedi adesione.rate_limiting.finalita); l'oggetto e` assente se non la indica per nessuno."
+      type: "object"
+      properties:
+        collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingFinalita"
+        produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingFinalita"
+    RateLimitingFinalita:
+      description: "Finalita` PDND usata da una o piu` adesioni autorizzate per l'ambiente (vedi stati_autorizzati nella configurazione delle adesioni), con la quota giornaliera letta dalla PDND confrontata con la somma delle quote giornaliere delle adesioni che la usano. E` solo un avviso: nessun salvataggio viene bloccato."
+      type: "object"
+      required:
+        - purpose_id
+        - quota_assegnata
+        - numero_adesioni
+        - superata
+      properties:
+        purpose_id:
+          description: "Identificativo della finalita` indicato nelle adesioni"
+          $ref: "#/components/schemas/String255"
+        errore:
+          $ref: "#/components/schemas/RateLimitingFinalitaErroreEnum"
+        titolo:
+          description: "Titolo della finalita` sulla PDND, assente se la finalita` non e` stata letta"
+          type: "string"
+        quota:
+          description: "Numero massimo di richieste giornaliere della finalita` (versione corrente sulla PDND), assente se la finalita` non e` stata letta"
+          type: "integer"
+          format: "int32"
+        stato:
+          description: "Stato della finalita` sulla PDND (ACTIVE, SUSPENDED, WAITING_FOR_APPROVAL, ARCHIVED, DRAFT), assente se la finalita` non e` stata letta. Uno stato diverso da ACTIVE e` un'anomalia da evidenziare, non incide su superata."
+          type: "string"
+        quota_in_attesa:
+          description: "Numero di richieste giornaliere della versione della finalita` in attesa di approvazione dell'erogatore, assente se non c'e` una richiesta di aumento in attesa"
+          type: "integer"
+          format: "int32"
+        quota_assegnata:
+          description: "Somma delle quote giornaliere delle adesioni autorizzate che usano la finalita`"
+          type: "integer"
+          format: "int64"
+        numero_adesioni:
+          description: "Numero di adesioni autorizzate che usano la finalita`: piu` di una se la finalita` e` condivisa"
+          type: "integer"
+          format: "int32"
+        superata:
+          description: "La quota assegnata supera la quota della finalita` (sempre false se la finalita` non e` stata letta)"
+          type: "boolean"
+    RateLimitingFinalitaErroreEnum:
+      description: "Motivo per cui la finalita` non e` stata letta dalla PDND: identificativo non valido, finalita` non trovata, PDND non raggiungibile o risposta non utilizzabile"
+      type: "string"
+      enum:
+        - non_valida
+        - non_trovata
+        - non_disponibile
+      x-enum-varnames:
+        - NON_VALIDA
+        - NON_TROVATA
+        - NON_DISPONIBILE
+    RateLimitingAdesioneFinalita:
+      description: "Finalita` PDND indicata dall'adesione autorizzata per l'ambiente, con la quota giornaliera dell'adesione confrontata con la quota della finalita`"
+      type: "object"
+      required:
+        - finalita
+        - esito
+      properties:
+        id_api:
+          description: "API a cui si riferisce la finalita`, se la proprieta` e` specifica per API; assente se vale per l'adesione"
+          $ref: "#/components/schemas/IdApi"
+        quota_richiesta:
+          description: "Quota giornaliera dell'adesione: dell'API indicata, o la somma delle API dell'adesione se la finalita` vale per l'adesione; assente se l'adesione non ha quote giornaliere"
+          type: "integer"
+          format: "int64"
+        esito:
+          $ref: "#/components/schemas/RateLimitingFinalitaEsitoEnum"
+        finalita:
+          description: "La finalita` con la situazione complessiva delle adesioni che la usano, compresa questa"
+          $ref: "#/components/schemas/RateLimitingFinalita"
+    RateLimitingFinalitaEsitoEnum:
+      description: "Esito del confronto fra la quota giornaliera dell'adesione e quella della finalita`: conforme se uguale; inferiore se minore, da evidenziare; superiore se maggiore, errore; quota_assente se l'adesione non ha quote giornaliere, da evidenziare; non_verificabile se la finalita` non e` stata letta (vedi errore della finalita`)"
+      type: "string"
+      enum:
+        - conforme
+        - inferiore
+        - superiore
+        - quota_assente
+        - non_verificabile
+    ItemRateLimitingFruitore:
+      description: "Adesione al servizio con le quote di rate limiting assegnate al fruitore in un ambiente"
+      type: "object"
+      required:
+        - id_adesione
+        - soggetto
+        - stato
+        - autorizzata
+        - rate_limiting
+      properties:
+        id_adesione:
+          $ref: "#/components/schemas/IdAdesione"
+        id_logico:
+          $ref: "#/components/schemas/String255"
+        soggetto:
+          $ref: "#/components/schemas/ItemSoggetto"
+        stato:
+          $ref: "#/components/schemas/String255"
+        autorizzata:
+          description: "L'adesione e` in uno degli stati in cui le quote dell'ambiente sono autorizzate (vedi stati_autorizzati nella configurazione delle adesioni)"
+          type: "boolean"
+        rate_limiting:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingAdesioneApi"
+        finalita:
+          description: "Finalita` PDND indicate dall'adesione per l'ambiente, solo se autorizzata; assente se la configurazione non indica la proprieta` della finalita` per l'ambiente (vedi adesione.rate_limiting.finalita)"
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingAdesioneFinalita"
+    RateLimitingVerifica:
+      description: "Esito della verifica delle quote di rate limiting di un'adesione rispetto alla quota totale residua del servizio in un ambiente"
+      type: "object"
+      required:
+        - rientra
+        - api
+      properties:
+        rientra:
+          description: "Nessuna quota dell'adesione sfora la quota totale residua"
+          type: "boolean"
+        api:
+          description: "API del servizio erogate dal soggetto del dominio con rate limiting dichiarato nell'ambiente, ordinate per nome e versione"
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingVerificaApi"
+        finalita:
+          description: "Finalita` PDND indicate dall'adesione per l'ambiente, solo se autorizzata; assente se la configurazione non indica la proprieta` della finalita` per l'ambiente (vedi adesione.rate_limiting.finalita). Non incide su rientra."
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingAdesioneFinalita"
+    RateLimitingVerificaApi:
+      type: "object"
+      required:
+        - id_api
+        - nome
+        - versione
+        - rate_limiting
+      properties:
+        id_api:
+          $ref: "#/components/schemas/IdApi"
+        nome:
+          $ref: "#/components/schemas/String255"
+        versione:
+          type: "integer"
+          format: "int32"
+        rate_limiting:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingVerificaPeriodo"
+    RateLimitingVerificaPeriodo:
+      description: "Verifica della quota dell'adesione per un periodo dichiarato dal servizio. Le quote delle altre adesioni non comprendono quella verificata."
+      type: "object"
+      required:
+        - periodo
+        - quota_autorizzata
+        - numero_fruitori_autorizzati
+        - quota_in_attesa
+        - numero_fruitori_in_attesa
+        - sfora
+      properties:
+        periodo:
+          $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+        quota:
+          description: "Quota totale dichiarata dal servizio, assente se non prevista"
+          type: "integer"
+          format: "int32"
+        quota_fruitore:
+          description: "Quota fruitore dichiarata dal servizio, assente se non prevista"
+          type: "integer"
+          format: "int32"
+        quota_richiesta:
+          description: "Quota assegnata al fruitore dell'adesione, assente se non indicata"
+          type: "integer"
+          format: "int32"
+        quota_autorizzata:
+          description: "Somma delle quote delle altre adesioni autorizzate per l'ambiente"
+          type: "integer"
+          format: "int64"
+        numero_fruitori_autorizzati:
+          description: "Numero delle altre adesioni autorizzate per l'ambiente con una quota per il periodo"
+          type: "integer"
+          format: "int32"
+        quota_in_attesa:
+          description: "Somma delle quote delle altre adesioni non archiviate non ancora autorizzate per l'ambiente; solo informativa, non incide sull'esito"
+          type: "integer"
+          format: "int64"
+        numero_fruitori_in_attesa:
+          description: "Numero delle altre adesioni non archiviate non ancora autorizzate per l'ambiente con una quota per il periodo"
+          type: "integer"
+          format: "int32"
+        quota_residua:
+          description: "Quota totale meno quota autorizzata, assente se la quota totale non e` prevista: negativa quando le altre adesioni autorizzate superano gia` la quota totale"
+          type: "integer"
+          format: "int64"
+        sfora:
+          description: "La quota richiesta supera la quota residua (sempre false senza quota totale o senza quota richiesta)"
+          type: "boolean"
+    PagedModelItemRateLimitingFruitore:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemRateLimitingFruitore'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
     APICreate:
       type: "object"
       required:
@@ -6037,6 +6708,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/String255"
+        rate_limiting:
+          description: "Quote di rate limiting dichiarate dal servizio per l'ambiente, al piu` una voce per periodo. Previste solo per le API erogate dal soggetto del dominio, secondo la regola ricavata dai profili dell'API (rate_limiting dei profili in configurazione). Esposte solo nel dettaglio dell'API."
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingApi"
     APIDatiAmbienteCreate:
       type: "object"
       required:
@@ -6053,20 +6729,35 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/String255"
+        rate_limiting:
+          description: "Quote di rate limiting dichiarate dal servizio per l'ambiente, al piu` una voce per periodo. Previste solo per le API erogate dal soggetto del dominio, secondo la regola ricavata dai profili dell'API (rate_limiting dei profili in configurazione)."
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingApi"
     APIDatiAmbienteUpdate:
       type: "object"
+      description: "Dati dell'ambiente da aggiornare: i campi assenti restano invariati."
       properties:
         protocollo:
-          $ref: "#/components/schemas/ProtocolloEnum"
+          description: "Protocollo dell'API nell'ambiente. Assente: resta quello attuale (ricalcolato dalla specifica se questa cambia); obbligatorio se l'ambiente non e` ancora configurato."
+          allOf:
+            - $ref: "#/components/schemas/ProtocolloEnum"
         specifica:
           $ref: "#/components/schemas/DocumentoUpdate"
         dati_erogazione:
-          $ref: "#/components/schemas/APIDatiErogazione"
+          description: "Dati di erogazione dell'ambiente. Assente: invariati; presente: sostituiscono quelli attuali (i campi non valorizzati vengono svuotati)."
+          allOf:
+            - $ref: "#/components/schemas/APIDatiErogazione"
         url_invocazione:
           description: "Identificativi delle URL di invocazione associate alla specifica, fra quelle censite in configurazione per l'ambiente, piu` 'default' per quella predefinita. Lista assente: selezione invariata; lista vuota: si torna alla sola URL predefinita."
           type: array
           items:
             $ref: "#/components/schemas/String255"
+        rate_limiting:
+          description: "Quote di rate limiting dichiarate dal servizio per l'ambiente, al piu` una voce per periodo. Lista assente: quote invariate; lista vuota: nessun rate limiting. Non si puo` rimuovere un periodo, ne' portare la quota fruitore sotto quelle gia` assegnate, finche' ci sono adesioni non archiviate con una quota assegnata per quel periodo. Previste solo per le API erogate dal soggetto del dominio, secondo la regola ricavata dai profili dell'API (rate_limiting dei profili in configurazione)."
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingApi"
     APIDatiErogazione:
       type: "object"
       required:
@@ -6289,7 +6980,9 @@ components:
         dati_specifica:
           $ref: "#/components/schemas/DatiSpecificaApiUpdate"
         dati_custom:
-          $ref: "#/components/schemas/DatiCustomUpdate"
+          description: "Proprieta` custom dell'API, inclusi i gruppi legati a un ambiente: vanno indicate in dati_custom.proprieta_custom. I campi non previsti dallo schema, anche al primo livello o nei blocchi di configurazione, vengono ignorati."
+          allOf:
+            - $ref: "#/components/schemas/DatiCustomUpdate"
         configurazione_collaudo:
           $ref: "#/components/schemas/APIDatiAmbienteUpdate"
         configurazione_produzione:
@@ -6584,6 +7277,14 @@ components:
           type: "boolean"
         transazioni_abilitate:
           type: "boolean"
+        audit_abilitato:
+          description: "Abilita il monitoraggio di audit. La voce è disponibile solo per i servizi con almeno un'API che ha valorizzata una delle proprietà indicate in proprieta_audit."
+          type: "boolean"
+        proprieta_audit:
+          description: "Proprietà custom delle API che indicano il pattern di audit: un'API ha l'audit in un ambiente se almeno una delle proprietà configurate per quell'ambiente è valorizzata."
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneProprietaAudit'
         ruoli_abilitati:
           type: "array"
           items:
@@ -6649,6 +7350,8 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
+        rate_limiting:
+          $ref: "#/components/schemas/ConfigurazioneAdesioneRateLimiting"
         step_wizard:
           type: array
           items:
@@ -6743,6 +7446,79 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneCustomProprieta"
+        rate_limiting:
+          $ref: "#/components/schemas/ConfigurazioneProfiloRateLimiting"
+    ConfigurazioneProfiloRateLimiting:
+      description: "Regola del rate limiting delle API con questo profilo. Se assente nel file di configurazione, all'avvio viene impostato il default: per i profili con pdnd_type quota totale e quota fruitore con il solo periodo giorno, per gli altri la sola quota totale con tutti i periodi. Un'API con piu` profili segue la regola piu` restrittiva: periodi in comune a tutti i profili, quote previste da almeno un profilo, required se lo e` in almeno un profilo, ruoli_abilitati comuni a tutti i profili che li indicano."
+      type: "object"
+      required:
+        - periodi
+      properties:
+        periodi:
+          description: "Periodi ammessi: con un solo periodo il periodo e` fisso, con piu` periodi si possono dichiarare piu` intervalli, al piu` una voce per periodo"
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+        quota_totale:
+          description: "Quota totale, massimo per la somma dei fruitori. Se assente non e` prevista."
+          $ref: "#/components/schemas/ConfigurazioneRateLimitingQuota"
+        quota_fruitore:
+          description: "Quota fruitore, massimo per ciascun fruitore. Se assente non e` prevista."
+          $ref: "#/components/schemas/ConfigurazioneRateLimitingQuota"
+    ConfigurazioneRateLimitingQuota:
+      type: "object"
+      properties:
+        required:
+          description: "La quota va indicata per almeno un periodo dell'ambiente quando il servizio passa a uno stato che richiede i dati di collaudo o di produzione"
+          type: boolean
+          default: false
+        ruoli_abilitati:
+          description: "Ruoli sul servizio abilitati a modificare la quota, con la stessa semantica dei gruppi di proprieta` custom: assente, tutti; lista vuota, nessuno. La force del gestore salta il controllo."
+          type: array
+          items:
+            $ref: "#/components/schemas/Ruolo"
+    ConfigurazioneAdesioneRateLimiting:
+      description: "Rate limiting delle adesioni"
+      type: "object"
+      properties:
+        stati_autorizzati:
+          $ref: "#/components/schemas/ConfigurazioneRateLimitingStatiAutorizzati"
+        finalita:
+          $ref: "#/components/schemas/ConfigurazioneRateLimitingFinalita"
+    ConfigurazioneRateLimitingFinalita:
+      description: "Proprieta` custom delle adesioni che contiene, per ambiente, l'identificativo (purposeId) della finalita` PDND usata dall'aderente. Se indicata, il riepilogo del rate limiting confronta la quota giornaliera delle adesioni autorizzate con la quota della finalita` letta dalla PDND dell'ambiente. Il gruppo deve essere fra le proprieta_custom delle adesioni, con una classe dato dello stesso ambiente; se e` specifico per API la quota confrontata e` quella dell'API, altrimenti la somma delle quote giornaliere delle API dell'adesione. Ambiente assente: confronto non eseguito per l'ambiente. Per renderla obbligatoria prima della configurazione si usa una classe dato collaudo_pdnd o produzione_pdnd fra i dati_obbligatori dello stato in configurazione."
+      type: "object"
+      properties:
+        collaudo:
+          $ref: "#/components/schemas/ConfigurazioneRiferimentoProprietaCustom"
+        produzione:
+          $ref: "#/components/schemas/ConfigurazioneRiferimentoProprietaCustom"
+    ConfigurazioneRateLimitingStatiAutorizzati:
+      description: "Stati del workflow delle adesioni in cui le quote assegnate al fruitore in un ambiente sono autorizzate, distinte nel riepilogo del rate limiting del servizio. Una lista assente nel file di configurazione e` impostata all'avvio dai nomi degli stati del workflow: per il collaudo gli stati di collaudo da autorizzato in poi e gli stati di produzione con collaudo; per la produzione gli stati di produzione da autorizzato in poi, anche senza collaudo. Lista vuota: nessuno stato."
+      type: "object"
+      properties:
+        collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneNomeStato"
+        produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneNomeStato"
+    ConfigurazioneProprietaAudit:
+      type: "object"
+      required:
+        - nome_gruppo
+        - nome_proprieta
+        - ambiente
+      properties:
+        nome_gruppo:
+          $ref: "#/components/schemas/String255"
+        nome_proprieta:
+          $ref: "#/components/schemas/String255"
+        ambiente:
+          $ref: "#/components/schemas/AmbienteEnum"
     ConfigurazioneRiferimentoProprietaCustom:
       type: "object"
       required:
@@ -7348,6 +8124,21 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
+        note_vetrina:
+          $ref: "#/components/schemas/ConfigurazioneNoteVetrina"
+    ConfigurazioneNoteVetrina:
+      description: "Visualizzazione del campo note del servizio nella pagina di vetrina. Se assente le note non sono mostrate in vetrina. Le note sono mostrate se abilitato e' true, l'utente ha sul servizio almeno uno dei ruoli_abilitati (i ruoli tecnici valgono come i corrispondenti non tecnici; il gestore solo se e' nella lista) e le note sono valorizzate. Con ruoli_abilitati vuoto le note non sono mostrate a nessuno. Regola la sola presentazione: il dettaglio del servizio restituisce le note come prima."
+      type: "object"
+      required:
+        - abilitato
+      properties:
+        abilitato:
+          type: "boolean"
+          default: false
+        ruoli_abilitati:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneRuolo'
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
@@ -8005,6 +8796,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ItemComunicazione'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    PagedModelItemStoricoStato:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemStoricoStato'
         page:
           $ref: '#/components/schemas/PageMetadata'
     PagedModelItemServizioGruppo:
@@ -9497,7 +10297,7 @@ components:
             $ref: "#/components/schemas/RuoloReferenteEnum"
     RuoloReferenteEnum:
       type: "string"
-      description: "Ruolo di referente ricoperto dall'utente"
+      description: "Ruolo di referente ricoperto dall'utente. I valori amministratore_organizzazione_erogatrice e amministratore_organizzazione_aderente sono ammessi solo come filtro ruolo_referente e distinguono il lato dell'organizzazione di sessione; in ruoli_referente l'amministratore e` riportato sempre come amministratore_organizzazione."
       enum:
         - referente_dominio
         - referente_tecnico_dominio
@@ -9508,6 +10308,8 @@ components:
         - richiedente_servizio
         - richiedente_adesione
         - amministratore_organizzazione
+        - amministratore_organizzazione_erogatrice
+        - amministratore_organizzazione_aderente
         - operatore_api
     RuoloUtenteEnum:
       type: "string"
@@ -10140,6 +10942,9 @@ components:
           $ref: "#/components/schemas/ItemUtente"
         tipo:
           $ref: "#/components/schemas/TipoReferenteEnum"
+        ruolo_non_valido:
+          description: "Presente e true quando l'utente non è più associato all'organizzazione della risorsa (organizzazione del soggetto referente del dominio per servizi e domini, del soggetto aderente per le adesioni) o non vi ha più almeno il ruolo di operatore API: il referente resta, ma non potrebbe essere aggiunto di nuovo e va sostituito. Assente quando il referente è valido o il vincolo non si applica (servizi in fruizione, domini di organizzazioni intermediate)."
+          type: boolean
     ReferenteCreate:
       type: "object"
       required:
@@ -10879,6 +11684,22 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/AllegatoMessaggio"
+    ItemStoricoStato:
+      type: object
+      required:
+        - data
+        - stato
+      properties:
+        data:
+          type: "string"
+          format: "date-time"
+          example: "2017-07-21T17:32:28Z"
+        utente:
+          $ref: "#/components/schemas/ItemUtente"
+        stato_precedente:
+          $ref: "#/components/schemas/String255"
+        stato:
+          $ref: "#/components/schemas/String255"
     VisibilitaAllegatoEnum:
       type: "string"
       example: "pubblico"
@@ -11518,6 +12339,13 @@ components:
       required: false
       schema:
         type: boolean
+    force_referente_query_optional:
+      name: "force"
+      in: "query"
+      description: "Conferma l'operazione anche se l'utente è referente di servizi, domini o adesioni dell'organizzazione e, senza il ruolo di operatore API o di amministratore, non sarebbe più un referente valido. Senza conferma l'operazione risponde 409 (ORG.409.UTENTE.REFERENTE) con il numero e l'elenco dei riferimenti."
+      required: false
+      schema:
+        type: boolean
     download_specifica_API_mode_optional:
       name: "mode"
       in: "query"
@@ -11840,7 +12668,7 @@ components:
     ruolo_referente_servizio_query_optional:
       name: "ruolo_referente"
       in: "query"
-      description: "Ruoli ricoperti dall'utente nei servizi da recuperare. Utilizzabile solo con miei_servizi=true. Non sono ammessi ruoli di adesione."
+      description: "Ruoli ricoperti dall'utente nei servizi da recuperare. Utilizzabile solo con miei_servizi=true. Non sono ammessi ruoli di adesione, compreso amministratore_organizzazione_aderente. amministratore_organizzazione e amministratore_organizzazione_erogatrice selezionano i servizi di cui l'organizzazione di sessione e` titolare."
       required: false
       schema:
         type: array
@@ -11849,7 +12677,7 @@ components:
     ruolo_referente_adesione_query_optional:
       name: "ruolo_referente"
       in: "query"
-      description: "Ruoli ricoperti dall'utente nelle adesioni da recuperare."
+      description: "Ruoli ricoperti dall'utente nelle adesioni da recuperare. Con l'organizzazione di sessione amministrata dall'utente, amministratore_organizzazione_erogatrice seleziona le adesioni ai servizi dell'organizzazione, amministratore_organizzazione_aderente le adesioni dell'organizzazione, amministratore_organizzazione entrambe."
       required: false
       schema:
         type: array
@@ -12058,6 +12886,13 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/IdOrganizzazione"
+    ambiente_query:
+      name: "ambiente"
+      in: "query"
+      description: "Ambiente"
+      required: true
+      schema:
+        $ref: "#/components/schemas/AmbienteEnum"
     ambiente_query_optional:
       name: "ambiente"
       in: "query"

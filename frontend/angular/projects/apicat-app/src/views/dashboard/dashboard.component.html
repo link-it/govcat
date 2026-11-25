@@ -43,7 +43,7 @@
       <div class="row g-3 mb-4">
         @if (roleConfig.servizi) {
           <div class="col-6 col-xl">
-            <div class="summary-card" [class.summary-card-active]="expandedSection === 'servizi'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'servizi'" (click)="onSummaryClick('servizi')">
+            <div class="summary-card" [class.summary-card-active]="expandedSection === 'servizi'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'servizi'" role="button" tabindex="0" [attr.aria-expanded]="expandedSection === 'servizi'" (click)="onSummaryClick('servizi')" (keydown.enter)="onSummaryClick('servizi')" (keydown.space)="$event.preventDefault(); onSummaryClick('servizi')">
               <div class="summary-card-body" [ngStyle]="getSummaryStyle('servizi')">
                 <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('servizi')"></i></div>
                 <div class="summary-card-content">
@@ -56,7 +56,7 @@
         }
         @if (roleConfig.adesioni) {
           <div class="col-6 col-xl">
-            <div class="summary-card" [class.summary-card-active]="expandedSection === 'adesioni'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'adesioni'" (click)="onSummaryClick('adesioni')">
+            <div class="summary-card" [class.summary-card-active]="expandedSection === 'adesioni'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'adesioni'" role="button" tabindex="0" [attr.aria-expanded]="expandedSection === 'adesioni'" (click)="onSummaryClick('adesioni')" (keydown.enter)="onSummaryClick('adesioni')" (keydown.space)="$event.preventDefault(); onSummaryClick('adesioni')">
               <div class="summary-card-body" [ngStyle]="getSummaryStyle('adesioni')">
                 <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('adesioni')"></i></div>
                 <div class="summary-card-content">
@@ -69,7 +69,7 @@
         }
         @if (roleConfig.client) {
           <div class="col-6 col-xl">
-            <div class="summary-card" [class.summary-card-active]="expandedSection === 'client'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'client'" (click)="onSummaryClick('client')">
+            <div class="summary-card" [class.summary-card-active]="expandedSection === 'client'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'client'" role="button" tabindex="0" [attr.aria-expanded]="expandedSection === 'client'" (click)="onSummaryClick('client')" (keydown.enter)="onSummaryClick('client')" (keydown.space)="$event.preventDefault(); onSummaryClick('client')">
               <div class="summary-card-body" [ngStyle]="getSummaryStyle('client')">
                 <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('client')"></i></div>
                 <div class="summary-card-content">
@@ -82,7 +82,7 @@
         }
         @if (roleConfig.comunicazioni) {
           <div class="col-6 col-xl">
-            <div class="summary-card" [class.summary-card-active]="expandedSection === 'comunicazioni'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'comunicazioni'" (click)="onSummaryClick('comunicazioni')">
+            <div class="summary-card" [class.summary-card-active]="expandedSection === 'comunicazioni'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'comunicazioni'" role="button" tabindex="0" [attr.aria-expanded]="expandedSection === 'comunicazioni'" (click)="onSummaryClick('comunicazioni')" (keydown.enter)="onSummaryClick('comunicazioni')" (keydown.space)="$event.preventDefault(); onSummaryClick('comunicazioni')">
               <div class="summary-card-body" [ngStyle]="getSummaryStyle('comunicazioni')">
                 <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('comunicazioni')"></i></div>
                 <div class="summary-card-content">
@@ -100,7 +100,7 @@
         }
         @if (roleConfig.utenti) {
           <div class="col-6 col-xl">
-            <div class="summary-card" [class.summary-card-active]="expandedSection === 'utenti'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'utenti'" (click)="onSummaryClick('utenti')">
+            <div class="summary-card" [class.summary-card-active]="expandedSection === 'utenti'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'utenti'" role="button" tabindex="0" [attr.aria-expanded]="expandedSection === 'utenti'" (click)="onSummaryClick('utenti')" (keydown.enter)="onSummaryClick('utenti')" (keydown.space)="$event.preventDefault(); onSummaryClick('utenti')">
               <div class="summary-card-body" [ngStyle]="getSummaryStyle('utenti')">
                 <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('utenti')"></i></div>
                 <div class="summary-card-content">

@@ -20,23 +20,36 @@
 package org.govway.catalogo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.govway.catalogo.exception.ClientApiException;
+import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.ConfigurazionePeriodiDashboard;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Problem;
+import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiException;
+import org.hibernate.service.spi.ServiceException;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -46,9 +59,12 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.method.annotation.ExceptionHandlerMethodResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
+import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
@@ -286,5 +302,94 @@ class ControllerAdvisorTest {
 
 		assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 		assertEquals(403, ((Problem) response.getBody()).getStatus());
+	}
+
+	private Problem handleInternalError(ResponseEntity<Object> response) {
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		Problem problem = (Problem) response.getBody();
+		assertEquals(500, problem.getStatus());
+		// L'identificativo scritto nel log arriva al client sia in instance sia nei params della traduzione
+		String idErrore = problem.getErrori().get(0).getParams().get("idErrore");
+		assertNotNull(idErrore);
+		assertEquals(URI.create("urn:uuid:" + idErrore), problem.getInstance());
+		return problem;
+	}
+
+	@Test
+	void testEccezioneNonGestitaSenzaMessaggioInterno() throws Exception {
+		// Casi della segnalazione: NPE e istruzione SQL fallita
+		for(Exception ex : List.of(
+				new NullPointerException("Cannot invoke \"org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.ordinal()\" because \"ruolo\" is null"),
+				new IllegalStateException("could not execute statement [ERROR: null value in column \"esterna\" of relation \"organizzazioni\"] [insert into organizzazioni (...)]"))) {
+
+			Problem problem = handleInternalError(advisor.handleGenericException(ex, null));
+
+			assertEquals("SYS.500", problem.getDetail());
+			assertEquals(Set.of("idErrore"), problem.getErrori().get(0).getParams().keySet());
+			String body = om.writeValueAsString(problem);
+			assertFalse(body.contains("ruolo") || body.contains("organizzazioni") || body.contains("Cannot invoke"), body);
+		}
+	}
+
+	@Test
+	void testIdentificativoDistintoPerOgniErrore() {
+		Problem primo = handleInternalError(advisor.handleGenericException(new NullPointerException(), null));
+		Problem secondo = handleInternalError(advisor.handleGenericException(new NullPointerException(), null));
+
+		assertNotEquals(primo.getInstance(), secondo.getInstance());
+	}
+
+	@Test
+	void testEccezioneApplicativaNonMappataMantieneCodice() {
+		Problem problem = handleInternalError(advisor.handleGenericException(new InternalException(ErrorCode.SYS_500_DB), null));
+
+		assertEquals("SYS.500.DB", problem.getDetail());
+	}
+
+	@Test
+	void testInternalExceptionMantieneCodiceEParametri() {
+		Problem problem = handleInternalError(advisor.handleAllInternalExceptions(
+				new InternalException(ErrorCode.INT_500_PDND, Map.of("dettagli", "eservice non raggiungibile")), null));
+
+		assertEquals("INT.500.PDND", problem.getDetail());
+		assertEquals("eservice non raggiungibile", problem.getErrori().get(0).getParams().get("dettagli"));
+		assertEquals(2, problem.getErrori().get(0).getParams().size());
+	}
+
+	@Test
+	void testServiceExceptionGestitaDallHandlerGenerico() {
+		// Prima dichiarata sull'handler di InternalException, il cui parametro non la accetta
+		assertEquals("handleGenericException", resolveHandler(new ServiceException("Unable to create requested service")));
+		assertEquals("handleAllInternalExceptions", resolveHandler(new InternalException(ErrorCode.SYS_500)));
+	}
+
+	@Test
+	void testValoreNonConvertibileSenzaMessaggioInterno() throws Exception {
+		List<Exception> eccezioni = List.of(
+				new ConversionFailedException(TypeDescriptor.valueOf(String.class), TypeDescriptor.valueOf(RuoloAPIEnum.class), "xxx", new IllegalArgumentException("Unexpected value 'xxx'")),
+				catturaEccezioneJackson("{\"ruolo\":\"xxx\"}", ValueInstantiationException.class),
+				InvalidDefinitionException.from((com.fasterxml.jackson.core.JsonParser) null, "Cannot construct instance of `org.govway.catalogo.servlets.model.APICreate`", om.constructType(APICreate.class)));
+
+		for(Exception ex : eccezioni) {
+			assertEquals("handleFormatoNonValido", resolveHandler(ex));
+			ResponseEntity<Object> response = advisor.handleFormatoNonValido(ex);
+
+			assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+			Problem problem = (Problem) response.getBody();
+			assertEquals("VAL.400.FORMAT", problem.getDetail());
+			String body = om.writeValueAsString(problem);
+			assertFalse(body.contains("org.govway") || body.contains("xxx"), body);
+		}
+	}
+
+	private Exception catturaEccezioneJackson(String json, Class<? extends Exception> tipo) {
+		// Deserializzazione diretta di un enum generato da openapi-generator (fromValue lancia IllegalArgumentException)
+		Exception ex = assertThrows(Exception.class, () -> om.readValue(json, APICreate.class));
+		assertInstanceOf(tipo, ex);
+		return ex;
+	}
+
+	private static String resolveHandler(Exception ex) {
+		return new ExceptionHandlerMethodResolver(ControllerAdvisor.class).resolveMethod(ex).getName();
 	}
 }

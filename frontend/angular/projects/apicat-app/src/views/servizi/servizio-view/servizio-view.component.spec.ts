@@ -75,9 +75,12 @@ describe('ServizioViewComponent', () => {
     canEdit: vi.fn().mockReturnValue(true),
     canJoin: vi.fn().mockReturnValue(true),
     canMonitoraggio: vi.fn().mockReturnValue(false),
+    canVedereNoteVetrina: vi.fn().mockReturnValue(false),
     canManagementComunicazioni: vi.fn().mockReturnValue(false),
     getUser: vi.fn().mockReturnValue({ organizzazione: { id_organizzazione: 'org1' } }),
     getCurrentOrganization: vi.fn().mockReturnValue({ id_organizzazione: 'org1' }),
+    getCurrentOrganizationRole: vi.fn().mockReturnValue(null),
+    canManageReferentiDominio: vi.fn().mockReturnValue(false),
     _getClassesNotModifiable: vi.fn().mockReturnValue([])
   } as any;
 
@@ -224,6 +227,76 @@ describe('ServizioViewComponent', () => {
   it('should check isAnonymousMapper', () => {
     mockAuthenticationService.isAnonymous.mockReturnValue(true);
     expect(component.isAnonymousMapper()).toBe(true);
+  });
+
+  describe('referenti del dominio', () => {
+    const dominio = { id_dominio: 'd1', soggetto_referente: { organizzazione: { id_organizzazione: 'org1' } } };
+
+    beforeEach(() => {
+      mockAuthenticationService.isAnonymous.mockReturnValue(false);
+    });
+
+    it('should show the access to the managers without loading the referents', () => {
+      component.data = { dominio } as any;
+      mockAuthenticationService.canManageReferentiDominio.mockReturnValueOnce(true);
+      mockApiService.getDetails.mockClear();
+      component._checkReferentiDominio();
+      expect(component._canManageReferentiDominio).toBe(true);
+      expect(mockApiService.getDetails).not.toHaveBeenCalledWith('domini', 'd1', 'referenti');
+    });
+
+    it('should check the referents for the API operator of the domain organization', () => {
+      component.data = { dominio } as any;
+      const referenti = [{ tipo: 'referente', utente: { id_utente: 'u1' } }];
+      mockAuthenticationService.getCurrentOrganizationRole.mockReturnValueOnce('operatore_api');
+      mockAuthenticationService.canManageReferentiDominio.mockImplementation((_d: any, list: any[]) => list.length > 0);
+      mockApiService.getDetails.mockReturnValueOnce(of({ content: referenti }));
+      component._checkReferentiDominio();
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('domini', 'd1', 'referenti');
+      expect(component._canManageReferentiDominio).toBe(true);
+      mockAuthenticationService.canManageReferentiDominio.mockReturnValue(false);
+    });
+
+    it('should hide the access with another organization in session', () => {
+      component.data = { dominio } as any;
+      mockAuthenticationService.getCurrentOrganization.mockReturnValueOnce({ id_organizzazione: 'org2' });
+      mockApiService.getDetails.mockClear();
+      component._checkReferentiDominio();
+      expect(component._canManageReferentiDominio).toBe(false);
+      expect(mockApiService.getDetails).not.toHaveBeenCalled();
+    });
+
+    it('should open the domain referents with the return url', () => {
+      component.data = { dominio } as any;
+      mockRouter.url = '/servizi/s1/view';
+      component._gotoReferentiDominio();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/miei-domini', 'd1', 'referenti'], { queryParams: { returnUrl: '/servizi/s1/view' } });
+    });
+  });
+
+  describe('rate limiting (Issue #402)', () => {
+    it('should show the rate limiting only to the service managers with APIs provided by the domain', () => {
+      component._grant = { ruoli: ['referente'] } as any;
+      component.serviceApiDominio = [{ id_api: 'a1' }];
+      expect(component._canShowRateLimiting()).toBe(true);
+      component.serviceApiDominio = [];
+      expect(component._canShowRateLimiting()).toBe(false);
+      component.serviceApiDominio = [{ id_api: 'a1' }];
+      component._grant = { ruoli: ['richiedente'] } as any;
+      expect(component._canShowRateLimiting()).toBe(false);
+    });
+
+    it('should open the dialog on the environment shown in the showcase', () => {
+      component.id = 's1' as any;
+      component.data = { nome: 'Servizio', versione: 2 } as any;
+      component._grant = { ruoli: ['gestore'] } as any;
+      component._environmentId = 'produzione';
+      mockModalService.show.mockClear();
+      component._openRateLimitingDialog();
+      expect(mockModalService.show).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+        initialState: expect.objectContaining({ idServizio: 's1', nomeServizio: 'Servizio v. 2', ambiente: 'produzione', ruoli: ['gestore'], mock: false })
+      }));
+    });
   });
 
   describe('_loadUrlInvocazione', () => {
@@ -534,13 +607,54 @@ describe('ServizioViewComponent', () => {
       const grantData = { ruoli: [] };
       mockApiService.getDetails
         .mockReturnValueOnce(of(grantData))
-        .mockReturnValueOnce(throwError(() => ({ status: 404 })));
+        .mockReturnValueOnce(throwError(() => ({ status: 500 })));
 
       (component as any)._loadService();
 
       expect(component._grant).toEqual(grantData);
-      expect(Tools.OnError).toHaveBeenCalledWith({ status: 404 });
+      expect(Tools.OnError).toHaveBeenCalledWith({ status: 500 });
+      expect(component._servizioNonDisponibile).toBe(false);
       expect(component._spin).toBe(false);
+    });
+
+    it('should show the service as not available, without the raw error, on 404 or 403', () => {
+      component.id = 10;
+      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ status: 404 })));
+
+      (component as any)._loadService();
+
+      expect(component._servizioNonDisponibile).toBe(true);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+      expect(component._spin).toBe(false);
+
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ ruoli: [] }))
+        .mockReturnValueOnce(throwError(() => ({ status: 403 })));
+
+      (component as any)._loadService();
+
+      expect(component._servizioNonDisponibile).toBe(true);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+    });
+
+    it('should recognise the 404 rethrown by the error interceptor, without a top level status', () => {
+      component.id = 10;
+      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ message: 'Not Found', error: { status: 404, detail: 'SRV.404' } })));
+
+      (component as any)._loadService();
+
+      expect(component._servizioNonDisponibile).toBe(true);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+    });
+
+    it('should reset the not available state when the service is loaded again', () => {
+      component.id = 10;
+      component._servizioNonDisponibile = true;
+      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ status: 500 })));
+
+      (component as any)._loadService();
+
+      expect(component._servizioNonDisponibile).toBe(false);
     });
 
     it('should set data to null when spin=true (default)', () => {
@@ -601,6 +715,67 @@ describe('ServizioViewComponent', () => {
 
       expect(component._hasJoined).toBe(false);
       expect(component._adesioneDataReady).toBe(true);
+    });
+
+    it('should keep only the adesioni of the current organization', () => {
+      component.id = 5;
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
+      mockApiService.getList.mockReturnValue(of({ content: [
+        { id_adesione: 'a1', stato: 'pubblicato_produzione', soggetto: { organizzazione: { id_organizzazione: 'org2' } } },
+        { id_adesione: 'a2', stato: 'bozza', soggetto: { organizzazione: { id_organizzazione: 'org3' } } }
+      ] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+      (component as any)._loadAdesioneData();
+
+      expect(component._hasJoined).toBe(true);
+      expect(component._adesioniOrganizzazione).toEqual([]);
+      expect(component._hasJoinedOrganizzazione).toBe(false);
+      expect(component._hasAdesioneAttivaOrganizzazione).toBe(false);
+    });
+
+    it('should not count the archived adesioni of the current organization as active', () => {
+      component.id = 5;
+      Tools.Configurazione = { adesione: { workflow: { stato_archiviato: 'archiviato' } } };
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
+      mockApiService.getList.mockReturnValue(of({ content: [
+        { id_adesione: 'a1', stato: 'archiviato', soggetto: { organizzazione: { id_organizzazione: 'org1' } } }
+      ] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+      (component as any)._loadAdesioneData();
+
+      expect(component._hasJoinedOrganizzazione).toBe(true);
+      expect(component._hasAdesioneAttivaOrganizzazione).toBe(false);
+    });
+
+    it('should mark an active adesione of the current organization', () => {
+      component.id = 5;
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
+      mockApiService.getList.mockReturnValue(of({ content: [
+        { id_adesione: 'a1', stato: 'bozza', soggetto: { organizzazione: { id_organizzazione: 'org1' } } },
+        { id_adesione: 'a2', stato: 'bozza', soggetto: { organizzazione: { id_organizzazione: 'org2' } } }
+      ] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+      (component as any)._loadAdesioneData();
+
+      expect(component._adesioniOrganizzazione.map((a: any) => a.id_adesione)).toEqual(['a1']);
+      expect(component._hasAdesioneAttivaOrganizzazione).toBe(true);
+    });
+
+    it('should have no adesioni of the organization without a current organization', () => {
+      component.id = 5;
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue(null);
+      mockApiService.getList.mockReturnValue(of({ content: [
+        { id_adesione: 'a1', stato: 'bozza', soggetto: { organizzazione: { id_organizzazione: 'org1' } } }
+      ] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+      (component as any)._loadAdesioneData();
+
+      expect(component._hasJoined).toBe(true);
+      expect(component._hasJoinedOrganizzazione).toBe(false);
     });
 
     it('should handle error', () => {
@@ -1236,6 +1411,7 @@ describe('ServizioViewComponent', () => {
       mockAuthenticationService.isGestore.mockReturnValue(false);
 
       expect(component._canManagementMapper()).toBe(true);
+      expect(mockAuthenticationService.canManagement).toHaveBeenCalledWith('servizio', 'servizio', 'pubblicato', ['referente']);
     });
 
     it('should return isGestore when is a package', () => {
@@ -1258,7 +1434,7 @@ describe('ServizioViewComponent', () => {
   });
 
   describe('_canMonitoraggioMapper', () => {
-    it('should delegate to authenticationService.canMonitoraggio', () => {
+    it('should delegate to authenticationService.canMonitoraggio with the roles of the grant', () => {
       component._grant = { ruoli: ['gestore'], identificativo: 'lettura', generico: 'lettura', specifica: 'lettura', referenti: 'lettura', collaudo: 'lettura', produzione: 'lettura' };
       mockAuthenticationService.canMonitoraggio.mockReturnValue(true);
 
@@ -1273,14 +1449,6 @@ describe('ServizioViewComponent', () => {
       expect(component._canMonitoraggioMapper()).toBe(false);
     });
 
-    it('should pass undefined when _grant is null', () => {
-      component._grant = null;
-      mockAuthenticationService.canMonitoraggio.mockReturnValue(false);
-
-      component._canMonitoraggioMapper();
-
-      expect(mockAuthenticationService.canMonitoraggio).toHaveBeenCalledWith(undefined);
-    });
   });
 
   describe('_canManagementComunicazioniMapper', () => {
@@ -1409,6 +1577,16 @@ describe('ServizioViewComponent', () => {
       (component as any)._gotoAdesione(mockEvent);
 
       expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(mockEvent, ['servizi', 42, 'adesioni']);
+    });
+
+    it('should open the only adesione of the current organization, not those of other organizations', () => {
+      component.id = 42;
+      component._adesioni = [{ id_adesione: 'altra' }, { id_adesione: 'mia', stato: 'bozza' }];
+      component._adesioniOrganizzazione = [{ id_adesione: 'mia', stato: 'bozza' }];
+
+      (component as any)._gotoAdesione();
+
+      expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 42, 'adesioni', 'mia']);
     });
   });
 
@@ -2407,6 +2585,32 @@ describe('ServizioViewComponent', () => {
       expect(loadApis).not.toHaveBeenCalled();
       mockAuthenticationService.isAnonymous.mockReturnValue(false);
     });
+
+    it('should open on produzione a service published in production, with collaudo still available', () => {
+      component.id = 10;
+      vi.spyOn(component, 'loadCurrentData').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initBreadcrumb').mockImplementation(() => {});
+      mockAuthenticationService.isAnonymous.mockReturnValue(true);
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ ruoli: [] }))
+        .mockReturnValueOnce(of({ id_servizio: 10, stato: 'pubblicato_produzione' }));
+
+      component._loadService();
+
+      expect(component._environmentId).toBe('produzione');
+      vi.spyOn(component as any, '_loadApis').mockImplementation(() => {});
+      component.onEnvToggle('collaudo');
+      expect(component._environmentId).toBe('collaudo');
+      expect(mockRouter.navigate).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { ambiente: 'collaudo' }, replaceUrl: true }));
+      mockAuthenticationService.isAnonymous.mockReturnValue(false);
+    });
+
+    it('should open the monitoring pages on the environment of the view', () => {
+      component.id = 42;
+      component._environmentId = 'produzione';
+      component.onActionMonitor({ action: 'statistiche' });
+      expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 42, 'statistiche'], { ambiente: 'produzione' });
+    });
   });
 
   describe('conteggio delle azioni PDND in attesa (Issue #416)', () => {
@@ -2447,6 +2651,27 @@ describe('ServizioViewComponent', () => {
       expect(component._pdndInAttesaLoading).toBe(false);
       rispondi([]);
       expect(component._pdndInAttesa).toBe(0);
+    });
+  });
+
+  describe('nota del servizio in vetrina (Issue 484)', () => {
+    it('should show the note only when allowed for the user roles and not empty', () => {
+      component._grant = { ruoli: ['referente'] } as any;
+      component.data = { note: 'Servizio erogato tramite Integration Manager' } as any;
+      mockAuthenticationService.canVedereNoteVetrina.mockReturnValue(true);
+      expect(component._mostraNotaVetrina).toBe(true);
+      expect(mockAuthenticationService.canVedereNoteVetrina).toHaveBeenLastCalledWith(['referente']);
+      mockAuthenticationService.canVedereNoteVetrina.mockReturnValue(false);
+      expect(component._mostraNotaVetrina).toBe(false);
+    });
+
+    it('should not show an empty note, even when allowed', () => {
+      mockAuthenticationService.canVedereNoteVetrina.mockReturnValue(true);
+      for (const note of [null, undefined, '', '   \n ']) {
+        component.data = { note } as any;
+        expect(component._mostraNotaVetrina).toBe(false);
+      }
+      mockAuthenticationService.canVedereNoteVetrina.mockReturnValue(false);
     });
   });
 });

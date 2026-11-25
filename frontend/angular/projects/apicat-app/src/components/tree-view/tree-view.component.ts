@@ -87,6 +87,14 @@ export class TreeViewComponent implements OnChanges {
         // }
     }
 
+    /** La freccia apre e chiude il ramo senza selezionare la riga. */
+    onToggle(event: Event, item: any) {
+        event.stopPropagation();
+        if (item.hasChildren || item.children || item.figli) {
+            this.onOpen(item);
+        }
+    }
+
     onOpenInternal(event: any) {
         this.action.emit(event);
     }

@@ -32,6 +32,7 @@ import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -92,6 +93,12 @@ public class ReferenteAdesioneAssembler extends RepresentationModelAssemblerSupp
 			dettaglio.setUtente(utentePublicAssembler.toModel(referente));
 		}
 
+		// Referente che nel frattempo ha perso associazione o ruolo nell'organizzazione (Issue 473)
+		if (CoreAuthorization.getOrganizzazioneReferenti(entity.getAdesione())
+				.filter(org -> !coreAuth.isReferenteValido(referente, org)).isPresent()) {
+			dettaglio.setRuoloNonValido(true);
+		}
+
 		return dettaglio;
 	}
 
@@ -145,7 +152,7 @@ public class ReferenteAdesioneAssembler extends RepresentationModelAssemblerSupp
 		boolean exists = adesione.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
 
 		if(exists) {
-			throw new BadRequestException(ErrorCode.ADE_409_REFERENT, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString()));
+			throw new ConflictException(ErrorCode.ADE_409_REFERENT, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString()));
 		}
 		
 		this.adesioneDettaglioAssembler.setUltimaModifica(adesione);

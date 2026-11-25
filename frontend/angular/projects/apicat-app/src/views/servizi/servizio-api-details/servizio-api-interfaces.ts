@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { RateLimiting } from '../rate-limiting';
 
 export interface Profile {
     auth_type: string;
@@ -114,6 +115,8 @@ export interface ApiConfiguration {
     specifica?: ApiDefintionCreate | ApiDefinitionUpdateWithReference | ApiDefinitionUpdateWithFile | null;
     /** Identificativi delle URL di invocazione associate, fra quelle censite in configurazione ('default' = predefinita). */
     url_invocazione?: string[];
+    /** Quote complessive (al piu` una per periodo): assente = invariate, vuota = nessun rate limiting. */
+    rate_limiting?: RateLimiting[];
 }
 
 /** Voce di configurazione `servizio.api.url_invocazione.<ambiente>`. */
@@ -179,6 +182,7 @@ export interface ApiConfigurationRead {
     dati_erogazione: ApiErogationData;
     specifica?: ApiDefintionRead;
     url_invocazione?: string[];
+    rate_limiting?: RateLimiting[];
 }
 
 export interface ApiReadDetails {

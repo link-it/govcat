@@ -35,9 +35,11 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
@@ -136,6 +138,16 @@ public class AdesioneEntity {
 	@OneToMany(mappedBy = "adesione", orphanRemoval = true, fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
 	private Set<ClientAdesioneEntity> client = new HashSet<>();
+
+	/**
+	 * Quote di rate limiting assegnate al fruitore. Senza orphanRemoval: le righe rimosse sono
+	 * cancellate esplicitamente (RateLimitingService), perche' la cascata degli orfani fallisce
+	 * quando la collezione viene svuotata del tutto.
+	 */
+	@OneToMany(mappedBy = "adesione", fetch = FetchType.LAZY, cascade = jakarta.persistence.CascadeType.ALL)
+	@OrderBy("id ASC")
+	@BatchSize(size = 100)
+	private List<AdesioneRateLimitingEntity> rateLimiting = new ArrayList<>();
 
 	@OneToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_adesione_collaudo", referencedColumnName = "id")

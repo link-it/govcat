@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ServizioInfoFormComponent } from './servizio-info-form.component';
 
@@ -198,6 +198,25 @@ describe('ServizioInfoFormComponent', () => {
     });
   });
 
+  describe('select dell\'organizzazione che implementa il servizio', () => {
+    it('should map the selected option to fruizione and clear the external organization when internal', () => {
+      component._formGroup = new FormGroup({
+        fruizione: new FormControl(true),
+        id_organizzazione_interna: new FormControl('org'),
+        id_soggetto_erogatore: new FormControl('sog')
+      });
+      component._onChangeFruizione(true);
+      expect(component._isFruizione).toBe(true);
+      expect(component._opzioneIntermediazione(true).help).toBe('fruizione_esterna');
+
+      component._onChangeFruizione(false);
+      expect(component._isFruizione).toBe(false);
+      expect(component._formGroup.get('id_organizzazione_interna')?.value).toBeNull();
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBeNull();
+      expect(component._opzioneIntermediazione(false).help).toBe('fruizione_interna');
+    });
+  });
+
   describe('select dei domini paginata (Issue #145)', () => {
     it('should keep the current domain on top and load the next pages on scroll to end', () => {
       vi.useFakeTimers();
@@ -213,6 +232,61 @@ describe('ServizioInfoFormComponent', () => {
       component.dominiTypeahead.loadMore();
       expect(_items.map((d: any) => d.id_dominio)).toEqual(['corrente', 'd0', 'd1']);
       vi.useRealTimers();
+    });
+
+    it('should filter out the deprecated domains also for the gestore unless they are included', () => {
+      vi.useFakeTimers();
+      (component as any).authenticationService.isGestore = vi.fn().mockReturnValue(true);
+      mockApiService.getList.mockReturnValue(of({ content: [], page: { totalPages: 1 } }));
+      component.data = { dominio: { id_dominio: 'corrente' } };
+      component.selectedDominio = undefined;
+      component._initDominiSelect([]);
+      component.dominiTypeahead.items$.subscribe();
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, deprecato: false } });
+
+      component._onIncludiDominiDeprecati(true);
+      let _items: any[] = [];
+      component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0 } });
+      expect(_items.map((d: any) => d.id_dominio)).toEqual(['corrente']);
+      vi.useRealTimers();
+    });
+  });
+
+  describe('spostamento in un dominio di un\'altra organizzazione', () => {
+    const errore422 = { error: { detail: 'VAL.422.REFERENTI.ORGANIZZAZIONE', errori: [{ params: { orgNome: 'Ente', referenti: 'Mario Rossi' } }] } };
+
+    beforeEach(() => {
+      component.id = 's1';
+      component._formGroup = new FormGroup({});
+      vi.spyOn(component as any, '_prepareBodyUpdateServizio').mockReturnValue({ identificativo: {} });
+      (component as any).utils = { GetErrorMsg: vi.fn().mockReturnValue('referenti non validi') };
+      mockApiService.putElement = vi.fn();
+    });
+
+    const gestore = (value: boolean) => (component as any).authenticationService.isGestore = vi.fn().mockReturnValue(value);
+
+    it('should offer the gestore to move the service anyway', () => {
+      gestore(true);
+      mockApiService.putElement.mockReturnValueOnce(throwError(() => errore422));
+      component.onSubmit();
+      expect(component._errorMsg).toBe('referenti non validi');
+      expect(component._forzaSpostamento).toBe(true);
+
+      mockApiService.putElement.mockReturnValueOnce(of({ id_servizio: 's1' }));
+      component.onSubmit(true);
+      expect(mockApiService.putElement).toHaveBeenLastCalledWith('servizi', 's1', { identificativo: {} }, { params: { force: 'true' } });
+      expect(component._forzaSpostamento).toBe(false);
+    });
+
+    it('should only show the error to the other users', () => {
+      gestore(false);
+      mockApiService.putElement.mockReturnValueOnce(throwError(() => errore422));
+      component.onSubmit();
+      expect(mockApiService.putElement.mock.calls[0][3]).toBeUndefined();
+      expect(component._forzaSpostamento).toBe(false);
     });
   });
 });

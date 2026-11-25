@@ -20,8 +20,8 @@
   font-size: 11px;
   // A11Y P5: era --ink-4 #8aa4b8 (2.52:1 su white, fail AA).
   // Subtitle "X di Y completati" porta info → spostato a --ink-3
-  // (4.85:1, AA). Test in produzione su sfondo --surface.
-  color: var(--ink-3, #57738a);
+  // (5,65:1, AA). Test in produzione su sfondo --surface.
+  color: var(--ink-3, #506a80);
 
   .grow {
     flex: 1;
@@ -31,7 +31,7 @@
 
   .counter {
     font-size: 12px;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     font-weight: 500;
     text-transform: none;
     letter-spacing: 0;
@@ -53,22 +53,23 @@
   padding: 4px 0;
   position: relative;
 
-  // Connettore verticale a sinistra fra i bullet.
-  &::before {
-    content: '';
+  // Connettore verticale a sinistra fra i bullet: elemento vuoto e non
+  // pseudo-elemento, così i controlli automatici di contrasto non lo
+  // considerano sovrapposto ai testi dello step.
+  .tl-line {
     position: absolute;
     left: 13px; top: 28px; bottom: -4px;
     width: 1.5px;
     background: var(--line, #dee8ef);
   }
-  &:last-child::before { display: none; }
-  &.is-done::before { background: var(--ok, #2e445a); opacity: .35; }
+  &:last-child .tl-line { display: none; }
+  &.is-done .tl-line { background: var(--ok, #2e445a); opacity: .35; }
   // Connettore active: rosso accent solido. Niente piu` gradient con
   // stops in % (scalava male con body alto/basso) ne` con stops in
   // px (restava fisso indipendentemente dall'apertura). Solido
   // accent scala naturalmente: corto quando il body e` chiuso,
   // esteso fino al bullet successivo quando il body e` aperto.
-  &.is-active::before {
+  &.is-active .tl-line {
     background: var(--accent, #ff4050);
   }
 }
@@ -78,7 +79,7 @@
   display: grid; place-items: center;
   background: var(--surface, #ffffff);
   border: 1.5px solid var(--line-strong, #c4d6e0);
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
   font-size: 11.5px; font-weight: 600;
   position: relative; z-index: 1;
   flex-shrink: 0;
@@ -101,8 +102,8 @@
   background: var(--surface-2, #fafcfd);
   // A11Y P5: era --ink-4 #8aa4b8 (2.52:1, fail anche UI 3:1).
   // Il numero/icona porta info di posizionamento → spostato a
-  // --ink-3 #57738a (4.85:1, AA testo normale).
-  color: var(--ink-3, #57738a);
+  // --ink-3 #506a80 (5,65:1, AA testo normale).
+  color: var(--ink-3, #506a80);
 
   i { font-size: 11px; }
 }
@@ -137,7 +138,7 @@
     color: var(--ink, #212c49); letter-spacing: -0.005em;
   }
   .tl-meta {
-    font-size: 12.5px; color: var(--ink-3, #57738a);
+    font-size: 12.5px; color: var(--ink-3, #506a80);
     display: flex; align-items: center; gap: 8px;
   }
   .tl-spacer { flex: 1; }
@@ -232,7 +233,7 @@
   // Le vecchie regole `.tl-row-chev` sono state rimosse.
 }
 .tl-step.is-locked .tl-name {
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
   font-weight: 500;
 }
 .tl-step.is-done .tl-name {
@@ -261,7 +262,7 @@
   }
   ::ng-deep p.hint {
     font-size: 12.5px;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     margin: 0 0 14px;
     line-height: 1.55;
   }
@@ -283,5 +284,5 @@
 }
 .chip-muted {
   background: var(--surface-3, #eef4f8);
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }

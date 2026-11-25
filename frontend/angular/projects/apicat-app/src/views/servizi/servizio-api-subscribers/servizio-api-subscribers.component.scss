@@ -117,7 +117,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 .sub-meta {
   font-size: 12.5px;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .sub-meta-item {
@@ -131,7 +131,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
   cursor: pointer;
 
   &:hover {
@@ -151,7 +151,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   border-color: transparent;
   background: transparent;
   box-shadow: none;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 
   &:hover,
   &.show {
@@ -253,7 +253,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 .purpose-suspended-by {
   font-size: 12px;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .sub-section-title {
@@ -265,7 +265,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .sub-count {
@@ -320,7 +320,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 .purpose-load-label {
   font-size: 12px;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .purpose-load-value {
@@ -333,7 +333,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .purpose-load-unit {
   margin-left: 4px;
   font-size: 13px;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .purpose-request {
@@ -375,7 +375,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   background: var(--surface-2, #f5f8fa);
   font-size: 12.5px;
 
-  dt { font-weight: 400; color: var(--ink-3, #57738a); }
+  dt { font-weight: 400; color: var(--ink-3, #506a80); }
   dd { margin: 0; color: var(--ink-2, #33495c); word-break: break-all; }
 }
 
@@ -405,7 +405,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .purpose-request-label { color: var(--warn-ink, #8a4b00); }

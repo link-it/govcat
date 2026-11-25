@@ -1,0 +1,149 @@
+:host { display: block; }
+
+// Da tablet in su il riepilogo riempie la dialog e si allunga solo la tabella dei fruitori;
+// su mobile il contenuto scorre nella dialog
+@media (min-width: 768px) {
+  :host {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .rl,
+  .rl-api {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+
+    > * { flex-shrink: 0; }
+  }
+
+  .rl > .rl-api { flex-shrink: 1; }
+
+  .rl > .rl-api > .rl-fruitori-elenco {
+    flex: 1 1 auto;
+    flex-shrink: 1;
+    min-height: 300px;
+  }
+}
+
+.rl-stato,
+.rl-vuoto {
+  padding: 1rem 0;
+  font-size: 0.875rem;
+  color: var(--ink-3, #506a80);
+}
+
+.rl-desc {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  color: var(--ink-3, #506a80);
+}
+
+.rl-tabs {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.rl-api {
+  padding: 16px 18px;
+  background: var(--surface-2, #f7f9fb);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 12px;
+}
+
+.rl-api-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+
+  .version {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-3, #506a80);
+    background: var(--surface-3, #eef4f8);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+}
+
+// Al massimo tre periodi: le card si allargano fino a una larghezza massima
+.rl-quote {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 420px));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.rl-quota {
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--surface, #fff);
+
+  &.is-superata { border-color: var(--err, #d92d20); }
+}
+
+.rl-quota-periodo {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-3, #506a80);
+}
+
+.rl-quota-totale {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 2px 0 8px;
+}
+
+.rl-quota-dati {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+  font-size: 12.5px;
+
+  > div { min-width: 0; overflow-wrap: anywhere; }
+
+  dt { font-weight: 400; color: var(--ink-3, #5b6b7a); }
+  dd { margin: 0; font-weight: 600; }
+}
+
+.rl-finalita {
+  // il padding globale delle section non serve qui
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.rl-finalita-title {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+}
+
+.rl-finalita-elenco {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 12px;
+}
+
+.rl-avviso {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--err-ink, #b81e2b);
+}
+
+// Su mobile scorre la dialog: con molti fruitori la tabella scorre al suo interno
+@media (max-width: 767.98px) {
+  :host ::ng-deep .rl-fruitori-elenco .rl-fruitori-wrap { max-height: 50vh; }
+}

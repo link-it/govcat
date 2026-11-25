@@ -36,7 +36,7 @@
         <div class="">
           <ul class="nav gp-border-b-0 gp-tabs-nav">
             <li class="nav-item">
-              <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Testing' | translate) + ' ' + _paging.totalElements">
+              <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements">
                 <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="domini.length">{{ _paging.totalElements || 0 }}</span>
               </a>
             </li>
@@ -47,8 +47,8 @@
         <div class="gl-w-full btn-group-">
           <ng-template [appHasPermission]="'domini'" [action]="'create'">
             @if (_canAddDomain) {
-              <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-                <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.DOMINI.NewDomain' | translate }}</span>
+              <button type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+                <span class="material-icons-outlined" aria-hidden="true">add</span> <span class="text-nowrap ms-2">{{ 'APP.DOMINI.NewDomain' | translate }}</span>
               </button>
             }
           </ng-template>
@@ -127,6 +127,24 @@
                         <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                         @for (t of _tipiVisibilitaServizio; track t) {
                           <ng-option [value]="t.value">{{ 'APP.VISIBILITY.' + t.label | translate }}</ng-option>
+                        }
+                      </ng-select>
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="col-sm-2">
+                      <label class="col-form-label col-form-label-fix" for="deprecato">{{ 'APP.DOMINI.LABEL.DominiDeprecati' | translate }}</label>
+                    </div>
+                    <div class="col-sm-10 pt-2">
+                      <ng-select class="ng-select-default-value"
+                        [searchable]="false"
+                        [clearable]="false"
+                        [placeholder]="'APP.DOMINI.LABEL.DeprecatiInclusi' | translate"
+                        labelForId="deprecato"
+                        formControlName="deprecato">
+                        <ng-option [value]="null">{{ 'APP.DOMINI.LABEL.DeprecatiInclusi' | translate }}</ng-option>
+                        @for (d of _deprecatoList; track d.value) {
+                          <ng-option [value]="d.value">{{ d.label | translate }}</ng-option>
                         }
                       </ng-select>
                     </div>

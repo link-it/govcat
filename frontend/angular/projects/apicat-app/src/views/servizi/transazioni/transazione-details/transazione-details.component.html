@@ -69,6 +69,43 @@
             {{ _errorMsg }}
           </div>
         }
+        @if (_audit || data.audit) {
+          <div class="" [hidden]="_currentTab !== _tabAudit">
+            @for (section of config.sectionsDetails['Audit']; track section; let index = $index) {
+              @let _elenco = _elencoSezione(section);
+              @if (!section.field || _elenco.length) {
+                <div class="settings" [class.border-0]="index == 0">
+                  <div class="row mt-5" [class.justify-content-center]="_singleColumn">
+                    <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
+                      <h4 class="gl-mt-0 text-break">{{ section.title | translate }}</h4>
+                      <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ section.title_sub | translate }}</div>
+                    </div>
+                    <div class="settings-content" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                      @if (section.field) {
+                        <dl class="row mb-0">
+                          @for (proprieta of _elenco; track $index) {
+                            <div class="col-sm-6 mb-3">
+                              <dt class="label-bold">{{ proprieta.nome }}</dt>
+                              <dd class="mb-0 text-break">{{ proprieta.valore }}</dd>
+                            </div>
+                          }
+                        </dl>
+                      } @else if (data.audit) {
+                        <ui-data-view
+                          [data]="data"
+                          [config]="config"
+                          [details]="section.details">
+                        </ui-data-view>
+                      } @else {
+                        <p class="text-muted mb-0">{{ 'APP.AUDIT.MESSAGE.NoAudit' | translate }}</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
         <div class="" [hidden]="_currentTab !== 'InformazioniGenerali'">
           @for (section of config.sectionsDetails['InformazioniGenerali']; track section; let index = $index) {
             @if ((section.code !== 'InvocazioneApi') || (_hasInvocazioneApi && section.code === 'InvocazioneApi')) {

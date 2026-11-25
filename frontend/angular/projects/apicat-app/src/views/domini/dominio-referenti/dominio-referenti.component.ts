@@ -27,6 +27,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
+import { AuthenticationService } from '@app/services/authentication.service';
 
 import { Page } from '@app/models/page';
 
@@ -87,6 +88,17 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   _fromOrgManage: boolean = false;
   _orgManageId: string | null = null;
 
+  /** True quando la pagina e` aperta dal referente di dominio (route
+      `/miei-domini/:id/referenti`): breadcrumb e ritorno puntano alla
+      pagina di provenienza (`returnUrl`). */
+  _fromReferente: boolean = false;
+  _returnUrl: string = '/servizi';
+
+  /** Comandi Aggiungi/Rimuovi abilitati (vedi
+      `AuthenticationService.canManageReferentiDominio`). */
+  _canManage: boolean = false;
+  _referentiDominio: any[] = [];
+
   _message: string = 'APP.MESSAGE.NoResults';
   _messageHelp: string = 'APP.MESSAGE.NoResultsHelp';
 
@@ -130,7 +142,8 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    public utilService: UtilService
+    public utilService: UtilService,
+    private authenticationService: AuthenticationService
   ) {
     this.config = this.configService.getConfiguration();
 
@@ -151,6 +164,12 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
     if (this._fromOrgManage) {
       const m = url.match(/\/organizzazione-manage\/([^\/]+)/);
       this._orgManageId = m ? m[1] : null;
+    }
+    this._fromReferente = url.includes('/miei-domini/');
+    if (this._fromReferente) {
+      const returnUrl: string = this.route.snapshot?.queryParams?.['returnUrl'] || '';
+      // Solo percorsi interni all'applicazione.
+      if (returnUrl.startsWith('/') && !returnUrl.startsWith('//')) { this._returnUrl = returnUrl; }
     }
 
     this.route.params.subscribe(params => {
@@ -189,6 +208,15 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
         { label: 'APP.LABEL.Domain', url: `/organizzazione-manage/${this._orgManageId}?tab=domini`, type: 'link' },
         { label: `${_title}`, url: `/organizzazione-manage/${this._orgManageId}/domini/${this.id}`, type: 'link' },
         { label: 'APP.TITLE.ServiceReferents', url: ``, type: 'link' }
+      ];
+      return;
+    }
+    if (this._fromReferente) {
+      this.breadcrumbs = [
+        { label: '', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
+        { label: 'APP.MENU.Services', url: '/servizi', type: 'link' },
+        { label: `${_title}`, url: '', type: 'link' },
+        { label: 'APP.TITLE.ServiceReferents', url: '', type: 'link' }
       ];
       return;
     }
@@ -231,6 +259,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
           this.dominio = response;
           this._isDominioEsterno = this.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
           this._idDominioEsterno = this.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
+          this._updateCanManage();
           this._initBreadcrumb();
           this._spin = false;
         },
@@ -255,6 +284,8 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
           response ? this._links = response._links || null : null;
 
           if (response && response.content) {
+            if (!url) { this._referentiDominio = response.content; }
+            this._updateCanManage();
             const _itemRow = this.referentiConfig.itemRow;
             const _options = this.referentiConfig.options;
             const _list: any = response.content.map((referent: any) => {
@@ -286,6 +317,14 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
         }
       });
     }
+  }
+
+  _updateCanManage() {
+    this._canManage = this.authenticationService.canManageReferentiDominio(this.dominio, this._referentiDominio);
+  }
+
+  _onBack() {
+    this.router.navigateByUrl(this._returnUrl);
   }
 
   _generateReferentFields(data: any) {
@@ -429,6 +468,12 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
           this.apiService.deleteElementRelated(this.model, this.id, `referenti/${data.source.utente.id_utente}?tipo_referente=${data.source.tipo}`)
             .subscribe({
               next: (response) => {
+                // Il referente che rimuove se stesso perde i comandi: torna alla pagina di provenienza.
+                const isSelf = data.source?.tipo === 'referente' && data.source?.utente?.id_utente === this.authenticationService.getUser()?.id_utente;
+                if (isSelf && this._fromReferente && !this.authenticationService.canManageReferentiDominio(this.dominio, [])) {
+                  this._onBack();
+                  return;
+                }
                 this._loadDominioReferenti();
               },
               error: (error) => {

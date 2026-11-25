@@ -22,17 +22,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   margin: 0;
 }
 
+// Azioni della riga mostrate al passaggio del mouse o quando la riga ha il fuoco:
+// nascoste con l'opacita` restano raggiungibili da tastiera
 .group-over-display {
-  
+
   .group-over-actions {
-    display: none;
+    opacity: 0;
   }
 
-  &:hover {
+  &:hover,
+  &:focus-within {
     .group-over-actions {
-      display: block;
+      opacity: 1;
     }
   }
+}
+
+button.folder-caret {
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 1;
 }
 
 .group-list-tree {

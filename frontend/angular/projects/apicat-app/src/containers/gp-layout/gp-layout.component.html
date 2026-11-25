@@ -64,7 +64,7 @@
 }
 <div id="page-full-scroll-container" class="layout-page hide-when-top-nav-responsive-open" [ngClass]="{ 'page-with-contextual-sidebar': (_contentLimited || !_notSideBar) && !_isAnonymous, 'page-with-contextual-sidebar-reduced': _sideBarCollapsed && !_isAnonymous && !mobile, 'page-with-icon-sidebar': _sideBarCollapsed && desktop && (_contentLimited && !_notSideBar) }">
   @if ((_contentLimited || !_notSideBar) &&!_isAnonymous) {
-    <aside class="nav-sidebar" [ngClass]="{ 'sidebar-collapsed-desktop': _sideBarCollapsed && desktop, 'sidebar-expanded-mobile': !_sideBarCollapsed && !desktop && !mobile || _openSideBar  }">
+    <aside class="nav-sidebar" [attr.aria-label]="'APP.LABEL.MainMenu' | translate" [ngClass]="{ 'sidebar-collapsed-desktop': _sideBarCollapsed && desktop, 'sidebar-expanded-mobile': !_sideBarCollapsed && !desktop && !mobile || _openSideBar  }">
       <div class="d-flex flex-column align-items-start h-100">
         <div class="nav-sidebar-inner-scroll">
           @if (_spin) {

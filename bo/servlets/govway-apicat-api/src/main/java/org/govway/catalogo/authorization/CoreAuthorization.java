@@ -19,11 +19,19 @@
  */
 package org.govway.catalogo.authorization;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OrganizationContext;
 import org.govway.catalogo.RequestUtils;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.RuoloPdnd;
@@ -31,6 +39,7 @@ import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -208,6 +217,20 @@ public class CoreAuthorization {
 	}
 
 	/**
+	 * Organizzazione di sessione su cui l'utente opera come amministratore: ne amplia la visibilita`
+	 * a servizi e adesioni dell'organizzazione (vedi i filtri per utente di servizi e adesioni).
+	 *
+	 * @return l'identificativo (PK) dell'organizzazione di sessione se il ruolo in sessione e`
+	 *         {@link RuoloOrganizzazione#AMMINISTRATORE_ORGANIZZAZIONE}, altrimenti vuoto
+	 */
+	public Optional<Long> getIdOrganizzazioneAmministrataSessione() {
+		if (hasRuoloInOrganizzazioneSessione(RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			return Optional.of(this.organizationContext.getIdOrganizzazione());
+		}
+		return Optional.empty();
+	}
+
+	/**
 	 * @return true se l'organizzazione di sessione ha il flag referente attivo
 	 */
 	public boolean isOrganizzazioneSessioneReferente() {
@@ -230,6 +253,92 @@ public class CoreAuthorization {
 	 */
 	public boolean hasRuoloInOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione, RuoloOrganizzazione... ruoli) {
 		return this.organizzazioneService.hasRuoloInOrganizzazione(utente, organizzazione, ruoli);
+	}
+
+	/**
+	 * Organizzazione di cui i referenti del servizio devono essere almeno operatori API: quella del
+	 * soggetto referente del dominio. Vuota per le fruizioni, i cui referenti non sono vincolati.
+	 */
+	public static Optional<OrganizzazioneEntity> getOrganizzazioneReferenti(ServizioEntity servizio) {
+		if (servizio.isFruizione()) {
+			return Optional.empty();
+		}
+		return Optional.of(servizio.getDominio().getSoggettoReferente().getOrganizzazione());
+	}
+
+	/**
+	 * Organizzazione di cui i referenti del dominio devono essere almeno operatori API: quella del
+	 * soggetto referente. Vuota per le organizzazioni intermediate, i cui referenti non sono vincolati.
+	 */
+	public static Optional<OrganizzazioneEntity> getOrganizzazioneReferenti(DominioEntity dominio) {
+		OrganizzazioneEntity organizzazione = dominio.getSoggettoReferente().getOrganizzazione();
+		return organizzazione.isIntermediata() ? Optional.empty() : Optional.of(organizzazione);
+	}
+
+	/**
+	 * Organizzazione di cui i referenti dell'adesione devono essere almeno operatori API: quella del
+	 * soggetto aderente.
+	 */
+	public static Optional<OrganizzazioneEntity> getOrganizzazioneReferenti(AdesioneEntity adesione) {
+		return Optional.of(adesione.getSoggetto().getOrganizzazione());
+	}
+
+	/**
+	 * Indica se il ruolo nell'organizzazione consente di essere referente di servizi, domini e
+	 * adesioni dell'organizzazione (almeno Operatore API).
+	 */
+	public static boolean isRuoloReferente(RuoloOrganizzazione ruolo) {
+		return ruolo == RuoloOrganizzazione.OPERATORE_API || ruolo == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE;
+	}
+
+	/**
+	 * Verifica se l'utente puo` essere referente di servizi, domini e adesioni dell'organizzazione:
+	 * il gestore sempre, gli altri se associati all'organizzazione con almeno il ruolo Operatore API.
+	 * L'organizzazione e` quella restituita da getOrganizzazioneReferenti per la risorsa.
+	 */
+	public boolean isReferenteValido(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		return isAdmin(utente) || this.organizzazioneService.findUtenteOrganizzazione(utente, organizzazione)
+				.map(assoc -> isRuoloReferente(assoc.getRuoloOrganizzazione()))
+				.orElse(false);
+	}
+
+	/**
+	 * Come {@link #isReferenteValido(UtenteEntity, OrganizzazioneEntity)}, ma con l'errore che indica
+	 * l'utente e il motivo: non associato all'organizzazione o senza un ruolo sufficiente.
+	 *
+	 * @throws NotAuthorizedException {@link ErrorCode#AUT_403_ORG_MISSING} o {@link ErrorCode#AUT_403_REFERENT_NO_ROLE}
+	 */
+	public void checkReferente(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		if (isReferenteValido(utente, organizzazione)) {
+			return;
+		}
+		ErrorCode errorCode = this.organizzazioneService.isAssociatoA(utente, organizzazione)
+				? ErrorCode.AUT_403_REFERENT_NO_ROLE
+				: ErrorCode.AUT_403_ORG_MISSING;
+		throw new NotAuthorizedException(errorCode, Map.of(
+				"orgNome", organizzazione.getNome(),
+				"userIdUtente", utente.getIdUtente(),
+				"nomeUtente", utente.getNome(),
+				"cognomeUtente", utente.getCognome()));
+	}
+
+	/**
+	 * Verifica i referenti gia` presenti su una risorsa che passa sotto un'altra organizzazione
+	 * (servizio spostato su un dominio di un'altra organizzazione, dominio assegnato a un soggetto
+	 * di un'altra organizzazione): l'errore e` di validazione ed elenca tutti i referenti non validi.
+	 *
+	 * @throws RichiestaNonValidaSemanticamenteException {@link ErrorCode#VAL_422_REFERENTI_ORGANIZZAZIONE}
+	 */
+	public void checkReferentiNuovaOrganizzazione(Collection<UtenteEntity> referenti, OrganizzazioneEntity organizzazione) {
+		String nonValidi = referenti.stream()
+				.distinct()
+				.filter(u -> !isReferenteValido(u, organizzazione))
+				.map(u -> u.getNome() + " " + u.getCognome())
+				.collect(Collectors.joining(", "));
+		if (!nonValidi.isEmpty()) {
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422_REFERENTI_ORGANIZZAZIONE,
+					Map.of("orgNome", organizzazione.getNome(), "referenti", nonValidi));
+		}
 	}
 
 }

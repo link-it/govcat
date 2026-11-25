@@ -57,10 +57,12 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { WizardSubstepperComponent } from '@app/components/wizard/wizard-substepper/wizard-substepper.component';
-import { WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
+import { chiavePrefissoRifiuto, WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
+import { RATE_LIMITING_PERIODI, RATE_LIMITING_PERIODO_LABEL, RateLimiting, RateLimitingPeriodo, rateLimitingApplicabile } from '../rate-limiting';
+import { RATE_LIMITING_MOCK_API, quoteMock, rateLimitingMockAttivo } from '../rate-limiting.mock';
 import { ServizioApiDetailsComponent } from '@app/views/servizi/servizio-api-details/servizio-api-details.component';
 import { ServizioApiEditComponent } from '@app/views/servizi/servizio-api-edit/servizio-api-edit.component';
 
@@ -71,6 +73,9 @@ import {
     WORKFLOW_STATI_SERVIZIO,
     nomeApiDaServizio
 } from './servizio-wizard.config';
+import { LocaleNumberPipe } from '@app/pipes/locale-number.pipe';
+import { LnkRuoloNonValidoComponent } from '@app/components/lnk-ui/ruolo-non-valido/ruolo-non-valido.component';
+import { motivoNonEliminabile } from '../servizio-non-eliminabile';
 
 declare const saveAs: any;
 
@@ -90,8 +95,9 @@ declare const saveAs: any;
     templateUrl: 'servizio-workflow-wizard.component.html',
     styleUrls: ['servizio-workflow-wizard.component.scss'],
     standalone: true,
-    imports: [
+    imports: [LocaleNumberPipe, 
         CommonModule,
+        LnkRuoloNonValidoComponent,
         RouterModule,
         ...COMPONENTS_IMPORTS,
         WorkflowComponent,
@@ -252,6 +258,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this.apiUrl = this.configService.getConfiguration()?.AppConfig?.GOVAPI?.HOST || '';
         this.hideVersions = this.configService.getConfiguration()?.AppConfig?.Services?.hideVersions || false;
         this._showOpenClassic = this.configService.getConfiguration()?.AppConfig?.Services?.showOpenClassic === true;
+        this._rateLimitingMock = rateLimitingMockAttivo(this.configService.getConfiguration());
     }
 
     ngOnInit() {
@@ -653,6 +660,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         const _nome = [this.data?.nome, this.data?.versione ? `v. ${this.data.versione}` : ''].filter(Boolean).join(' ');
         const _stato = this.translate.instant('APP.WORKFLOW.STATUS.' + this.data?.stato);
         return this.translate.instant('APP.WORKFLOW.RIFIUTO.OggettoDefault', { nome: _nome, stato: _stato });
+    }
+
+    /** Motivo proposto: il prefisso con l'ambiente dell'autorizzazione rifiutata. */
+    get _testoRifiuto(): string {
+        return this.translate.instant(chiavePrefissoRifiuto(this.data?.stato));
     }
 
     openRifiuto() {
@@ -1090,6 +1102,13 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     // `data.eliminabile`. Conferma -> DELETE /servizi/:id -> torna alla lista.
     // -------------------------------------------------------------------------
 
+    /** Motivo mostrato sul pulsante di eliminazione disabilitato. */
+    _motivoNonEliminabile(): string {
+        const _isPackage = !!this.data?.package;
+        const _haApi = !_isPackage && this._apiListLoaded ? (this.servizioApiList?.length || 0) > 0 : null;
+        return motivoNonEliminabile(_isPackage, _haApi);
+    }
+
     confirmDeleteServizio() {
         this.utils._confirmDelection(this.data, () => this._deleteServizio());
     }
@@ -1128,10 +1147,43 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this._apiListLoaded = true;
                 this._maybeAutoOpenCreateApi();
                 this._loadApiAllegatiCounts();
+                this._loadApiRateLimiting();
                 this._verificaTrigger$.next();
             },
             error: () => { this.servizioApiList = []; this._apiListLoaded = true; this._maybeAutoOpenCreateApi(); }
         });
+    }
+
+    /** Quote di rate limiting per API e ambiente: presenti solo nel dettaglio dell'API. */
+    _apiRateLimiting: { [idApi: string]: { collaudo: RateLimiting[]; produzione: RateLimiting[] } } = {};
+    /** Dati di esempio del rate limiting (`AppConfig.Services.rateLimitingMock`). */
+    _rateLimitingMock: boolean = false;
+
+    private _loadApiRateLimiting() {
+        const _ordina = (quote: RateLimiting[] | undefined) => [...(quote || [])]
+            .sort((a, b) => RATE_LIMITING_PERIODI.indexOf(a.periodo) - RATE_LIMITING_PERIODI.indexOf(b.periodo));
+        (this.servizioApiList || []).filter((api: any) => rateLimitingApplicabile(api)).forEach((api: any, indice: number) => {
+            // Con i dati di esempio le prime API mostrano le stesse quote del riepilogo
+            const _quote = (quote: RateLimiting[] | undefined) => _ordina((this._rateLimitingMock && indice < RATE_LIMITING_MOCK_API) ? quoteMock(quote, indice) : quote);
+            this.apiService.getDetails('api', api.id_api).subscribe({
+                next: (resp: any) => {
+                    this._apiRateLimiting[api.id_api] = {
+                        collaudo: _quote(resp?.configurazione_collaudo?.rate_limiting),
+                        produzione: _quote(resp?.configurazione_produzione?.rate_limiting)
+                    };
+                },
+                error: () => { delete this._apiRateLimiting[api.id_api]; }
+            });
+        });
+    }
+
+    apiRateLimiting(api: any): RateLimiting[] {
+        const _amb = this.currentAmbiente as 'collaudo' | 'produzione' | null;
+        return (_amb && this._apiRateLimiting[api?.id_api]?.[_amb]) || [];
+    }
+
+    _rateLimitingLabel(periodo: RateLimitingPeriodo): string {
+        return RATE_LIMITING_PERIODO_LABEL[periodo] || periodo;
     }
 
     /** Nome proposto solo per la prima API del servizio. */
@@ -1346,7 +1398,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     onWorkflowAction(event: any) {
         this.__resetError();
-        this.utils.__confirmCambioStatoServizio(event, this.data, this._changeStatus.bind(this));
+        this.utils.__confirmCambioStatoServizio(event, this.data, this._changeStatus.bind(this), true);
     }
 
     _changeStatus(event: any, _service: any) {

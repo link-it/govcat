@@ -135,6 +135,13 @@
     "consenti_non_sottoscrivibile": true,
     "adesioni_multiple": false,
     "tassonomie_abilitate": false,
+    "note_vetrina": {
+      "abilitato": true,
+      "ruoli_abilitati": [
+        "referente_superiore",
+        "referente"
+      ]
+    },
     "api": {
       "abilitato": true,
       "etichetta": "API",
@@ -1773,6 +1780,19 @@
     "transazioni_abilitate": true,
     "statistiche_abilitate": true,
     "verifiche_abilitate": true,
+    "audit_abilitato": true,
+    "proprieta_audit": [
+      {
+        "nome_gruppo": "PDNDCollaudo",
+        "nome_proprieta": "audit",
+        "ambiente": "collaudo"
+      },
+      {
+        "nome_gruppo": "PDNDProduzione",
+        "nome_proprieta": "audit",
+        "ambiente": "produzione"
+      }
+    ],
     "ruoli_abilitati": [
       "gestore",
       "referente_superiore",

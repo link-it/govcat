@@ -161,6 +161,12 @@ public class GetReportRequest {
 	public void setSoggettoErogatore(String soggettoErogatore) {
 		this.soggettoErogatore = soggettoErogatore;
 	}
+	public String getApplicativoFruitore() {
+		return applicativoFruitore;
+	}
+	public void setApplicativoFruitore(String applicativoFruitore) {
+		this.applicativoFruitore = applicativoFruitore;
+	}
 
 	private ConfigurazioneConnessione configurazioneConnessione;
 	private	ProfiloEnum profilo;
@@ -168,6 +174,7 @@ public class GetReportRequest {
 	private Integer apiVersione;
 	private String soggettoReferente;
 	private String soggettoErogatore;
+	private String applicativoFruitore;
 	private EsitoTransazioneEnum esito;
 	private List<Integer> listaCodici;
 	private String operazione;

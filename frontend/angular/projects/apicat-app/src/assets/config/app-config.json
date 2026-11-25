@@ -55,12 +55,18 @@
       "hideVersions": false,
       "wizardNewLayout": true,
       "wizardWorkflowLayout": true,
-      "showPackage": false
+      "showPackage": false,
+      "rateLimitingMock": false
     },
 
     "Adesioni": {
       "showClientDisclaimers": false,
       "showCreateFasiBar": true
+    },
+
+    "Workflow": {
+      "showStatusHistory": true,
+      "statusHistoryMock": false
     },
 
     "Profile": {

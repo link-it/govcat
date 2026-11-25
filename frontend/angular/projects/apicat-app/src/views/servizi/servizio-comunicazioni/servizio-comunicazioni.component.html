@@ -22,10 +22,10 @@
       <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
       <div class="d-flex flex-grow-1">&nbsp;</div>
       <div class="nav-controls">
-        <!-- <div class="position-relative" *ngIf="service">
-          <app-back-web [service_id]="service.id_servizio"></app-back-web>
-        </div> -->
-      </div>  
+        @if (!_componentBreadcrumbs) {
+          <app-servizio-monitor-menu [servizio]="service" [paginaCorrente]="'comunicazioni'"></app-servizio-monitor-menu>
+        }
+      </div>
     </div>
     <div class="top-area">
       <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">

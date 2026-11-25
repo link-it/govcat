@@ -52,7 +52,10 @@
 				"User": "Utente",
 				"Role": "Ruolo nell'organizzazione",
 				"SearchUser": "Cerca utente",
-				"CurrentOrganization": "Organizzazione corrente"
+				"CurrentOrganization": "Organizzazione corrente",
+				"ReferenteServizi": "Servizi",
+				"ReferenteDomini": "Domini",
+				"ReferenteAdesioni": "Adesioni"
 			},
 			"BUTTON": {
 				"Add": "Aggiungi",
@@ -67,6 +70,31 @@
 			}
 		},
 		"ADESIONI": {
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting richiesto",
+				"Descrizione": "Numero massimo di richieste che l'aderente prevede di inviare, per ogni API e periodo per cui il servizio dichiara un rate limiting.",
+				"OltreMassimo": "La quota non può superare il massimo per aderente ({{massimo}})",
+				"Massimo": "max {{quota}} per aderente",
+				"Totale": "totale servizio {{quota}}",
+				"NonRichiesta": "non richiesta"
+			},
+			"RATE_LIMITING_VERIFICA": {
+				"Pulsante": "Verifica rate limiting",
+				"Titolo": "Verifica del rate limiting",
+				"Descrizione": "Per ogni API e periodo: quota del servizio, quota già autorizzata ad altri aderenti, residua e quota richiesta da questa adesione. Le richieste in attesa non sono conteggiate.",
+				"QuotaServizio": "Quota del servizio",
+				"Richiesta": "Richiesta dell'adesione",
+				"EsitoRientra": "Rientra nella quota residua del servizio",
+				"EsitoSfora": "Sfora la quota del servizio",
+				"SoloAvviso": "È solo un avviso: l'adesione può comunque essere autorizzata. Per rientrare si può ridurre la quota richiesta, quelle degli altri aderenti dal riepilogo del servizio o alzare la quota totale dell'API.",
+				"ChipRientra": "Rientra",
+				"ChipSfora": "Sfora",
+				"Autorizzata": "Già autorizzata",
+				"SuFruitori": "a {{numero}} aderenti",
+				"Residua": "Residua",
+				"ResiduaDopo": "{{quota}} dopo l'autorizzazione",
+				"InAttesa": "Altre richieste in attesa: {{quota}} da {{numero}} aderenti (non conteggiate)"
+			},
 			"FILTER": {
 				"All": "Tutti",
 				"Closed": "Chiusi",
@@ -116,7 +144,7 @@
 				"ScegliCredenziali": "Scegli le credenziali…",
 				"Service": "Servizio",
 				"SkipCollaudoTooltip": "Abilitando questa opzione l'adesione salta la fase di collaudo e passa direttamente alla configurazione in produzione. La configurazione in produzione non potrà più essere modificata una volta pubblicata.",
-				"SkipCollaudoVincolatoTooltip": "Il servizio è pubblicato senza collaudo: l'adesione passa direttamente alla configurazione in produzione e l'opzione non può essere modificata.",
+				"SkipCollaudoVincolatoTooltip": "Il servizio non prevede il collaudo: l'adesione passa direttamente alla configurazione in produzione e l'opzione non può essere modificata.",
 				"Subject": "Soggetto",
 				"UsaClientEsistente": "Usa client esistente",
 				"WizardShowAllSections": "Mostra tutte le sezioni (debug)",
@@ -208,11 +236,13 @@
 				"ShowReferents_sub": "Mostra referenti"
 			},
 			"MESSAGE": {
+				"IdLogicoMancante": "Il servizio ammette più adesioni dello stesso soggetto ma questa adesione non ha l'identificativo logico: indicalo modificando le informazioni generali, altrimenti le modifiche all'adesione vengono rifiutate.",
 				"ConfigureClientsDisclaimer": "Configura i client di autenticazione per procedere. Per ogni profilo elencato qui sotto premi la matita e inserisci i dati richiesti.",
 				"FaseProduzioneBloccata": "Per richiedere la produzione il servizio deve essere prima pubblicato in produzione.",
 				"FaseProduzioneBloccataShort": "Servizio non pubblicato in produzione",
 				"FaseCollaudoSaltata": "Fase di collaudo saltata (salta collaudo attivo).",
-				"FaseSaltata": "Saltata"
+				"FaseSaltata": "Saltata",
+				"SkipCollaudoAttesaProduzione": "Il collaudo è saltato: potrai richiedere la configurazione in produzione quando il servizio {{servizio}} v{{versione}} sarà pubblicato in produzione."
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
@@ -233,12 +263,63 @@
 				"Found": "Trovati",
 				"Open": "Aperti"
 			},
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting",
+				"Descrizione": "Numero massimo di richieste all'API in questo ambiente, al più una voce per periodo.",
+				"QuotaTotale": "Quota totale (richieste)",
+				"QuotaFruitore": "Quota massima per aderente",
+				"Periodo": "Periodo",
+				"AggiungiQuota": "Aggiungi quota",
+				"RimuoviQuota": "Rimuovi quota",
+				"Nessuno": "Nessun rate limiting",
+				"QuotaNonValida": "Inserisci un numero intero maggiore di zero",
+				"QuotaAssente": "Indica almeno una fra quota totale e quota massima per aderente",
+				"QuotaTotaleAssente": "Indica la quota totale",
+				"QuotaFruitoreAssente": "Indica la quota massima per aderente",
+				"FruitoreSuperiore": "La quota massima per aderente non può superare la quota totale",
+				"MaxPerFruitore": "max {{quota}} per aderente",
+				"MaxPerFruitorePeriodo": "max {{quota}} / {{periodo}} per aderente",
+				"QuoteAdeguate": "Alcune quote salvate non sono ammesse dai profili dell'API e sono state rimosse: salva per confermare.",
+				"QuoteRimosseProfili": "Alcune quote non sono ammesse dai profili scelti e sono state rimosse.",
+				"QuoteDaAdeguareProfili": "Con i profili scelti alcune quote di rate limiting già salvate non sono più ammesse: verranno rimosse al salvataggio."
+			},
 			"TITLE": {
 				"ApiList": "API",
 				"GeneralInformations": "Informazioni generali",
 				"GeneralInformations_sub": "",
 				"ProductionInformations": "Informazioni produzione",
 				"TestingInformations": "Informazioni collaudo"
+			}
+		},
+		"AUDIT": {
+			"LABEL": {
+				"Audience": "Audience",
+				"Expiration": "Scadenza",
+				"IssuedAt": "Emesso il",
+				"Issuer": "Emittente",
+				"Kid": "Kid",
+				"Loa": "LoA",
+				"LoaEstesa": "Livello di garanzia (LoA)",
+				"MessageId": "Id token di audit",
+				"NotBefore": "Valido dal",
+				"Pattern": "Pattern",
+				"PatternAudit": "Pattern di audit",
+				"PurposeId": "Finalità (PurposeID)",
+				"SchemaDati": "Schema dati",
+				"UserId": "Id utente",
+				"UserLocation": "Sede utente"
+			},
+			"MESSAGE": {
+				"NoApi": "Nessuna API con audit",
+				"NoApiHelp": "Nessuna API del servizio ha l'audit abilitato nell'ambiente selezionato",
+				"NoAudit": "Nessuna informazione di audit per la transazione"
+			},
+			"TABS": {
+				"Audit": "Audit"
+			},
+			"TITLE": {
+				"AltreProprieta": "Altre proprietà",
+				"Audit": "Audit"
 			}
 		},
 		"AUTHENTICATION": {
@@ -402,6 +483,7 @@
 			"Download": "Scarica",
 			"DownloadDocumentation": "Scarica documentazione",
 			"DownloadeServiceDescriptor": "Scarica descrittore eService",
+			"DomainReferents": "Referenti del dominio",
 			"DownloadeServiceExtendedDescriptor": "Scarica descrittore eService esteso",
 			"EditGroup": "Modifica gruppo",
 			"Entra": "Entra",
@@ -649,14 +731,19 @@
 			},
 			"LABEL": {
 				"Classi": "Classi",
+				"DeprecatiEsclusi": "Esclusi",
+				"DeprecatiInclusi": "Inclusi",
 				"Deprecato": "Deprecato",
 				"Description": "Descrizione",
+				"DominiDeprecati": "Domini deprecati",
+				"IncludiDeprecati": "Includi domini deprecati",
 				"Name": "Nome",
 				"Private": "privato",
 				"Public": "pubblico",
 				"ReferentSubject": "Soggetto referente",
 				"Reserved": "riservato",
 				"SkipCollaudo": "Consenti di saltare il collaudo",
+				"SoloDeprecati": "Solo deprecati",
 				"Tag": "Tag",
 				"UrlInvocazione": "Url invocazione",
 				"UrlPrefixCollaudo": "Url prefix collaudo",
@@ -871,6 +958,10 @@
 			"LogoFormatHint": "Nel catalogo il logo è mostrato in formato 16:9: le parti scurite nell'anteprima restano fuori. Usa un'immagine orizzontale, ad esempio 1280×720.",
 			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
+			"MainMenu": "Menu principale",
+			"ServiceInfo": "Informazioni sul servizio",
+			"SubscriptionInfo": "Informazioni sull'adesione",
+			"UserMenu": "Menu utente ({{utente}})",
 			"UrlEsposizione": "Url di esposizione",
 			"RemoveFilter": "Rimuovi filtro",
 			"SelectRow": "Seleziona elemento",
@@ -972,7 +1063,7 @@
 			"DateFrom": "Data da",
 			"DateTo": "Data a",
 			"Description": "Descrizione",
-			"DescriptorID": "Identificativo",
+			"DescriptorID": "ID versione",
 			"descrizione": "Descrizione",
 			"descrizione_sintetica": "Descrizione sintetica ",
 			"DescrizioneCompleta": "Descrizione completa ",
@@ -1108,11 +1199,11 @@
 				"GroupAlternatives": "Gruppo {{n}}: almeno uno tra {{count}}",
 				"Code": "Codice",
 				"Origin": "Origine",
-				"OrganizationId": "ID organizzazione",
+				"OrganizationId": "ID erogatore",
 				"CallsPerConsumer": "Chiamate/giorno per fruitore",
 				"CallsTotal": "Chiamate/giorno totali",
 				"VoucherLifespan": "Validità del voucher",
-				"NoDescriptors": "Nessun descrittore pubblicato.",
+				"NoDescriptors": "Nessuna versione pubblicata.",
 				"STATE": {
 					"DRAFT": "Bozza",
 					"PUBLISHED": "Pubblicato",
@@ -1134,8 +1225,8 @@
 				"Client": "Client",
 				"Consumer": "Fruitore",
 				"DeclaredAttributes": "Attributi dichiarati",
-				"Descriptor": "Descrittore",
-				"Descriptors": "Descrittori",
+				"Descriptor": "Versione",
+				"Descriptors": "Versioni",
 				"Events": "Eventi",
 				"EventType": {
 					"Any": "Qualsiasi",
@@ -1176,6 +1267,7 @@
 			"PurposeId": "Purpose ID",
 			"referente": "Referente",
 			"referente_self": "Sono il referente dell'adesione",
+			"referente_self_servizio": "Sono il referente del servizio",
 			"referente_tecnico": "Referente tecnico",
 			"ReferenteTecnico": "Referente tecnico",
 			"ReportTimeInterval": "Unità di tempo",
@@ -1196,7 +1288,7 @@
 			"SearchType": "Tipo ricerca",
 			"ServerURL": "Server URL",
 			"ServiceId": "Identificativo",
-			"ServiceID": "ID Servizio",
+			"ServiceID": "ID e-service",
 			"ServiceName": "Nome Servizio",
 			"Services": "Elenco Servizi",
 			"Servizio": "Servizio",
@@ -1280,6 +1372,10 @@
 			"Type": "Tipo",
 			"Url": "Url",
 			"url_collaudo": "Base Url interna (Collaudo)",
+			"rate_limiting": {
+				"quota_totale": "Rate limiting: quota totale",
+				"quota_fruitore": "Rate limiting: quota massima per aderente"
+			},
 			"url_esposizione": "Url esposizione",
 			"url_produzione": "Base Url interna (Produzione)",
 			"url_redirezione": "Url redirezione",
@@ -1304,7 +1400,9 @@
 			"VoucherLifespan": "Durata della validità del voucher (secondi)",
 			"Warning": "Warning",
 			"X-Forwarded-For": "X-Forwarded-For",
-			"Yes": "Si"
+			"Yes": "Si",
+			"RuoloNonValido": "Ruolo non valido",
+			"ShowHelp": "Mostra l'aiuto"
 		},
 		"LABEL_HELP": {
 			"ClientAuthForm": {
@@ -1351,11 +1449,13 @@
 				"tags": "Parole chiave per categorizzare il servizio e agevolarne la ricerca. Premi Invio per aggiungere ogni tag.",
 				"termini_ricerca": "Termini aggiuntivi (sinonimi, acronimi) separati da virgola, es. «anagrafe, ANPR»: migliorano la ricerca del servizio e non compaiono nella scheda.",
 				"fruizione": "Il servizio è erogato in intermediazione da un ente della tua organizzazione: andranno indicati l'ente e il soggetto erogatore.",
+				"fruizione_interna": "Il servizio è implementato all'interno della tua organizzazione.",
+				"fruizione_esterna": "Il servizio è implementato da un'organizzazione esterna. La tua organizzazione lo rende disponibile ai propri aderenti, agendo da intermediario.",
 				"package": "Raggruppa più servizi (componenti) in un unico servizio a cui aderire; un package non ha API proprie.",
 				"skip_collaudo": "Il servizio passa direttamente in produzione: la fase di collaudo viene saltata.",
 				"adesione_disabilitata": "Il servizio resta consultabile nel catalogo ma non è possibile richiederne l'adesione.",
 				"multi_adesione": "Consente allo stesso soggetto aderente di avere più adesioni al servizio.",
-				"note": "Note interne sul servizio, visibili ai referenti; non compaiono nella scheda pubblica del catalogo."
+				"note": "Note interne sul servizio, visibili ai referenti. Nella scheda del catalogo possono essere mostrate agli utenti con i ruoli abilitati dalla configurazione."
 			},
 			"SETTINGS": {
 				"servizi_view": "Scegli la modalità di visualizzazione di default della lista dei servizi."
@@ -1376,6 +1476,7 @@
 		"MENU": {
 			"AddService": "Aggiungi servizio",
 			"ApiDescriptor": "Descrittore API",
+			"Audit": "Audit",
 			"BackView": "Esci da gestione",
 			"BackViewWizard": "Esci da configura",
 			"ChangeStatus": "Cambia stato in \"{{status}}\"",
@@ -1467,10 +1568,26 @@
 			"ERROR": {
 				"ADE": {
 					"400": {
+						"MONITORING": {
+							"CLIENT": {
+								"ASSENTE": "Nessun client dell'adesione [{{idAdesione}}] per l'API [{{nomeApi}} v{{versioneApi}}] in {{ambiente}}: impossibile filtrare il monitoraggio per adesione",
+								"MULTIPLI": "L'adesione [{{idAdesione}}] ha più client per l'API [{{nomeApi}} v{{versioneApi}}] in {{ambiente}} ({{applicativi}}): il monitoraggio per adesione supporta un solo applicativo"
+							}
+						},
 						"STATE": {
 							"DEFAULT": "Stato adesione [{{stato}}] non valido per questa operazione",
 							"MONITORING": "Stato adesione [{{idAdesione}}] non valido [{{stato}}] per il monitoraggio",
 							"SERVICE": "Lo stato del servizio [{{servizio}}] non consente adesioni"
+						},
+						"RATE": {
+							"LIMITING": {
+								"API": "API [{{idApi}}] non prevista per il rate limiting: deve essere un'API del servizio erogata dal soggetto del dominio",
+								"PERIODO": "Il servizio non prevede un rate limiting per periodo [{{periodo}}] sull'API [{{nome}} v{{versione}}] in {{ambiente}}",
+								"DUPLICATE": "Quota per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}] indicata più volte",
+								"QUOTA": {
+									"FRUITORE": "La quota [{{quota}}] supera la quota aderente [{{quotaFruitore}}] prevista dal servizio per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}]"
+								}
+							}
 						}
 					},
 					"403": {
@@ -1488,7 +1605,15 @@
 						"STATE": {
 							"DEFAULT": "Impossibile modificare adesione nello stato corrente",
 							"SKIP": {
-								"COLLAUDO": "Skip collaudo non consentito dal servizio [{{nomeServizio}} v{{versioneServizio}}]"
+								"COLLAUDO": {
+									"DEFAULT": "Skip collaudo non consentito: il dominio [{{nomeDominio}}] del servizio [{{nomeServizio}} v{{versioneServizio}}] non consente di saltare il collaudo",
+									"REQUIRED": "Skip collaudo obbligatorio: il servizio [{{nomeServizio}} v{{versioneServizio}}] non prevede il collaudo"
+								}
+							},
+							"SERVICE": {
+								"NOT": {
+									"PRODUCTION": "Il servizio [{{nomeServizio}} v{{versioneServizio}}] non è ancora pubblicato in produzione"
+								}
 							},
 							"DISABLED": "Adesione disabilitata per il servizio [{{servizio}}]",
 							"VISIBILITY": "Visibilità del servizio [{{servizio}}] non consente adesioni dirette",
@@ -1506,6 +1631,24 @@
 							"EROGATIONS": "API [{{nome}} v{{versione}}] ha [{{count}}] erogazioni attive, non eliminabile"
 						},
 						"SPEC": "Specifica non presente",
+						"RATE": {
+							"LIMITING": {
+								"DUPLICATE": "Periodo [{{periodo}}] indicato più volte nel rate limiting di {{ambiente}}",
+								"RUOLO": "Il rate limiting è previsto solo per le API erogate dal soggetto del dominio: API [{{nome}} v{{versione}}]",
+								"PERIODO": "Periodo [{{periodo}}] non ammesso dai profili dell'API [{{nome}} v{{versione}}]",
+								"QUOTA": {
+									"NON": {
+										"PREVISTA": "La quota [{{quota}}] non è prevista dai profili dell'API [{{nome}} v{{versione}}]"
+									},
+									"ASSENTE": "Per il periodo [{{periodo}}] di {{ambiente}} va indicata almeno una fra quota totale e quota aderente",
+									"FRUITORE": {
+										"SUPERIORE": "La quota aderente del periodo [{{periodo}}] di {{ambiente}} non può superare la quota totale",
+										"ASSEGNATE": "Impossibile portare la quota aderente del periodo [{{periodo}}] di {{ambiente}} a {{quotaFruitore}}: [{{numeroAdesioni}}] adesioni hanno una quota assegnata superiore"
+									}
+								},
+								"FRUITORI": "Impossibile rimuovere il rate limiting per periodo [{{periodo}}] di {{ambiente}}: [{{numeroAdesioni}}] adesioni hanno una quota assegnata per quel periodo"
+							}
+						},
 						"URL": {
 							"DUPLICATE": "URL di invocazione [{{identificativo}}] indicata più volte sulla stessa specifica",
 							"NOT": {
@@ -1543,7 +1686,7 @@
 						"ORG": {
 							"ADHESION": "Organizzazione [{{nomeOrganizzazione}}] non corrisponde per l'adesione",
 							"MISMATCH": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] associato all'organizzazione [{{userOrgNome}}]",
-							"MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione",
+							"MISSING": "L'utente [{{nomeUtente}} {{cognomeUtente}}] non è associato all'organizzazione [{{orgNome}}] e non può esserne referente",
 							"NOT": {
 								"ADERENTE": "L'organizzazione [{{nomeOrganizzazione}}] non è abilitata come aderente",
 								"REFERENTE": "L'organizzazione [{{nomeOrganizzazione}}] non è abilitata come referente di servizi"
@@ -1554,7 +1697,14 @@
 								"ELIGIBLE": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato come referente"
 							},
 							"NO": {
-								"ROLE": "Utente [{{userIdUtente}}] senza un ruolo sufficiente nell'organizzazione [{{orgNome}}]: è richiesto almeno il ruolo Operatore API"
+								"ROLE": "L'utente [{{nomeUtente}} {{cognomeUtente}}] non ha nell'organizzazione [{{orgNome}}] almeno il ruolo di Operatore API e non può esserne referente"
+							}
+						},
+						"RATE": {
+							"LIMITING": {
+								"RUOLI": {
+									"ABILITATI": "Non hai un ruolo abilitato alla modifica della [{{quota}}] del rate limiting"
+								}
 							}
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
@@ -1646,6 +1796,7 @@
 				},
 				"Default": "Si è verificato un problema non previsto",
 				"DefaultHelp": "Si prega di riprovare più tardi",
+				"StatisticaNonDisponibile": "La statistica scelta non è disponibile per questo servizio",
 				"DOC": {
 					"400": {
 						"FORMAT": "Formato documento non supportato",
@@ -1687,7 +1838,7 @@
 						},
 						"REQUEST": "Richiesta non valida",
 						"SKIP": {
-							"COLLAUDO": "Skip collaudo vincolato dall'entità padre"
+							"COLLAUDO": "Skip collaudo non modificabile: vincolato dalle entità collegate"
 						}
 					},
 					"404": "Risorsa [{{risorsa}}] non trovata",
@@ -1733,16 +1884,34 @@
 				},
 				"MON": {
 					"400": {
+						"API": {
+							"AMBIENTE": "L'API [{{nomeApi}} v{{versioneApi}}] non è configurata nell'ambiente [{{ambiente}}]"
+						},
 						"ALARM": {
 							"CONFIG": "Configurazione allarme non valida: {{dettagli}}"
 						},
-						"INTERVAL": "Intervallo temporale [{{inizio}} - {{fine}}] non valido"
+						"AUDIT": {
+							"API": "L'API [{{nomeApi}} v{{versioneApi}}] non è abilitata al monitoraggio di audit nell'ambiente [{{ambiente}}]",
+							"ID": {
+								"API": "Per consultare le informazioni di audit è necessario indicare l'API"
+							}
+						},
+						"INTERVAL": "Intervallo temporale [{{inizio}} - {{fine}}] non valido",
+						"SOGGETTO": "Il soggetto [{{soggetto}}] non è il soggetto referente del dominio del servizio monitorato"
+					},
+					"403": {
+						"DEFAULT": "Non hai un ruolo abilitato al monitoraggio del servizio",
+						"TRANSAZIONE": "Non hai un ruolo abilitato al monitoraggio del servizio della transazione [{{idTransazione}}]"
+					},
+					"409": {
+						"GOVWAY": "GovWay ha rifiutato la richiesta di monitoraggio per il soggetto [{{soggetto}}] con profilo [{{profilo}}]: {{dettaglio}}. Verificare che il soggetto sia configurato in GovWay con lo stesso nome e per lo stesso profilo di interoperabilità usato da GovCat"
 					},
 					"404": {
 						"DEFAULT": "Dati di monitoraggio non disponibili per il servizio [{{servizio}}]",
 						"ALARM": "Allarme [{{idAllarme}}] non trovato",
+						"AUDIT": "Il monitoraggio di audit non è abilitato",
 						"METRIC": "Metrica [{{metrica}}] non trovata",
-						"STATS": "Statistiche non disponibili per il periodo [{{periodo}}]"
+						"STATS": "Monitoraggio non disponibile ({{tipo}}): la funzionalità o il tipo di report richiesto non è abilitato"
 					}
 				},
 				"NoAddCategorie": "Non è stato possibile aggiungere la categoria.",
@@ -1773,7 +1942,10 @@
 						"DEFAULT": "Organizzazione [{{nome}}] già esistente",
 						"ADERENTE": "Soggetto aderente vincolato, impossibile modificare",
 						"REFERENT": "Referente [{{nomeUtente}} {{cognomeUtente}}] di tipo [{{tipoReferente}}] già presente per il dominio [{{nomeDominio}}]",
-						"USER": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già associato all'organizzazione [{{nomeOrganizzazione}}]"
+						"USER": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già associato all'organizzazione [{{nomeOrganizzazione}}]",
+						"UTENTE": {
+							"REFERENTE": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è referente nell'organizzazione [{{nomeOrganizzazione}}] di {{numeroServizi}} servizi, {{numeroDomini}} domini e {{numeroAdesioni}} adesioni: senza il ruolo di Operatore API o di Amministratore non sarà più un referente valido. Confermare l'operazione per procedere comunque"
+						}
 					}
 				},
 				"PRF": {
@@ -1860,7 +2032,8 @@
 							"DEFAULT": "Soggetto [{{nome}}] è il soggetto default dell'organizzazione"
 						},
 						"NOT": {
-							"ADERENTE": "Soggetto [{{nomeSoggetto}}] non è aderente"
+							"ADERENTE": "Soggetto [{{nomeSoggetto}}] non è aderente",
+							"REFERENTE": "Soggetto [{{nomeSoggetto}}] non è referente"
 						},
 						"ORG": {
 							"MISMATCH": "Soggetto [{{nomeSoggetto}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]"
@@ -1898,10 +2071,15 @@
 							"ADESIONE": "Il servizio deve essere multi adesione perché il dominio [{{dominio}}] è multi adesione"
 						},
 						"NOT": {
-							"DELETABLE": "Il servizio non è eliminabile",
+							"DELETABLE": {
+								"DEFAULT": "Il servizio non è eliminabile",
+								"ADESIONI": "Il servizio non è eliminabile perché ha adesioni: per non renderlo più disponibile archivialo. Le API di un servizio archiviato non occupano nome e versione e possono essere riusate in un nuovo servizio",
+								"API": "Il servizio non è eliminabile perché ha API: elimina prima le API del servizio",
+								"PACKAGE": "Il package non è eliminabile perché contiene servizi: rimuovi prima i servizi dal package"
+							},
 							"REGISTERED": "Utente non registrato, impossibile recuperare servizi in attesa"
 						},
-						"VISIBILITY": ""
+						"VISIBILITY": "Visibilità [{{visibilita}}] non consentita per i servizi"
 					},
 					"403": {
 						"ADD": {
@@ -1927,10 +2105,10 @@
 				},
 				"SYS": {
 					"500": {
-						"DEFAULT": "Errore interno del sistema: {{dettagli}}",
-						"CONFIG": "Configurazione sistema non valida: {{dettagli}}",
-						"DB": "Errore di accesso al database: {{dettagli}}",
-						"IO": "Errore di I/O: {{dettagli}}"
+						"DEFAULT": "Errore interno del sistema (identificativo: {{idErrore}})",
+						"CONFIG": "Configurazione del sistema non valida (identificativo: {{idErrore}})",
+						"DB": "Errore di accesso al database (identificativo: {{idErrore}})",
+						"IO": "Errore di I/O (identificativo: {{idErrore}})"
 					},
 					"501": "Operazione [{{operazione}}] non supportata",
 					"503": "Risorsa [{{risorsa}}] temporaneamente non disponibile"
@@ -2033,7 +2211,21 @@
 						"PATTERN": "Pattern [{{pattern}}] non rispettato per il campo [{{campo}}]",
 						"PIVA": "Partita IVA [{{partitaIva}}] non valida",
 						"PROFILE": "Profilo [{{profilo}}] non presente nella configurazione",
+						"PROFILO": {
+							"COMPATIBILITA": "Profilo [{{profilo}}] compatibile solo con API [{{compatibilita}}]",
+							"DOMINIO": "Profilo [{{profilo}}] non ammesso nel dominio [{{dominio}}]",
+							"GOVWAY": "Profilo di interoperabilità GovWay [{{valore}}] non valido: valori ammessi [{{valoriAmmessi}}]",
+							"SOGGETTO": "Profilo [{{profilo}}] non ammesso per il soggetto [{{soggetto}}] referente del dominio [{{dominio}}]",
+							"TIPO": {
+								"DOMINIO": "Profilo [{{profilo}}] ammesso solo per il tipo di dominio [{{tipoDominio}}]"
+							}
+						},
 						"RANGE": "Valore [{{valore}}] fuori dal range consentito [{{min}} - {{max}}]",
+						"RATE": {
+							"LIMITING": {
+								"QUOTA": "Quota di rate limiting [{{quota}}] non valida: deve essere un numero intero maggiore di zero"
+							}
+						},
 						"REQUIRED": "Campo obbligatorio [{{campo}}] mancante",
 						"URL": "URL [{{url}}] non valido"
 					},
@@ -2050,8 +2242,8 @@
 						},
 						"COMPLEX": "Update entità complessa non valida semanticamente",
 						"DEFAULT": "Richiesta non valida semanticamente",
-						"SKIP": {
-							"COLLAUDO": "Skip collaudo non consentito per il servizio [{{servizio}}]"
+						"REFERENTI": {
+							"ORGANIZZAZIONE": "I referenti [{{referenti}}] non sono associati all'organizzazione [{{orgNome}}] con almeno il ruolo di Operatore API: sostituirli o assegnare loro il ruolo prima di spostare la risorsa nell'organizzazione"
 						}
 					}
 				},
@@ -2059,17 +2251,19 @@
 					"404": "Workflow [{{idWorkflow}}] non trovato",
 					"400": {
 						"DATA": {
-							"MISSING": "",
-							"NOT": {
-								"MODIFIABLE": "Dati non modificabili nello stato corrente del workflow"
-							}
+							"MISSING": ""
 						},
 						"PROFILO": "Transizione di stato da [{{statoAttuale}}] a [{{statoDesiderato}}] non abilitata per i profili [{{profili}}] richiesti dal servizio",
 						"STATE": "Stato workflow [{{stato}}] non valido",
 						"TRANSITION": "Transizione di stato da [{{statoAttuale}}] a [{{statoDesiderato}}] non consentita"
 					},
 					"403": {
-						"ACTION": "Azione workflow [{{azione}}] non autorizzata per l'utente [{{utente}}]"
+						"ACTION": "Azione workflow [{{azione}}] non autorizzata per l'utente [{{utente}}]",
+						"DATA": {
+							"NOT": {
+								"MODIFIABLE": "Dati [{{dati}}] non modificabili dall'utente nello stato corrente del workflow"
+							}
+						}
 					}
 				}
 			},
@@ -2095,7 +2289,7 @@
 			"SkipCollaudoDominioDaSelezionare": "Seleziona il dominio: la possibilità di saltare il collaudo dipende dal dominio.",
 			"SkipCollaudoSoggettoNonConsente": "Non disponibile: il soggetto referente del dominio non consente di saltare il collaudo.",
 			"SkipCollaudoDominioNonConsente": "Non disponibile: il dominio del servizio non consente di saltare il collaudo.",
-			"SkipCollaudoVincolato": "Non disattivabile: esistono adesioni al servizio che saltano il collaudo.",
+			"SkipCollaudoVincolato": "Non attivabile: esistono adesioni al servizio che passano dal collaudo.",
 			"SkipCollaudoNonModificabile": "Modificabile solo con il servizio in bozza.",
 			"CollaudoNonDisponibileServizio": "Collaudo non disponibile: il servizio è pubblicato direttamente in produzione.",
 			"CollaudoNonDisponibileAdesione": "Collaudo non disponibile: l'adesione è richiesta direttamente in produzione.",
@@ -2103,6 +2297,8 @@
 			"NoApiHelp": "",
 			"NoData": "Le informazioni richieste non sono state trovate",
 			"NoDataHelp": "Controlla la tua connessione e riprova",
+			"ServizioNonDisponibile": "Servizio non disponibile per il tuo profilo",
+			"ServizioNonDisponibileHelp": "Il servizio non esiste più o non è visibile con le autorizzazioni della tua organizzazione",
 			"NoFilesSelected": "Nessun documento selezionato",
 			"NoItemsFound": "Nessun elemento trovato",
 			"NoOperations": "Nessuna operazione presente",
@@ -2177,7 +2373,8 @@
 				"MaxFileSize": "Dimensione massima consentita: {{size}} MB",
 				"OnlyImages": "Sono consentiti solo file di tipo: {{types}}",
 				"MaxDimensions": "Dimensioni massime consentite: {{width}}x{{height}} px"
-			}
+			},
+			"SkipCollaudoDominioVincolato": "Non disattivabile: servizi o adesioni del dominio saltano il collaudo."
 		},
 		"NOTIFICATIONS": {
 			"BUTTON": {
@@ -2345,8 +2542,10 @@
 				"CurrentLabel": "Organizzazione attuale",
 				"RequestSent": "Richiesta di cambio organizzazione inviata con successo",
 				"ApproveTitle": "Approva cambio organizzazione",
-				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? L'associazione esistente verrà sostituita con la nuova organizzazione.",
+				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? L'associazione con {{partenza}} verrà sostituita con {{destinazione}}.",
 				"ApproveWarningFirstOrg": "Confermi di voler approvare la richiesta di assegnazione organizzazione? L'utente verrà associato alla nuova organizzazione.",
+				"ApproveWarningAddOrg": "Confermi di voler approvare la richiesta di associazione a {{destinazione}}? Le associazioni esistenti dell'utente restano invariate.",
+				"ApproveTitleAdd": "Approva associazione all'organizzazione",
 				"ApproveButton": "Approva",
 				"CancelTitle": "Annulla richiesta",
 				"CancelWarning": "Confermi di voler annullare la richiesta di cambio organizzazione? L'operazione non potrà essere ripristinata.",
@@ -2495,6 +2694,8 @@
 			"referente_servizio": "Referente servizio",
 			"utente_organizzazione": "Utente organizzazione",
 			"amministratore_organizzazione": "Amministratore organizzazione",
+			"amministratore_organizzazione_aderente": "Amministratore organizzazione aderente",
+			"amministratore_organizzazione_erogatrice": "Amministratore organizzazione erogatrice",
 			"operatore_api": "Operatore API",
 			"referente_tecnico": "Referente tecnico",
 			"referente_tecnico_adesione": "Referente tecnico adesione",
@@ -2506,13 +2707,75 @@
 		},
 		"SEARCH": {
 			"ClearRecentSearches": "Cancella le ricerche recenti",
+			"SearchFilters": "Ricerca e filtri",
 			"NoRecentSearches": "Non hai ricerche recenti",
 			"RecentSearches": "Ricerche recenti",
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"NOTA_VETRINA": {
+				"Titolo": "Nota sul servizio",
+				"Mostra": "Mostra la nota sul servizio"
+			},
 			"PDND_PENDING": "Azioni PDND in attesa: {{count}}",
 			"PDND_PENDING_LOADING": "Conteggio delle azioni PDND in attesa in corso",
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting",
+				"Descrizione": "Quote complessive delle API in questo ambiente e quote richieste dagli aderenti. Il superamento della quota è segnalato ma non bloccato.",
+				"Assegnata": "Assegnata",
+				"Residua": "Residua",
+				"Fruitori": "Aderenti",
+				"Superata": "La somma delle quote degli aderenti supera la quota complessiva",
+				"QuoteFruitori": "Quote degli aderenti",
+				"AltriFruitori": "Altri aderenti",
+				"Fruitore": "Aderente",
+				"NessunFruitore": "Nessun aderente in questo ambiente.",
+				"NessunAltroFruitore": "Nessun altro aderente in questo ambiente.",
+				"ModificaQuote": "Modifica le quote di",
+				"CaricaAltri": "Carica altri aderenti",
+				"NessunaApi": "Nessuna API con rate limiting in questo ambiente.",
+				"Api": "API del servizio",
+				"FiltraFruitori": "Filtra per aderente o id logico",
+				"NessunRisultato": "Nessun aderente corrisponde al filtro.",
+				"QuestaAdesione": "Questa adesione",
+				"StatoFruitori": "Stato di autorizzazione",
+				"Autorizzata": "Autorizzata",
+				"InAttesa": "In attesa",
+				"STATO": {
+					"tutte": "Tutte",
+					"autorizzate": "Autorizzate",
+					"attesa": "In attesa"
+				},
+				"MassimoFruitore": "Max per aderente",
+				"FINALITA": {
+					"Titolo": "Finalità PDND",
+					"Descrizione": "Quota giornaliera delle finalità PDND indicate dalle adesioni autorizzate, confrontata con le quote giornaliere degli aderenti",
+					"Finalita": "Finalità",
+					"QuotaFinalita": "Quota della finalità",
+					"QuotaAssegnata": "Assegnata agli aderenti",
+					"QuotaRichiesta": "Quota giornaliera dell'aderente",
+					"QuotaInAttesa": "Aumento in attesa di approvazione",
+					"Adesioni": "Adesioni",
+					"Condivisa": "Condivisa da {{numero}} adesioni",
+					"Superata": "Le quote degli aderenti superano la quota della finalità",
+					"StatoNonAttivo": "Finalità non attiva sulla PDND",
+					"Nessuna": "Nessuna finalità indicata dalle adesioni autorizzate.",
+					"SoloAvviso": "Solo un avviso: nessun salvataggio viene bloccato.",
+					"ChipErrore": "Oltre la finalità PDND",
+					"ESITO": {
+						"conforme": "Conforme alla finalità",
+						"inferiore": "Inferiore alla quota della finalità",
+						"superiore": "Superiore alla quota della finalità",
+						"quota_assente": "Nessuna quota giornaliera indicata",
+						"non_verificabile": "Finalità non verificabile"
+					},
+					"ERRORE": {
+						"non_valida": "Identificativo della finalità non valido",
+						"non_trovata": "Finalità non trovata sulla PDND",
+						"non_disponibile": "PDND non raggiungibile: finalità non letta"
+					}
+				}
+			},
 			"ATTACHMENTS": {
 				"Title": "Allegati",
 				"ApiMenu": "Allegati dell'API",
@@ -2529,6 +2792,12 @@
 			"API_EROGATE_ADERENTE": {
 				"true": "Con API erogate dall'aderente",
 				"false": "Senza API erogate dall'aderente"
+			},
+			"INTERMEDIAZIONE": {
+				"Label": "Implementato da",
+				"Interna": "La tua organizzazione ({{organizzazione}})",
+				"InternaSenzaNome": "La tua organizzazione",
+				"Esterna": "Organizzazione esterna (servizio intermediato)"
 			},
 			"ARCHIVED": {
 				"escludi": "Escludi",
@@ -2650,7 +2919,8 @@
 			"BUTTON": {
 				"AddAttachment": "Aggiungi allegato",
 				"AddAttachment-generico": "Aggiungi allegato generico",
-				"AddAttachment-specifica": "Aggiungi allegato specifica"
+				"AddAttachment-specifica": "Aggiungi allegato specifica",
+				"SpostaComunque": "Sposta comunque"
 			},
 			"FILTER": {
 				"All": "Tutti",
@@ -3020,6 +3290,7 @@
 		"TITLE": {
 			"AddGroup": "Aggiungi gruppo",
 			"About": "Informazioni",
+			"Audit": "Audit",
 			"AddApi": "Aggiungi API",
 			"AddAttachment": "Aggiungi allegato",
 			"AddAttachments": "Aggiungi allegati",
@@ -3249,6 +3520,7 @@
 			"RemoveReferent": "Rimuovi referente",
 			"ReturnCodeHttp": "Return Code Http",
 			"richiedente_anonimo": "Richiedente anonimo",
+			"UtenteAudit": "Utente dell'audit",
 			"RichiestaAnonima": "Richiesta anonima",
 			"ScheduledExpeditionDate": "Data di spedizione pianificata",
 			"Select": "Seleziona",
@@ -3269,7 +3541,10 @@
 				"cambio_stato": "Cambio stato",
 				"comunicazione": "Comunicazione"
 			},
-			"Version": "Versione"
+			"Version": "Versione",
+			"RuoloNonValido": "Non ha più un ruolo valido nell'organizzazione: va sostituito",
+			"ServizioNonEliminabile": "Il servizio non è eliminabile finché ha API o adesioni. Se ha adesioni archivialo: le API di un servizio archiviato possono essere riusate in un nuovo servizio",
+			"PackageNonEliminabile": "Il package non è eliminabile finché contiene servizi o ha adesioni. Se ha adesioni archivialo"
 		},
 		"TRANSACTIONS": {
 			"FILTER": {
@@ -3286,6 +3561,7 @@
 			},
 			"TABS": {
 				"DettaglioMessaggio": "Dettaglio messaggio",
+				"InformazioniAudit": "Informazioni audit",
 				"InformazioniGenerali": "Informazioni generali",
 				"InformazioniMittente": "Informazioni mittente"
 			},
@@ -3318,7 +3594,9 @@
 			},
 			"ORGANIZZAZIONI": {
 				"Title": "Organizzazioni",
-				"HelpText": "Le associazioni con le organizzazioni vengono gestite dal dettaglio della singola organizzazione, nella sezione \"Utenti dell'organizzazione\"."
+				"HelpText": "Le associazioni con le organizzazioni vengono gestite dal dettaglio della singola organizzazione, nella sezione \"Utenti dell'organizzazione\".",
+				"HelpTextConRichiesta": "Le associazioni approvate vengono gestite dal dettaglio della singola organizzazione, nella sezione \"Utenti dell'organizzazione\". La richiesta in attesa non compare lì: si approva o si rifiuta da questa pagina.",
+				"HelpTextSoloRichiesta": "L'utente non compare ancora tra gli utenti dell'organizzazione richiesta: la richiesta si approva o si rifiuta da questa pagina."
 			},
 			"LABEL": {
 				"Cognome": "Cognome",
@@ -3479,6 +3757,8 @@
 					"bozza": "Ritorna in stato di bozza",
 					"in_configurazione_automatica_collaudo": "Ritorna in configurazione automatica collaudo",
 					"in_configurazione_automatica_produzione": "Ritorna in configurazione automatica produzione",
+					"in_configurazione_manuale_produzione_senza_collaudo": "Ritorna in configurazione manuale produzione senza collaudo",
+					"in_configurazione_automatica_produzione_senza_collaudo": "Ritorna in configurazione automatica produzione senza collaudo",
 					"in_configurazione_collaudo": "Ritorna in stato configurazione in collaudo",
 					"in_configurazione_manuale_collaudo": "Ritorna in configurazione manuale collaudo",
 					"in_configurazione_manuale_produzione": "Ritorna in configurazione manuale produzione",
@@ -3495,6 +3775,8 @@
 				"cambia_stato": "Cambia stato",
 				"in_configurazione_automatica_collaudo": "In configurazione automatica collaudo",
 				"in_configurazione_automatica_produzione": "In configurazione automatica produzione",
+				"in_configurazione_manuale_produzione_senza_collaudo": "In configurazione manuale produzione senza collaudo",
+				"in_configurazione_automatica_produzione_senza_collaudo": "In configurazione automatica produzione senza collaudo",
 				"in_configurazione_collaudo": "Configura in collaudo",
 				"in_configurazione_manuale_collaudo": "In configurazione manuale collaudo",
 				"in_configurazione_manuale_produzione": "In configurazione manuale produzione",
@@ -3515,6 +3797,8 @@
 				"bozza": "Bozza",
 				"in_configurazione_automatica_collaudo": "Configurazione automatica",
 				"in_configurazione_automatica_produzione": "Configurazione automatica",
+				"in_configurazione_manuale_produzione_senza_collaudo": "Configurazione manuale (senza collaudo)",
+				"in_configurazione_automatica_produzione_senza_collaudo": "Configurazione automatica (senza collaudo)",
 				"in_configurazione_collaudo": "Configura",
 				"in_configurazione_manuale_collaudo": "Configurazione manuale",
 				"in_configurazione_manuale_produzione": "Configurazione manuale",
@@ -3531,7 +3815,8 @@
 				"AreYouSure": "Vuoi confermare il cambio di stato in '**{{next}}**'?",
 				"AreYouSureBulk": "**Stai per eseguire un'operazione massiva che non potrà essere annullata.**\n\nVuoi confermare il cambio di stato in '**{{next}}**' di '**{{count}}**' adesioni?",
 				"ChangeStatusError": "Errore nel cambio di stato [{{status}}]",
-				"ChangeStatusSuccess": "Cambio di stato effettuato con successo [{{status}}]"
+				"ChangeStatusSuccess": "Cambio di stato effettuato con successo [{{status}}]",
+				"ArchiviazioneApiRiusabili": "Una volta archiviato, nome e versione delle API del servizio tornano disponibili per altri servizi dello stesso dominio: il servizio potrà tornare allo stato precedente solo se nessuno le avrà riusate."
 			},
 			"RIFIUTO": {
 				"Rifiuta": "Rifiuta",
@@ -3539,9 +3824,19 @@
 				"Descrizione": "Lo stato torna a \"{{stato}}\" e i referenti ricevono una comunicazione con il motivo.",
 				"Oggetto": "Oggetto",
 				"Motivo": "Motivo del rifiuto",
+				"PrefissoCollaudo": "Autorizzazione in collaudo rifiutata per il seguente motivo: ",
+				"PrefissoProduzione": "Autorizzazione in produzione rifiutata per il seguente motivo: ",
 				"Conferma": "Conferma rifiuto",
 				"OggettoDefault": "{{nome}}: richiesta rifiutata ({{stato}})",
 				"Successo": "Richiesta rifiutata: lo stato è tornato a \"{{stato}}\" e la comunicazione è stata inviata ai referenti."
+			},
+			"STORICO": {
+				"A": "a",
+				"Creazione": "Creazione",
+				"Da": "da",
+				"Nessuno": "Nessun cambio di stato registrato.",
+				"Titolo": "Storico degli stati",
+				"Voce": "Storico degli stati"
 			},
 			"STATUS": {
 				"PROCESSING": "In elaborazione",
@@ -3561,6 +3856,8 @@
 				"configurato": "Configurato",
 				"in_configurazione_automatica_collaudo": "In configurazione automatica collaudo",
 				"in_configurazione_automatica_produzione": "In configurazione automatica produzione",
+				"in_configurazione_manuale_produzione_senza_collaudo": "In configurazione manuale produzione senza collaudo",
+				"in_configurazione_automatica_produzione_senza_collaudo": "In configurazione automatica produzione senza collaudo",
 				"in_configurazione_collaudo": "In configurazione in collaudo",
 				"in_configurazione_manuale_collaudo": "In configurazione manuale collaudo",
 				"in_configurazione_manuale_produzione": "In configurazione manuale produzione",

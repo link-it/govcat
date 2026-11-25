@@ -319,14 +319,17 @@ export class UtilService {
     );
   }
 
-  __confirmCambioStatoServizio(status: any, servizio: any, callback: (status: any, data: any) => void) {
+  /** `avvisoApiArchiviate`: per i servizi, archiviando si avvisa che le API tornano riusabili. */
+  __confirmCambioStatoServizio(status: any, servizio: any, callback: (status: any, data: any) => void, avvisoApiArchiviate: boolean = false) {
     const _newStatus = status.status?.stato_successivo?.nome || status.status.nome
     const _newStatusTransl = this.translate.instant(`APP.WORKFLOW.STATUS.${_newStatus}`);
+    const _messages: string[] = [this.translate.instant('APP.WORKFLOW.MESSAGE.AreYouSure', { next: _newStatusTransl })];
+    if (avvisoApiArchiviate && _newStatus === 'archiviato') {
+      _messages.push(this.translate.instant('APP.WORKFLOW.MESSAGE.ArchiviazioneApiRiusabili'));
+    }
     const initialState = {
       title: this.translate.instant('APP.TITLE.Attention'),
-      messages: [
-        this.translate.instant('APP.WORKFLOW.MESSAGE.AreYouSure', { next: _newStatusTransl })
-      ],
+      messages: _messages,
       cancelText: this.translate.instant('APP.BUTTON.Cancel'),
       confirmText: this.translate.instant('APP.BUTTON.Confirm'),
       confirmColor: 'danger'

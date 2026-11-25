@@ -384,13 +384,17 @@ export class Tools {
     let _msg = '';
     const _msgA: string[] = [];
     try {
-      if (error.error && error.error.errori) {
-        error.error.errori.forEach((item: any) => {
+      const _conCampi = (error.error?.errori || []).filter((item: any) => Array.isArray(item?.campi) && item.campi.length);
+      if (_conCampi.length) {
+        _conCampi.forEach((item: any) => {
           item.campi.forEach((field: any) => {
             _msgA.push(`${item.dato} - ${field}`);
           });
         });
         _msg = _msgA.join(' - ');
+      } else if (error.error?.detail) {
+        // Errore senza dati da completare (es. API.409): codice del BE tradotto
+        _msg = Tools.GetErrorMsg(error);
       } else {
         _msg = error.message;
       }
@@ -431,10 +435,11 @@ export class Tools {
    * serializzati con `links: []` di default: un errore "vuoto" non e`
    * piu` `{}` ma `{ links: [] }`. Senza questo filtro la UI mostrerebbe
    * un errore complesso privo di messaggio invece di ricadere
-   * sull'errore semplice (traduzione del `detail`).
+   * sull'errore semplice (traduzione del `detail`). Anche una entry con i soli
+   * `params` (es. API.409) e` un errore semplice: i parametri servono al messaggio.
    */
   public static filtraErroriComplessi(errori: any): any[] {
-    return (errori || []).filter((e: any) => Object.keys(e || {}).some((k: string) => k !== 'links'));
+    return (errori || []).filter((e: any) => Object.keys(e || {}).some((k: string) => k !== 'links' && k !== 'params'));
   }
 
   private static _translateBeErrorKey(detail: any, parameters?: any): string | null {
@@ -443,7 +448,12 @@ export class Tools {
     const key = `APP.MESSAGE.ERROR.${detail}`;
     try {
       const t = this.translate?.instant(key, parameters || {});
-      if (t && t !== key) { return t; }
+      if (typeof t === 'string' && t !== key) { return t; }
+      // Codice con piu` varianti (es. SRV.404): si usa la voce DEFAULT
+      if (t && typeof t === 'object') {
+        const d = this.translate?.instant(`${key}.DEFAULT`, parameters || {});
+        if (typeof d === 'string' && d !== `${key}.DEFAULT`) { return d; }
+      }
     } catch { /* ignore */ }
     return null;
   }

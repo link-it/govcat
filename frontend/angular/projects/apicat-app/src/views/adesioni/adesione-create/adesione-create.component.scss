@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   .create-subtitle {
     font-size: 13.5px;
     line-height: 1.5;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     max-width: 70ch;
   }
 
@@ -52,7 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     justify-content: center;
     border-radius: 8px;
     background: var(--surface, #fff);
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     border: 1px solid var(--line-strong, #c4d6e0);
     cursor: pointer;
     transition: all .12s;
@@ -102,7 +102,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     font-size: 12px;
     font-weight: 600;
     background: var(--surface-3, #eef4f8);
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     border: 1px solid var(--line-strong, #c4d6e0);
   }
 
@@ -115,7 +115,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     font-weight: 600;
     // --ink-3 (4.97:1) invece di --ink-4 (2.60:1): il tag e` testo piccolo
     // uppercase, deve rispettare il contrasto AA 4.5:1.
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
   }
 
   .ps-title {
@@ -128,7 +128,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   .ps-desc {
     font-size: 12.5px;
     line-height: 1.5;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     margin: 0;
   }
 
@@ -170,7 +170,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
   .create-mandatory-hint {
     font-size: 12.5px;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     display: inline-flex;
     align-items: center;
   }

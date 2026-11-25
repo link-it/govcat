@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Files;
@@ -42,9 +43,23 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.APICreate;
+import org.govway.catalogo.servlets.model.ApiUpdate;
+import org.govway.catalogo.servlets.model.APIDatiAmbienteUpdate;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingQuota;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingStatiAutorizzati;
+import org.govway.catalogo.servlets.model.ConfigurazioneAdesione;
+import org.govway.catalogo.servlets.model.ConfigurazioneAdesioneRateLimiting;
+import org.govway.catalogo.servlets.model.ConfigurazioneApi;
+import org.govway.catalogo.servlets.model.ConfigurazioneServizio;
+import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
+import org.govway.catalogo.services.RateLimitingRegole;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloRateLimiting;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Adesione;
@@ -68,11 +83,30 @@ import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.FiltroArchiviatiEnum;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.ItemRateLimitingFruitore;
+import org.govway.catalogo.servlets.model.PagedModelItemRateLimitingFruitore;
+import org.govway.catalogo.servlets.model.RateLimitingAdesione;
+import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
+import org.govway.catalogo.servlets.model.RateLimitingApi;
+import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
+import org.govway.catalogo.servlets.model.RateLimitingRiepilogo;
+import org.govway.catalogo.servlets.model.RateLimitingServizio;
+import org.govway.catalogo.servlets.model.RateLimitingServizioApi;
 import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingFinalita;
+import org.govway.catalogo.servlets.model.ConfigurazioneRiferimentoProprietaCustom;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprieta;
+import org.govway.catalogo.servlets.model.RateLimitingAdesioneFinalita;
+import org.govway.catalogo.servlets.model.RateLimitingFinalita;
+import org.govway.catalogo.servlets.model.RateLimitingFinalitaErroreEnum;
+import org.govway.catalogo.servlets.model.RateLimitingFinalitaEsitoEnum;
+import org.govway.catalogo.pdnd.controllers.IPDNDClient;
+import org.govway.catalogo.services.RateLimitingFinalitaService;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Campo;
 import org.govway.catalogo.servlets.model.CheckDati;
@@ -97,6 +131,8 @@ import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
 import org.govway.catalogo.servlets.model.PagedModelComponente;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
+import org.govway.catalogo.servlets.model.ItemStoricoStato;
+import org.govway.catalogo.servlets.model.PagedModelItemStoricoStato;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
@@ -105,6 +141,7 @@ import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
@@ -124,6 +161,8 @@ import org.govway.catalogo.servlets.model.TipoServizioGruppo;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneUpdate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
@@ -230,6 +269,9 @@ public class ServiziTest {
 
 	@Autowired
 	private DisclaimerService disclaimerService;
+
+	@Autowired
+	private AdesioniController adesioniController;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -670,7 +712,7 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         // la seconda aggiunta dello stesso utente con lo stesso tipo deve essere rifiutata
-        Exception exception = assertThrows(BadRequestException.class, () -> {
+        Exception exception = assertThrows(ConflictException.class, () -> {
             serviziController.createReferenteServizio(idServizio, null, referenteCreate);
         });
 
@@ -678,6 +720,83 @@ public class ServiziTest {
 
         ResponseEntity<PagedModelReferente> referenti = serviziController.listReferentiServizio(idServizio, null, null, 0, 10, null);
         assertEquals(2, referenti.getBody().getContent().size());
+    }
+
+    // Issue 457: l'autorizzazione precede il controllo di duplicazione. Chi non ha ruolo sul servizio
+    // riceve 403 anche se il referente e` gia` presente, non SRV.409.REFERENT
+    @Test
+    void testCreateReferenteServizioDuplicatoUtenteSenzaRuolo() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        // servizio pubblico e pubblicato: visibile all'utente senza ruolo, che arriva al controllo di autorizzazione
+        impostaServizio(idServizio, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO,
+                org.govway.catalogo.core.orm.entity.TipoServizio.API);
+        creaUtenteSenzaRuoli();
+
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteCreate.setIdUtente(ID_UTENTE_GESTORE);
+
+        CommonUtils.getSessionUtente(UTENTE_SENZA_RUOLI, securityContext, authentication, utenteService);
+
+        NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+            serviziController.createReferenteServizio(idServizio, null, referenteCreate);
+        });
+        assertEquals(ErrorCode.WFL_403_DATA_NOT_MODIFIABLE, e.getErrorCode());
+        assertNotNull(e.getParameters().get("dati"));
+    }
+
+    // Issue 457: il grant e` calcolato prima di aggiungere il referente, quindi chi non ha ruolo
+    // sul servizio non puo` diventarne referente aggiungendo se stesso
+    @Test
+    void testCreateReferenteServizioSeStessoUtenteSenzaRuolo() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        // servizio pubblico e pubblicato: visibile all'utente senza ruolo, che arriva al controllo di autorizzazione
+        impostaServizio(idServizio, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO,
+                org.govway.catalogo.core.orm.entity.TipoServizio.API);
+        creaUtenteSenzaRuoli();
+
+        CommonUtils.getSessionUtente(UTENTE_SENZA_RUOLI, securityContext, authentication, utenteService);
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_SENZA_RUOLI, utenteService);
+
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteCreate.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
+
+        NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+            serviziController.createReferenteServizio(idServizio, null, referenteCreate);
+        });
+        assertEquals(ErrorCode.WFL_403_DATA_NOT_MODIFIABLE, e.getErrorCode());
+    }
+
+    // Issue 457: referenti obbligatori per un servizio non package, con il campo indicato
+    @Test
+    void testCreateServizioSenzaReferenti() {
+        Dominio dominio = this.getDominio();
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdDominio(dominio.getIdDominio());
+        servizioCreate.setReferenti(null);
+
+        BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.createServizio(servizioCreate));
+        assertEquals(ErrorCode.VAL_400_REQUIRED, e.getErrorCode());
+        assertEquals("referenti", e.getParameters().get("campo"));
+    }
+
+    // Issue 457: chi non puo` creare servizi riceve 403 prima della validazione dei referenti
+    @Test
+    void testCreateServizioSenzaReferentiUtenteSenzaRuolo() {
+        Dominio dominio = this.getDominio();
+        creaUtenteSenzaRuoli();
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdDominio(dominio.getIdDominio());
+        servizioCreate.setReferenti(null);
+
+        CommonUtils.getSessionUtente(UTENTE_SENZA_RUOLI, securityContext, authentication, utenteService);
+
+        assertThrows(NotAuthorizedException.class, () -> serviziController.createServizio(servizioCreate));
     }
 
     @Test
@@ -1329,6 +1448,58 @@ public class ServiziTest {
         */
     }
 
+    /**
+     * Con check_only la transizione e` solo verificata: stato, storico e notifiche del servizio
+     * restano invariati, anche rileggendo l'entita` dal database (Issue 452).
+     */
+    @Test
+    void testUpdateStatoServizioCheckOnlyNonModifica() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        String statoIniziale = this.getStatoServizioDb(idServizio);
+        long statiIniziali = this.countDb("select count(s) from StatoServizioEntity s where s.servizio.idServizio = :id", idServizio);
+        long notificheIniziali = this.countDb("select count(n) from NotificaEntity n where n.servizio.idServizio = :id", idServizio);
+
+        // archiviazione: transizione che non richiede dati obbligatori sul servizio
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(STATO_ARCHIVIATO);
+
+        ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoUpdate, true);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(STATO_ARCHIVIATO, response.getBody().getStato());
+
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        assertEquals(statoIniziale, this.getStatoServizioDb(idServizio));
+        assertEquals(statoIniziale, serviziController.getServizio(idServizio).getBody().getStato());
+        assertEquals(statiIniziali, this.countDb("select count(s) from StatoServizioEntity s where s.servizio.idServizio = :id", idServizio));
+        assertEquals(notificheIniziali, this.countDb("select count(n) from NotificaEntity n where n.servizio.idServizio = :id", idServizio));
+
+        // la transizione verificata resta eseguibile
+        assertEquals(STATO_ARCHIVIATO, serviziController.updateStatoServizio(idServizio, statoUpdate, false).getBody().getStato());
+        this.entityManager.flush();
+        this.entityManager.clear();
+        assertEquals(STATO_ARCHIVIATO, this.getStatoServizioDb(idServizio));
+        assertEquals(statiIniziali + 1, this.countDb("select count(s) from StatoServizioEntity s where s.servizio.idServizio = :id", idServizio));
+    }
+
+    private String getStatoServizioDb(UUID idServizio) {
+        return this.entityManager.createQuery("select s.stato from ServizioEntity s where s.idServizio = :id", String.class)
+                .setParameter("id", idServizio.toString())
+                .getSingleResult();
+    }
+
+    private long countDb(String jpql, UUID id) {
+        return this.entityManager.createQuery(jpql, Long.class)
+                .setParameter("id", id.toString())
+                .getSingleResult();
+    }
+
     @Test
     void testUpdateStatoServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
@@ -1805,9 +1976,13 @@ public class ServiziTest {
     }
 
     private UUID creaServizio(String nome) {
+        return creaServizio(nome, true);
+    }
+
+    private UUID creaServizio(String nome, boolean skipCollaudo) {
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setNome(nome);
-        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setSkipCollaudo(skipCollaudo);
         servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
         servizioCreate.setIdDominio(this.idDominio);
 
@@ -2302,6 +2477,49 @@ public class ServiziTest {
         // Intermediato riflette il flag fruizione del servizio
         assertEquals("No", getColonnaCsv(csv, servizioErogazione, "Intermediato"));
         assertEquals("Sì", getColonnaCsv(csv, servizioFruizione, "Intermediato"));
+    }
+
+    @Test
+    void testExportServiziUrlInvocazionePerStato() throws Exception {
+        Dominio dominio = this.getDominio();
+
+        Servizio servizio = creaServizioConApi("servizio_export_url", dominio.getIdDominio(),
+                false, null, "api_export_url").servizio();
+
+        // stato -> {URL di collaudo attesa, URL di produzione attesa}
+        java.util.Map<String, boolean[]> attese = new java.util.LinkedHashMap<>();
+        attese.put("bozza", new boolean[] {true, false});
+        attese.put("richiesto_collaudo", new boolean[] {true, false});
+        attese.put("pubblicato_collaudo", new boolean[] {true, false});
+        attese.put("richiesto_produzione", new boolean[] {true, true});
+        attese.put("pubblicato_produzione", new boolean[] {true, true});
+        attese.put("richiesto_produzione_senza_collaudo", new boolean[] {false, true});
+        attese.put("pubblicato_produzione_senza_collaudo", new boolean[] {false, true});
+        // L'archiviazione non indica l'ambiente di provenienza: entrambe le URL restano esposte
+        attese.put("archiviato", new boolean[] {true, true});
+
+        for(java.util.Map.Entry<String, boolean[]> attesa: attese.entrySet()) {
+            String stato = attesa.getKey();
+            this.entityManager.createQuery("UPDATE ServizioEntity s SET s.stato = :stato WHERE s.idServizio = :id")
+                .setParameter("stato", stato)
+                .setParameter("id", servizio.getIdServizio().toString())
+                .executeUpdate();
+
+            entityManager.flush();
+            entityManager.clear();
+
+            ResponseEntity<Resource> response = serviziController.exportServizi(
+                null, null, null, null, null, null, FiltroArchiviatiEnum.INCLUDI, null, null, false, false, null, null, null, null, null
+            );
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+
+            String csv = new String(response.getBody().getContentAsByteArray());
+
+            String urlCollaudo = getColonnaCsv(csv, servizio, "URL Invocazione (Coll)");
+            String urlProduzione = getColonnaCsv(csv, servizio, "URL Invocazione (Prod)");
+            assertEquals(attesa.getValue()[0], !urlCollaudo.isEmpty(), "URL di collaudo nello stato " + stato + ": " + urlCollaudo);
+            assertEquals(attesa.getValue()[1], !urlProduzione.isEmpty(), "URL di produzione nello stato " + stato + ": " + urlProduzione);
+        }
     }
 
     private record ServizioConApi(Servizio servizio, API api) {}
@@ -3077,6 +3295,84 @@ public class ServiziTest {
 	    assertNotNull(response.getBody().getContent());
 	    assertTrue(response.getBody().getContent().size() > 0);
 	}
+
+	/**
+	 * Issue 423: storico dei cambi di stato dal piu` recente, con la creazione come ultimo elemento
+	 * (senza stato precedente). Lo stato precedente dell'ultimo cambio di una pagina e` ricavato anche
+	 * quando il cambio che lo precede sta nella pagina successiva.
+	 */
+	@Test
+	void testListStoricoStatiServizio() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+		this.archivia(idServizio);
+		StatoUpdate statoUpdate = new StatoUpdate();
+		statoUpdate.setStato(STATO_INIZIALE);
+		serviziController.updateStatoServizio(idServizio, statoUpdate, null);
+		entityManager.flush();
+		entityManager.clear();
+
+		ResponseEntity<PagedModelItemStoricoStato> response = serviziController.listStoricoStatiServizio(idServizio, 0, 20);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		List<ItemStoricoStato> storico = response.getBody().getContent();
+		assertEquals(3, storico.size());
+		assertStoricoStato(storico.get(0), STATO_ARCHIVIATO, STATO_INIZIALE);
+		assertStoricoStato(storico.get(1), STATO_INIZIALE, STATO_ARCHIVIATO);
+		assertStoricoStato(storico.get(2), null, STATO_INIZIALE);
+		assertEquals(3L, response.getBody().getPage().getTotalElements());
+		assertEquals(1L, response.getBody().getPage().getTotalPages());
+
+		// una pagina per elemento: lo stato precedente arriva dal cambio della pagina successiva
+		for(int page = 0; page < 3; page++) {
+			ResponseEntity<PagedModelItemStoricoStato> pagina = serviziController.listStoricoStatiServizio(idServizio, page, 1);
+			assertEquals(1, pagina.getBody().getContent().size());
+			assertEquals(storico.get(page).getStato(), pagina.getBody().getContent().get(0).getStato());
+			assertEquals(storico.get(page).getStatoPrecedente(), pagina.getBody().getContent().get(0).getStatoPrecedente());
+			assertEquals(3L, pagina.getBody().getPage().getTotalPages());
+		}
+
+		// la creazione da sola nell'ultima pagina
+		ResponseEntity<PagedModelItemStoricoStato> ultima = serviziController.listStoricoStatiServizio(idServizio, 1, 2);
+		assertEquals(1, ultima.getBody().getContent().size());
+		assertStoricoStato(ultima.getBody().getContent().get(0), null, STATO_INIZIALE);
+		assertEquals(2L, ultima.getBody().getPage().getTotalPages());
+
+		// oltre l'ultima pagina
+		assertTrue(serviziController.listStoricoStatiServizio(idServizio, 3, 1).getBody().getContent().isEmpty());
+	}
+
+	@Test
+	void testListStoricoStatiServizioSoloCreazione() {
+		Servizio servizio = this.getServizio();
+
+		ResponseEntity<PagedModelItemStoricoStato> response = serviziController.listStoricoStatiServizio(servizio.getIdServizio(), 0, 20);
+
+		assertEquals(1, response.getBody().getContent().size());
+		assertStoricoStato(response.getBody().getContent().get(0), null, STATO_INIZIALE);
+		assertEquals(1L, response.getBody().getPage().getTotalElements());
+	}
+
+	@Test
+	void testListStoricoStatiServizioPaginazioneNonValida() {
+		UUID idServizio = this.getServizio().getIdServizio();
+
+		assertThrows(BadRequestException.class, () -> serviziController.listStoricoStatiServizio(idServizio, 0, 0));
+		assertThrows(BadRequestException.class, () -> serviziController.listStoricoStatiServizio(idServizio, -1, 10));
+	}
+
+	@Test
+	void testListStoricoStatiServizioNotFound() {
+		UUID idServizioNonEsistente = UUID.randomUUID();
+
+		assertThrows(NotFoundException.class, () -> serviziController.listStoricoStatiServizio(idServizioNonEsistente, 0, 20));
+	}
+
+	private void assertStoricoStato(ItemStoricoStato item, String statoPrecedente, String stato) {
+		assertEquals(statoPrecedente, item.getStatoPrecedente());
+		assertEquals(stato, item.getStato());
+		assertNotNull(item.getData());
+		assertNotNull(item.getUtente());
+	}
 	
 	@Test
 	void testListComponentiPackageSuccess() {
@@ -3798,4 +4094,864 @@ public class ServiziTest {
 		this.verificaGruppoClasseConfigurato(servizio.getIdServizio(), ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO, "richiesto_collaudo");
 		this.verificaGruppoClasseConfigurato(servizio.getIdServizio(), ConfigurazioneClasseDato.PRODUZIONE_CONFIGURATO, "richiesto_produzione");
 	}
+
+    // ==================== Rate limiting (Issue 402) ====================
+
+    private record ServizioRateLimiting(UUID idServizio, UUID idApi) {}
+
+    private static RateLimitingApi rateLimiting(int quota, RateLimitingPeriodoEnum periodo) {
+        RateLimitingApi rl = new RateLimitingApi();
+        rl.setQuota(quota);
+        rl.setPeriodo(periodo);
+        return rl;
+    }
+
+    private static RateLimitingAdesione quoteFruitore(UUID idApi, int quotaGiorno, Integer quotaOra) {
+        List<RateLimitingAdesioneApi> quote = new ArrayList<>();
+        RateLimitingAdesioneApi giorno = new RateLimitingAdesioneApi();
+        giorno.setIdApi(idApi);
+        giorno.setPeriodo(RateLimitingPeriodoEnum.GIORNO);
+        giorno.setQuota(quotaGiorno);
+        quote.add(giorno);
+        if(quotaOra != null) {
+            RateLimitingAdesioneApi ora = new RateLimitingAdesioneApi();
+            ora.setIdApi(idApi);
+            ora.setPeriodo(RateLimitingPeriodoEnum.ORA);
+            ora.setQuota(quotaOra);
+            quote.add(ora);
+        }
+        RateLimitingAdesione rl = new RateLimitingAdesione();
+        rl.setRateLimiting(quote);
+        return rl;
+    }
+
+    private APIDatiAmbienteCreate getDatiAmbienteRateLimiting(List<RateLimitingApi> rateLimiting) {
+        APIDatiAmbienteCreate datiAmbiente = new APIDatiAmbienteCreate();
+        datiAmbiente.setProtocollo(ProtocolloEnum.REST);
+        datiAmbiente.setRateLimiting(rateLimiting);
+        return datiAmbiente;
+    }
+
+    /**
+     * Servizio pubblicato in produzione con un'API erogata dal soggetto del dominio che dichiara
+     * 100 richieste al giorno in collaudo, 300 al giorno e 20 all'ora in produzione, e un'API
+     * erogata dall'aderente, che nel riepilogo non compare.
+     */
+    private ServizioRateLimiting creaServizioConRateLimiting() {
+        this.getDominio();
+        UUID idServizio = creaServizio("servizio_rate_limiting", false);
+
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setNome("API_RL");
+        apiCreate.setIdServizio(idServizio);
+        apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+        apiCreate.setConfigurazioneCollaudo(getDatiAmbienteRateLimiting(List.of(rateLimiting(100, RateLimitingPeriodoEnum.GIORNO))));
+        apiCreate.setConfigurazioneProduzione(getDatiAmbienteRateLimiting(List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO), rateLimiting(20, RateLimitingPeriodoEnum.ORA))));
+        AuthTypeApiResource authType = new AuthTypeApiResource();
+        authType.setProfilo("MODI_P1");
+        authType.setResources(List.of("risorsa1"));
+        apiCreate.setGruppiAuthType(List.of(authType));
+        UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+
+        creaApi(idServizio, "API_ADERENTE", RuoloAPIEnum.ADERENTE);
+
+        impostaServizio(idServizio, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+        // Come in una nuova richiesta: il servizio ricaricato vede le API appena create
+        this.entityManager.clear();
+        return new ServizioRateLimiting(idServizio, idApi);
+    }
+
+    private UUID creaAdesione(UUID idServizio, String nomeSoggetto) {
+        SoggettoCreate soggetto = new SoggettoCreate();
+        soggetto.setNome(nomeSoggetto);
+        soggetto.setIdOrganizzazione(this.idOrganizzazione);
+        soggetto.setAderente(true);
+        soggetto.setReferente(false);
+        UUID idSoggettoAderente = soggettiController.createSoggetto(soggetto).getBody().getIdSoggetto();
+
+        AdesioneCreate adesione = new AdesioneCreate();
+        adesione.setIdServizio(idServizio);
+        adesione.setIdSoggetto(idSoggettoAderente);
+        return adesioniController.createAdesione(adesione).getBody().getIdAdesione();
+    }
+
+    /**
+     * Issue 475: un servizio con API non e` eliminabile e l'errore dice di eliminare prima le API.
+     */
+    @Test
+    void testDeleteServizioConApiNonEliminabile() {
+        Servizio servizio = this.getServizioConApi();
+
+        BadRequestException e = assertThrows(BadRequestException.class,
+                () -> serviziController.deleteServizio(servizio.getIdServizio()));
+        assertEquals(ErrorCode.SRV_400_NOT_DELETABLE_API, e.getErrorCode());
+    }
+
+    /**
+     * Issue 475: un servizio con adesioni non e` eliminabile. Le adesioni prevalgono sulle API,
+     * che il servizio ha comunque: eliminare le API non renderebbe il servizio eliminabile.
+     */
+    @Test
+    void testDeleteServizioConAdesioniNonEliminabile() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+        creaAdesione(ctx.idServizio(), "aderente_eliminazione");
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        BadRequestException e = assertThrows(BadRequestException.class,
+                () -> serviziController.deleteServizio(ctx.idServizio()));
+        assertEquals(ErrorCode.SRV_400_NOT_DELETABLE_ADESIONI, e.getErrorCode());
+    }
+
+    /**
+     * Issue 475: un servizio senza API ne' adesioni resta eliminabile.
+     */
+    @Test
+    void testDeleteServizioSenzaApiEliminabile() {
+        Servizio servizio = this.getServizio();
+
+        assertEquals(HttpStatus.NO_CONTENT, serviziController.deleteServizio(servizio.getIdServizio()).getStatusCode());
+    }
+
+    @Test
+    void testRateLimitingRiepilogoServizio() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+        UUID idAdesione1 = creaAdesione(ctx.idServizio(), "aderente_1");
+        UUID idAdesione2 = creaAdesione(ctx.idServizio(), "aderente_2");
+
+        adesioniController.updateRateLimitingProduzioneAdesione(idAdesione1, quoteFruitore(ctx.idApi(), 200, 10));
+        adesioniController.updateRateLimitingProduzioneAdesione(idAdesione2, quoteFruitore(ctx.idApi(), 150, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione1, quoteFruitore(ctx.idApi(), 50, null));
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        RateLimitingServizio riepilogo = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody();
+        assertEquals(1, riepilogo.getApi().size());
+        RateLimitingServizioApi api = riepilogo.getApi().get(0);
+        assertEquals(ctx.idApi(), api.getIdApi());
+
+        assertEquals(1, api.getCollaudo().size());
+        assertRiepilogo(api.getCollaudo().get(0), RateLimitingPeriodoEnum.GIORNO, 100, 50, 1);
+
+        // La somma delle quote giornaliere supera la quota complessiva: solo segnalata
+        assertEquals(2, api.getProduzione().size());
+        assertRiepilogo(api.getProduzione().get(0), RateLimitingPeriodoEnum.ORA, 20, 10, 1);
+        assertRiepilogo(api.getProduzione().get(1), RateLimitingPeriodoEnum.GIORNO, 300, 350, 2);
+        assertTrue(api.getProduzione().get(1).isSuperata());
+        assertFalse(api.getProduzione().get(0).isSuperata());
+
+        // Fruitori di produzione, paginati
+        PagedModelItemRateLimitingFruitore fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10).getBody();
+        assertEquals(2, fruitori.getPage().getTotalElements());
+        ItemRateLimitingFruitore fruitore1 = fruitori.getContent().stream().filter(f -> f.getIdAdesione().equals(idAdesione1)).findAny().orElseThrow();
+        assertEquals("aderente_1", fruitore1.getSoggetto().getNome());
+        assertEquals(2, fruitore1.getRateLimiting().size());
+
+        fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 1).getBody();
+        assertEquals(1, fruitori.getContent().size());
+        assertEquals(2, fruitori.getPage().getTotalPages());
+
+        // Le adesioni archiviate non contano
+        this.entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = 'archiviato' WHERE a.idAdesione = :id")
+            .setParameter("id", idAdesione2.toString())
+            .executeUpdate();
+        this.entityManager.clear();
+
+        api = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0);
+        assertRiepilogo(api.getProduzione().get(1), RateLimitingPeriodoEnum.GIORNO, 300, 200, 1);
+        assertFalse(api.getProduzione().get(1).isSuperata());
+        assertEquals(1, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10).getBody().getPage().getTotalElements());
+    }
+
+    private void assertRiepilogo(RateLimitingRiepilogo riepilogo, RateLimitingPeriodoEnum periodo, int quota, long assegnata, int fruitori) {
+        assertEquals(periodo, riepilogo.getPeriodo());
+        assertEquals(quota, riepilogo.getQuota());
+        assertEquals(assegnata, riepilogo.getQuotaAssegnata());
+        assertEquals(quota - assegnata, riepilogo.getQuotaResidua());
+        assertEquals(fruitori, riepilogo.getNumeroFruitori());
+    }
+
+    @Test
+    void testRateLimitingRiepilogoServizioNonAutorizzato() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+
+        creaUtenteSenzaRuoli();
+        passaAUtenteSenzaRuoli();
+
+        assertThrows(NotAuthorizedException.class, () -> serviziController.getRateLimitingServizio(ctx.idServizio()));
+        assertThrows(NotAuthorizedException.class, () -> serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10));
+    }
+
+    @Test
+    void testRateLimitingRiepilogoConQuotaFruitore() {
+        ConfigurazioneProfilo profilo = this.configurazione.getServizio().getApi().getProfili().stream()
+                .filter(p -> p.getCodiceInterno().equals("MODI_P1")).findAny().orElseThrow();
+        ConfigurazioneProfiloRateLimiting originale = profilo.getRateLimiting();
+        ConfigurazioneProfiloRateLimiting regola = new ConfigurazioneProfiloRateLimiting();
+        regola.setPeriodi(List.of(RateLimitingPeriodoEnum.ORA, RateLimitingPeriodoEnum.GIORNO));
+        regola.setQuotaTotale(new ConfigurazioneRateLimitingQuota().required(false));
+        regola.setQuotaFruitore(new ConfigurazioneRateLimitingQuota().required(false));
+        profilo.setRateLimiting(regola);
+        try {
+            this.getDominio();
+            UUID idServizio = creaServizio("servizio_rate_limiting", false);
+            APICreate apiCreate = CommonUtils.getAPICreate();
+            apiCreate.setNome("API_RL");
+            apiCreate.setIdServizio(idServizio);
+            apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+            // In produzione la sola quota fruitore
+            RateLimitingApi soloFruitore = new RateLimitingApi();
+            soloFruitore.setPeriodo(RateLimitingPeriodoEnum.GIORNO);
+            soloFruitore.setQuotaFruitore(100);
+            apiCreate.setConfigurazioneCollaudo(getDatiAmbienteRateLimiting(List.of(rateLimiting(100, RateLimitingPeriodoEnum.GIORNO))));
+            apiCreate.setConfigurazioneProduzione(getDatiAmbienteRateLimiting(List.of(soloFruitore)));
+            AuthTypeApiResource authType = new AuthTypeApiResource();
+            authType.setProfilo("MODI_P1");
+            authType.setResources(List.of("risorsa1"));
+            apiCreate.setGruppiAuthType(List.of(authType));
+            UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+            impostaServizio(idServizio, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+            this.entityManager.clear();
+
+            UUID idAdesione = creaAdesione(idServizio, "aderente_1");
+            adesioniController.updateRateLimitingProduzioneAdesione(idAdesione, quoteFruitore(idApi, 70, null));
+            this.entityManager.flush();
+            this.entityManager.clear();
+
+            RateLimitingRiepilogo produzione = serviziController.getRateLimitingServizio(idServizio).getBody().getApi().get(0).getProduzione().get(0);
+            assertNull(produzione.getQuota());
+            assertEquals(100, produzione.getQuotaFruitore());
+            assertEquals(70, produzione.getQuotaAssegnata());
+            assertNull(produzione.getQuotaResidua());
+            assertFalse(produzione.isSuperata());
+        } finally {
+            profilo.setRateLimiting(originale);
+        }
+    }
+
+    private void impostaStatoAdesione(UUID idAdesione, String stato) {
+        this.entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = :stato WHERE a.idAdesione = :id")
+            .setParameter("stato", stato)
+            .setParameter("id", idAdesione.toString())
+            .executeUpdate();
+    }
+
+    @Test
+    void testRateLimitingRiepilogoAdesioniAutorizzate() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+        UUID inCollaudo = creaAdesione(ctx.idServizio(), "aderente_1");
+        UUID inProduzione = creaAdesione(ctx.idServizio(), "aderente_2");
+        UUID richiesta = creaAdesione(ctx.idServizio(), "aderente_3");
+
+        adesioniController.updateRateLimitingCollaudoAdesione(inCollaudo, quoteFruitore(ctx.idApi(), 40, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(inProduzione, quoteFruitore(ctx.idApi(), 20, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(richiesta, quoteFruitore(ctx.idApi(), 10, null));
+        adesioniController.updateRateLimitingProduzioneAdesione(inCollaudo, quoteFruitore(ctx.idApi(), 100, null));
+        adesioniController.updateRateLimitingProduzioneAdesione(inProduzione, quoteFruitore(ctx.idApi(), 50, null));
+        adesioniController.updateRateLimitingProduzioneAdesione(richiesta, quoteFruitore(ctx.idApi(), 30, null));
+        this.entityManager.flush();
+
+        // Collaudo pubblicato: autorizzate le sole quote di collaudo. Produzione richiesta: il
+        // collaudo e` gia` autorizzato, la produzione no. Collaudo richiesto: nessuna quota autorizzata.
+        impostaStatoAdesione(inCollaudo, "pubblicato_collaudo");
+        impostaStatoAdesione(inProduzione, "autorizzato_produzione");
+        impostaStatoAdesione(richiesta, "richiesto_collaudo");
+        this.entityManager.clear();
+
+        RateLimitingServizioApi api = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0);
+
+        RateLimitingRiepilogo collaudo = api.getCollaudo().get(0);
+        assertRiepilogo(collaudo, RateLimitingPeriodoEnum.GIORNO, 100, 70, 3);
+        assertEquals(60, collaudo.getQuotaAutorizzata());
+        assertEquals(2, collaudo.getNumeroFruitoriAutorizzati());
+        assertEquals(40, collaudo.getQuotaResiduaAutorizzata());
+
+        RateLimitingRiepilogo produzione = api.getProduzione().get(1);
+        assertRiepilogo(produzione, RateLimitingPeriodoEnum.GIORNO, 300, 180, 3);
+        assertEquals(50, produzione.getQuotaAutorizzata());
+        assertEquals(1, produzione.getNumeroFruitoriAutorizzati());
+        assertEquals(250, produzione.getQuotaResiduaAutorizzata());
+
+        // Periodo senza quote assegnate
+        RateLimitingRiepilogo ora = api.getProduzione().get(0);
+        assertEquals(0, ora.getQuotaAutorizzata());
+        assertEquals(0, ora.getNumeroFruitoriAutorizzati());
+        assertEquals(20, ora.getQuotaResiduaAutorizzata());
+
+        // Lista dei fruitori: flag e filtro per l'ambiente richiesto
+        PagedModelItemRateLimitingFruitore tutte = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10).getBody();
+        assertEquals(3, tutte.getPage().getTotalElements());
+        assertEquals(java.util.Set.of(inProduzione), tutte.getContent().stream().filter(ItemRateLimitingFruitore::isAutorizzata)
+                .map(ItemRateLimitingFruitore::getIdAdesione).collect(java.util.stream.Collectors.toSet()));
+
+        PagedModelItemRateLimitingFruitore autorizzate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, null, 0, 10).getBody();
+        assertEquals(1, autorizzate.getPage().getTotalElements());
+        assertEquals(inProduzione, autorizzate.getContent().get(0).getIdAdesione());
+
+        PagedModelItemRateLimitingFruitore nonAutorizzate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, null, 0, 10).getBody();
+        assertEquals(java.util.Set.of(inCollaudo, richiesta), nonAutorizzate.getContent().stream()
+                .map(ItemRateLimitingFruitore::getIdAdesione).collect(java.util.stream.Collectors.toSet()));
+        assertTrue(nonAutorizzate.getContent().stream().noneMatch(ItemRateLimitingFruitore::isAutorizzata));
+
+        PagedModelItemRateLimitingFruitore autorizzateCollaudo = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, true, null, 0, 10).getBody();
+        assertEquals(2, autorizzateCollaudo.getPage().getTotalElements());
+
+        // Filtro libero sul fruitore: soggetto, organizzazione, id logico; senza distinzione di
+        // maiuscole, combinabile con il filtro sulle autorizzate
+        PagedModelItemRateLimitingFruitore filtrate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, " ADERENTE_2 ", 0, 10).getBody();
+        assertEquals(1, filtrate.getPage().getTotalElements());
+        assertEquals(inProduzione, filtrate.getContent().get(0).getIdAdesione());
+        assertEquals(3, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, "aderente", 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(3, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, CommonUtils.NOME_ORGANIZZAZIONE.toLowerCase(), 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(0, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, "inesistente", 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(1, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, "aderente", 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(0, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, "aderente_3", 0, 10).getBody().getPage().getTotalElements());
+        filtrate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, "aderente_3", 0, 10).getBody();
+        assertEquals(1, filtrate.getPage().getTotalElements());
+        assertEquals(richiesta, filtrate.getContent().get(0).getIdAdesione());
+
+        // Override in configurazione: nessuno stato autorizzato per la produzione
+        ConfigurazioneRateLimitingStatiAutorizzati statiAutorizzati = this.configurazione.getAdesione().getRateLimiting().getStatiAutorizzati();
+        List<String> originale = statiAutorizzati.getProduzione();
+        statiAutorizzati.setProduzione(List.of());
+        try {
+            produzione = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0).getProduzione().get(1);
+            assertEquals(0, produzione.getQuotaAutorizzata());
+            assertEquals(180, produzione.getQuotaAssegnata());
+            assertEquals(0, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, null, 0, 10).getBody().getPage().getTotalElements());
+            assertEquals(3, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, null, 0, 10).getBody().getPage().getTotalElements());
+        } finally {
+            statiAutorizzati.setProduzione(originale);
+        }
+    }
+
+    @Test
+    void testRateLimitingStatiAutorizzatiDefault() {
+        // Workflow con il ramo senza collaudo, che nella lista segue quello di produzione
+        ConfigurazioneWorkflow workflow = new ConfigurazioneWorkflow();
+        workflow.setStati(List.of("bozza", "richiesto_collaudo", "autorizzato_collaudo", "in_configurazione_manuale_collaudo",
+                "pubblicato_collaudo", "richiesto_produzione", "autorizzato_produzione", "in_configurazione_automatica_produzione",
+                "pubblicato_produzione", "richiesto_produzione_senza_collaudo", "autorizzato_produzione_senza_collaudo",
+                "pubblicato_produzione_senza_collaudo", "archiviato"));
+        workflow.setStatoIniziale("bozza");
+        workflow.setStatoArchiviato("archiviato");
+        Configurazione conf = getConfigurazioneStatiAutorizzati(workflow, null);
+
+        RateLimitingRegole.applicaDefault(conf);
+
+        ConfigurazioneRateLimitingStatiAutorizzati sa = conf.getAdesione().getRateLimiting().getStatiAutorizzati();
+        assertEquals(List.of("autorizzato_collaudo", "in_configurazione_manuale_collaudo", "pubblicato_collaudo",
+                "richiesto_produzione", "autorizzato_produzione", "in_configurazione_automatica_produzione", "pubblicato_produzione"), sa.getCollaudo());
+        assertEquals(List.of("autorizzato_produzione", "in_configurazione_automatica_produzione", "pubblicato_produzione",
+                "autorizzato_produzione_senza_collaudo", "pubblicato_produzione_senza_collaudo"), sa.getProduzione());
+
+        // Lista configurata: mantenuta, purche' composta da stati del workflow
+        ConfigurazioneRateLimitingStatiAutorizzati override = new ConfigurazioneRateLimitingStatiAutorizzati();
+        override.setProduzione(List.of("pubblicato_produzione"));
+        conf = getConfigurazioneStatiAutorizzati(workflow, override);
+        RateLimitingRegole.applicaDefault(conf);
+        assertEquals(List.of("pubblicato_produzione"), conf.getAdesione().getRateLimiting().getStatiAutorizzati().getProduzione());
+        assertEquals(7, conf.getAdesione().getRateLimiting().getStatiAutorizzati().getCollaudo().size());
+
+        ConfigurazioneRateLimitingStatiAutorizzati nonValido = new ConfigurazioneRateLimitingStatiAutorizzati();
+        nonValido.setCollaudo(List.of("inesistente"));
+        Configurazione confNonValida = getConfigurazioneStatiAutorizzati(workflow, nonValido);
+        assertThrows(IllegalStateException.class, () -> RateLimitingRegole.applicaDefault(confNonValida));
+    }
+
+    private static Configurazione getConfigurazioneStatiAutorizzati(ConfigurazioneWorkflow workflow, ConfigurazioneRateLimitingStatiAutorizzati statiAutorizzati) {
+        Configurazione conf = new Configurazione();
+        conf.setServizio(new ConfigurazioneServizio());
+        conf.getServizio().setApi(new ConfigurazioneApi());
+        conf.getServizio().getApi().setProfili(new ArrayList<>());
+        conf.setAdesione(new ConfigurazioneAdesione());
+        conf.getAdesione().setWorkflow(workflow);
+        if(statiAutorizzati != null) {
+            conf.getAdesione().setRateLimiting(new ConfigurazioneAdesioneRateLimiting().statiAutorizzati(statiAutorizzati));
+        }
+        return conf;
+    }
+
+    // ==================== Issue 446: finalita` PDND nel rate limiting ====================
+
+    private static final String FINALITA_CONDIVISA = "3f2a1b4c-5d6e-7f80-9a1b-2c3d4e5f6071";
+
+    @Autowired
+    private RateLimitingFinalitaService rateLimitingFinalitaService;
+
+    /**
+     * Riepilogo e lista dei fruitori: la finalita` condivisa da due adesioni autorizzate in collaudo
+     * somma le loro quote giornaliere e la supera; una terza adesione non ancora autorizzata non
+     * conta. La produzione, senza proprieta` della finalita` configurata, non riporta finalita`.
+     */
+    @Test
+    void testRateLimitingFinalitaRiepilogoEFruitori() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+        UUID prima = creaAdesione(ctx.idServizio(), "aderente_1");
+        UUID seconda = creaAdesione(ctx.idServizio(), "aderente_2");
+        UUID richiesta = creaAdesione(ctx.idServizio(), "aderente_3");
+        adesioniController.updateRateLimitingCollaudoAdesione(prima, quoteFruitore(ctx.idApi(), 40, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(seconda, quoteFruitore(ctx.idApi(), 30, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(richiesta, quoteFruitore(ctx.idApi(), 10, null));
+        this.entityManager.flush();
+        impostaStatoAdesione(prima, "pubblicato_collaudo");
+        impostaStatoAdesione(seconda, "pubblicato_collaudo");
+        impostaStatoAdesione(richiesta, "richiesto_collaudo");
+        this.entityManager.clear();
+
+        // Lo stesso identificativo, scritto diversamente, e` la stessa finalita`
+        FinalitaPdndTestUtils.setFinalitaAdesione(this.entityManager, prima, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, FINALITA_CONDIVISA);
+        FinalitaPdndTestUtils.setFinalitaAdesione(this.entityManager, seconda, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, " " + FINALITA_CONDIVISA.toUpperCase() + " ");
+        FinalitaPdndTestUtils.setFinalitaAdesione(this.entityManager, richiesta, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, FINALITA_CONDIVISA);
+        this.entityManager.clear();
+
+        // Senza proprieta` della finalita` in configurazione il riepilogo non cambia
+        assertNull(serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getFinalita());
+        assertNull(serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, null, null, 0, 10)
+                .getBody().getContent().get(0).getFinalita());
+
+        IPDNDClient pdnd = mock(IPDNDClient.class);
+        FinalitaPdndTestUtils.Ripristino ripristino = FinalitaPdndTestUtils.configura(this.configurazione, this.rateLimitingFinalitaService, pdnd);
+        try {
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA_CONDIVISA, "Finalita` condivisa", 60, null);
+
+            RateLimitingServizio riepilogo = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody();
+            assertNull(riepilogo.getFinalita().getProduzione());
+            assertEquals(1, riepilogo.getFinalita().getCollaudo().size());
+            RateLimitingFinalita finalita = riepilogo.getFinalita().getCollaudo().get(0);
+            assertEquals(FINALITA_CONDIVISA, finalita.getPurposeId());
+            assertNull(finalita.getErrore());
+            assertEquals("Finalita` condivisa", finalita.getTitolo());
+            assertEquals(60, finalita.getQuota());
+            assertEquals("ACTIVE", finalita.getStato());
+            assertNull(finalita.getQuotaInAttesa());
+            assertEquals(70, finalita.getQuotaAssegnata());
+            assertEquals(2, finalita.getNumeroAdesioni());
+            assertTrue(finalita.isSuperata());
+            // Il riepilogo della quota totale del servizio non cambia
+            assertFalse(riepilogo.getApi().get(0).getCollaudo().get(0).isSuperata());
+
+            // Fruitori: la finalita` solo per le adesioni autorizzate, con l'esito della singola quota
+            List<ItemRateLimitingFruitore> fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, null, null, 0, 10)
+                    .getBody().getContent();
+            assertEquals(3, fruitori.size());
+            RateLimitingAdesioneFinalita primaFinalita = fruitori.stream().filter(f -> f.getIdAdesione().equals(prima)).findAny().orElseThrow().getFinalita().get(0);
+            assertNull(primaFinalita.getIdApi());
+            assertEquals(40, primaFinalita.getQuotaRichiesta());
+            assertEquals(RateLimitingFinalitaEsitoEnum.INFERIORE, primaFinalita.getEsito());
+            assertEquals(2, primaFinalita.getFinalita().getNumeroAdesioni());
+            assertTrue(primaFinalita.getFinalita().isSuperata());
+            assertTrue(fruitori.stream().filter(f -> f.getIdAdesione().equals(richiesta)).findAny().orElseThrow().getFinalita().isEmpty());
+            assertNull(serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10)
+                    .getBody().getContent().get(0).getFinalita());
+
+            // Finalita` di 30: la quota di 40 e` un errore, quella di 30 conforme; poi di 70, pari alla somma
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA_CONDIVISA, "Finalita` condivisa", 30, 100);
+            finalita = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getFinalita().getCollaudo().get(0);
+            assertTrue(finalita.isSuperata());
+            assertEquals(100, finalita.getQuotaInAttesa());
+            fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, true, null, 0, 10).getBody().getContent();
+            assertEquals(java.util.Set.of(RateLimitingFinalitaEsitoEnum.SUPERIORE, RateLimitingFinalitaEsitoEnum.CONFORME),
+                    fruitori.stream().map(f -> f.getFinalita().get(0).getEsito()).collect(java.util.stream.Collectors.toSet()));
+
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA_CONDIVISA, "Finalita` condivisa", 70, null);
+            assertFalse(serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getFinalita().getCollaudo().get(0).isSuperata());
+
+            // PDND non raggiungibile: la finalita` non e` verificabile, la richiesta non fallisce
+            when(pdnd.getPurpose(UUID.fromString(FINALITA_CONDIVISA))).thenThrow(new IllegalStateException("connessione rifiutata"));
+            finalita = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getFinalita().getCollaudo().get(0);
+            assertEquals(RateLimitingFinalitaErroreEnum.NON_DISPONIBILE, finalita.getErrore());
+            assertNull(finalita.getQuota());
+            assertEquals(70, finalita.getQuotaAssegnata());
+            assertFalse(finalita.isSuperata());
+            assertEquals(RateLimitingFinalitaEsitoEnum.NON_VERIFICABILE, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, true, null, 0, 1)
+                    .getBody().getContent().get(0).getFinalita().get(0).getEsito());
+        } finally {
+            ripristino.esegui();
+        }
+    }
+
+    /** La proprieta` della finalita` deve essere fra le proprieta_custom delle adesioni, con una classe dato dell'ambiente. */
+    @Test
+    void testRateLimitingFinalitaConfigurazioneNonValida() {
+        ConfigurazioneWorkflow workflow = new ConfigurazioneWorkflow();
+        workflow.setStati(List.of("bozza", "pubblicato_collaudo", "archiviato"));
+        workflow.setStatoIniziale("bozza");
+        workflow.setStatoArchiviato("archiviato");
+
+        ConfigurazioneCustomProprieta proprieta = new ConfigurazioneCustomProprieta();
+        proprieta.setNome("finalita");
+        ConfigurazioneCustomAdesioneProprietaList gruppo = new ConfigurazioneCustomAdesioneProprietaList();
+        gruppo.setNomeGruppo("PDNDCollaudo");
+        gruppo.setClasseDato(ConfigurazioneClasseDato.COLLAUDO_PDND);
+        gruppo.setProprieta(List.of(proprieta));
+
+        // Valida in collaudo
+        Configurazione conf = getConfigurazioneFinalita(workflow, gruppo, new ConfigurazioneRateLimitingFinalita()
+                .collaudo(new ConfigurazioneRiferimentoProprietaCustom().nomeGruppo("PDNDCollaudo").nomeProprieta("finalita")));
+        RateLimitingRegole.applicaDefault(conf);
+
+        // Proprieta` inesistente
+        Configurazione inesistente = getConfigurazioneFinalita(workflow, gruppo, new ConfigurazioneRateLimitingFinalita()
+                .collaudo(new ConfigurazioneRiferimentoProprietaCustom().nomeGruppo("PDNDCollaudo").nomeProprieta("altra")));
+        assertThrows(IllegalStateException.class, () -> RateLimitingRegole.applicaDefault(inesistente));
+
+        // Gruppo di collaudo indicato per la produzione
+        Configurazione altroAmbiente = getConfigurazioneFinalita(workflow, gruppo, new ConfigurazioneRateLimitingFinalita()
+                .produzione(new ConfigurazioneRiferimentoProprietaCustom().nomeGruppo("PDNDCollaudo").nomeProprieta("finalita")));
+        assertThrows(IllegalStateException.class, () -> RateLimitingRegole.applicaDefault(altroAmbiente));
+    }
+
+    private static Configurazione getConfigurazioneFinalita(ConfigurazioneWorkflow workflow, ConfigurazioneCustomAdesioneProprietaList gruppo,
+            ConfigurazioneRateLimitingFinalita finalita) {
+        Configurazione conf = getConfigurazioneStatiAutorizzati(workflow, null);
+        conf.getAdesione().setProprietaCustom(List.of(gruppo));
+        conf.getAdesione().setRateLimiting(new ConfigurazioneAdesioneRateLimiting().finalita(finalita));
+        return conf;
+    }
+
+    @Test
+    void testRateLimitingQuotaRequiredNeiDatiObbligatori() {
+        ConfigurazioneProfilo profilo = this.configurazione.getServizio().getApi().getProfili().stream()
+                .filter(p -> p.getCodiceInterno().equals("MODI_P1")).findAny().orElseThrow();
+        ConfigurazioneProfiloRateLimiting originale = profilo.getRateLimiting();
+        ConfigurazioneProfiloRateLimiting regola = new ConfigurazioneProfiloRateLimiting();
+        regola.setPeriodi(List.of(RateLimitingPeriodoEnum.GIORNO));
+        regola.setQuotaTotale(new ConfigurazioneRateLimitingQuota().required(true));
+        profilo.setRateLimiting(regola);
+        try {
+            this.getDominio();
+            UUID idServizio = creaServizio("servizio_rate_limiting", false);
+            APICreate apiCreate = CommonUtils.getAPICreate();
+            apiCreate.setNome("API_RL");
+            apiCreate.setIdServizio(idServizio);
+            apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+            apiCreate.setConfigurazioneCollaudo(getDatiAmbienteRateLimiting(null));
+            AuthTypeApiResource authType = new AuthTypeApiResource();
+            authType.setProfilo("MODI_P1");
+            authType.setResources(List.of("risorsa1"));
+            apiCreate.setGruppiAuthType(List.of(authType));
+            UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+            this.entityManager.flush();
+            this.entityManager.clear();
+
+            // Senza quota totale in collaudo il passaggio a richiesto_collaudo la segnala come mancante
+            assertTrue(campiMancanti(idServizio).contains("rate_limiting.quota_totale"));
+
+            APIDatiAmbienteUpdate collaudo = new APIDatiAmbienteUpdate();
+            collaudo.setProtocollo(ProtocolloEnum.REST);
+            collaudo.setRateLimiting(List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO)));
+            ApiUpdate apiUpdate = new ApiUpdate();
+            apiUpdate.setConfigurazioneCollaudo(collaudo);
+            apiController.updateApi(idApi, apiUpdate, null);
+            this.entityManager.flush();
+            this.entityManager.clear();
+
+            assertFalse(campiMancanti(idServizio).contains("rate_limiting.quota_totale"));
+        } finally {
+            profilo.setRateLimiting(originale);
+        }
+    }
+
+    private List<String> campiMancanti(UUID idServizio) {
+        CheckDati check = serviziController.checkDatiServizio(idServizio, "richiesto_collaudo").getBody();
+        if(check.getErrori() == null) {
+            return List.of();
+        }
+        return check.getErrori().stream()
+                .filter(err -> err.getCampi() != null)
+                .flatMap(err -> err.getCampi().stream())
+                .map(Campo::getNomeCampo)
+                .toList();
+    }
+
+    // =========================================================================
+    // Issue 473: referente senza ruolo nell'organizzazione
+    // =========================================================================
+
+    private Utente creaOperatoreApi(String principal, UUID... idOrganizzazioni) {
+        UtenteCreate uc = CommonUtils.getUtenteCreate();
+        uc.setPrincipal(principal);
+        uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        List<UtenteOrganizzazioneCreate> associazioni = new ArrayList<>();
+        for (UUID idOrganizzazione : idOrganizzazioni) {
+            UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
+            assoc.setIdOrganizzazione(idOrganizzazione);
+            assoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+            associazioni.add(assoc);
+        }
+        uc.setOrganizzazioni(associazioni);
+        return controllerUtenti.createUtente(uc).getBody();
+    }
+
+    /** Servizio sul dominio creato da getDominio(), con il gestore referente e l'utente referente tecnico. */
+    private Servizio creaServizioConReferenteTecnico(Dominio dominio, Utente referenteTecnico) {
+        ServizioCreate sc = CommonUtils.getServizioCreate();
+        sc.setSkipCollaudo(true);
+        sc.setIdSoggettoErogatore(idSoggetto);
+        sc.setIdDominio(dominio.getIdDominio());
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        ReferenteCreate tecnico = new ReferenteCreate();
+        tecnico.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        tecnico.setIdUtente(referenteTecnico.getIdUtente());
+        sc.setReferenti(List.of(referente, tecnico));
+        return serviziController.createServizio(sc).getBody();
+    }
+
+    private UUID creaOrganizzazione(String suffisso) {
+        OrganizzazioneCreate oc = CommonUtils.getOrganizzazioneCreate();
+        oc.setNome("org-" + suffisso);
+        oc.setIntermediata(false);
+        return organizzazioniController.createOrganizzazione(oc).getBody().getIdOrganizzazione();
+    }
+
+    /** Dominio (con soggetto referente) di una nuova organizzazione. */
+    private Dominio creaDominioInNuovaOrganizzazione(String suffisso) {
+        return creaDominioInOrganizzazione(creaOrganizzazione(suffisso), suffisso);
+    }
+
+    private Dominio creaDominioInOrganizzazione(UUID idOrg, String suffisso) {
+        SoggettoCreate sc = new SoggettoCreate();
+        sc.setSkipCollaudo(true);
+        sc.setNome("sog-" + suffisso);
+        sc.setIdOrganizzazione(idOrg);
+        sc.setAderente(true);
+        sc.setReferente(true);
+        UUID idSog = soggettiController.createSoggetto(sc).getBody().getIdSoggetto();
+
+        DominioCreate dc = CommonUtils.getDominioCreate();
+        dc.setNome("dom-" + suffisso);
+        dc.setSkipCollaudo(true);
+        dc.setIdSoggettoReferente(idSog);
+        return dominiController.createDominio(dc).getBody();
+    }
+
+    private ServizioUpdate toServizioUpdate(Servizio servizio, UUID idDominio) {
+        IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+        identificativo.setNome(servizio.getNome());
+        identificativo.setVersione(servizio.getVersione());
+        identificativo.setIdDominio(idDominio);
+        identificativo.setIdSoggettoErogatore(idSoggetto);
+        identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+        identificativo.setAdesioneDisabilitata(false);
+        identificativo.setMultiAdesione(true);
+        identificativo.setTipo(TipoServizio.API);
+        identificativo.setPackage(false);
+
+        DatiGenericiServizioUpdate datiGenerici = new DatiGenericiServizioUpdate();
+        datiGenerici.setDescrizione("descrizione aggiornata");
+        datiGenerici.setDescrizioneSintetica("descrizione sintetica");
+
+        ServizioUpdate servizioUpdate = new ServizioUpdate();
+        servizioUpdate.setIdentificativo(identificativo);
+        servizioUpdate.setDatiGenerici(datiGenerici);
+        return servizioUpdate;
+    }
+
+    /** Toglie (con conferma) il ruolo nell'organizzazione all'utente, come gestore. */
+    private void togliRuolo(UUID idOrganizzazione, Utente utente) {
+        organizzazioniController.updateRuoloUtenteOrganizzazione(idOrganizzazione, utente.getIdUtente(),
+                true, new UtenteOrganizzazioneUpdate());
+    }
+
+    private Referente getReferente(UUID idServizio, Utente utente) {
+        return serviziController.listReferentiServizio(idServizio, null, null, 0, 10, null).getBody().getContent().stream()
+                .filter(r -> utente.getIdUtente().equals(r.getUtente().getIdUtente()))
+                .findFirst().orElseThrow();
+    }
+
+    @Test
+    public void testUpdateServizioConReferenteSenzaRuoloConsentito() {
+        Dominio dominio = this.getDominio();
+        Utente tecnico = creaOperatoreApi("ref.473.srv.upd", idOrganizzazione);
+        Servizio servizio = creaServizioConReferenteTecnico(dominio, tecnico);
+        assertNull(getReferente(servizio.getIdServizio(), tecnico).isRuoloNonValido());
+
+        togliRuolo(idOrganizzazione, tecnico);
+
+        // La modifica non tocca i referenti: non e` bloccata dal referente rimasto senza ruolo
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null,
+                toServizioUpdate(servizio, dominio.getIdDominio()));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("descrizione aggiornata", response.getBody().getDescrizione());
+
+        // Nella scheda il referente e` evidenziato come non piu` valido; il gestore resta valido
+        assertEquals(Boolean.TRUE, getReferente(servizio.getIdServizio(), tecnico).isRuoloNonValido());
+        Referente gestore = serviziController.listReferentiServizio(servizio.getIdServizio(), null, TipoReferenteEnum.REFERENTE, 0, 10, null)
+                .getBody().getContent().iterator().next();
+        assertNull(gestore.isRuoloNonValido());
+    }
+
+    @Test
+    public void testUpdateServizioSpostamentoAltraOrganizzazioneReferentiNonValidi() {
+        Dominio dominio = this.getDominio();
+        Utente tecnico = creaOperatoreApi("ref.473.srv.sposta", idOrganizzazione);
+        Servizio servizio = creaServizioConReferenteTecnico(dominio, tecnico);
+        Dominio dominioAltraOrg = creaDominioInNuovaOrganizzazione("473-srv-sposta");
+
+        RichiestaNonValidaSemanticamenteException ex = assertThrows(RichiestaNonValidaSemanticamenteException.class,
+                () -> serviziController.updateServizio(servizio.getIdServizio(), null, toServizioUpdate(servizio, dominioAltraOrg.getIdDominio())));
+        assertEquals(ErrorCode.VAL_422_REFERENTI_ORGANIZZAZIONE, ex.getErrorCode());
+        assertEquals("org-473-srv-sposta", ex.getParameters().get("orgNome"));
+        // Il gestore e` sempre un referente valido: e` elencato solo il referente tecnico
+        assertEquals(tecnico.getNome() + " " + tecnico.getCognome(), ex.getParameters().get("referenti"));
+    }
+
+    @Test
+    public void testUpdateServizioSpostamentoAltraOrganizzazioneConForce() {
+        Dominio dominio = this.getDominio();
+        Utente tecnico = creaOperatoreApi("ref.473.srv.force", idOrganizzazione);
+        Servizio servizio = creaServizioConReferenteTecnico(dominio, tecnico);
+        Dominio dominioAltraOrg = creaDominioInNuovaOrganizzazione("473-srv-force");
+
+        // Con force il gestore sposta comunque il servizio; il referente resta evidenziato
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), true,
+                toServizioUpdate(servizio, dominioAltraOrg.getIdDominio()));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(Boolean.TRUE, getReferente(servizio.getIdServizio(), tecnico).isRuoloNonValido());
+    }
+
+    @Test
+    public void testUpdateServizioSpostamentoAltraOrganizzazioneReferentiValidi() {
+        Dominio dominio = this.getDominio();
+        UUID idAltraOrg = creaOrganizzazione("473-srv-sposta-ok");
+        Dominio dominioAltraOrg = creaDominioInOrganizzazione(idAltraOrg, "473-srv-sposta-ok");
+        Utente tecnico = creaOperatoreApi("ref.473.srv.sposta.ok", idOrganizzazione, idAltraOrg);
+        Servizio servizio = creaServizioConReferenteTecnico(dominio, tecnico);
+
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null,
+                toServizioUpdate(servizio, dominioAltraOrg.getIdDominio()));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testCreateServizioReferenteNonAssociatoOrgMissing() {
+        Dominio dominio = this.getDominio();
+        Utente esterno = creaUtente473NonAssociato("ref.473.srv.esterno");
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> creaServizioConReferenteTecnico(dominio, esterno));
+        assertEquals(ErrorCode.AUT_403_ORG_MISSING, ex.getErrorCode());
+        assertEquals(esterno.getNome(), ex.getParameters().get("nomeUtente"));
+        assertEquals(esterno.getCognome(), ex.getParameters().get("cognomeUtente"));
+    }
+
+    @Test
+    public void testCreateServizioReferenteSenzaRuoloNoRole() {
+        Dominio dominio = this.getDominio();
+        Utente tecnico = creaOperatoreApi("ref.473.srv.norole", idOrganizzazione);
+        togliRuolo(idOrganizzazione, tecnico);
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> creaServizioConReferenteTecnico(dominio, tecnico));
+        assertEquals(ErrorCode.AUT_403_REFERENT_NO_ROLE, ex.getErrorCode());
+        assertEquals(tecnico.getNome(), ex.getParameters().get("nomeUtente"));
+    }
+
+    private Utente creaUtente473NonAssociato(String principal) {
+        UtenteCreate uc = CommonUtils.getUtenteCreate();
+        uc.setPrincipal(principal);
+        uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        return controllerUtenti.createUtente(uc).getBody();
+    }
+
+    // ==================== Issue 478: skip collaudo del servizio e delle adesioni ====================
+
+    /**
+     * Servizio con il flag skip_collaudo indicato, in un dominio che consente lo skip, con un'adesione
+     * per ciascun flag skip_collaudo indicato. Le adesioni sono create a servizio pubblicato in collaudo,
+     * poi il servizio torna in bozza, dove il flag e` modificabile senza i dati obbligatori del collaudo.
+     */
+    private Servizio getServizioSkipCollaudoConAdesioni(boolean skipServizio, boolean... skipAdesioni) {
+        Servizio servizio = this.getServizio();
+        ServizioEntity entity = servizioService.find(servizio.getIdServizio()).orElseThrow();
+        entity.setStato("pubblicato_collaudo");
+        entity.setSkipCollaudo(skipServizio);
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        for(int i = 0; i < skipAdesioni.length; i++) {
+            creaAdesioneSkipCollaudo(servizio.getIdServizio(), "aderente_" + i, skipAdesioni[i]);
+        }
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        servizioService.find(servizio.getIdServizio()).orElseThrow().setStato("bozza");
+        this.entityManager.flush();
+        this.entityManager.clear();
+        return servizio;
+    }
+
+    private UUID creaAdesioneSkipCollaudo(UUID idServizio, String nomeSoggetto, boolean skipCollaudo) {
+        SoggettoCreate soggetto = new SoggettoCreate();
+        soggetto.setNome(nomeSoggetto);
+        soggetto.setIdOrganizzazione(this.idOrganizzazione);
+        soggetto.setAderente(true);
+        soggetto.setReferente(false);
+        UUID idSoggettoAderente = soggettiController.createSoggetto(soggetto).getBody().getIdSoggetto();
+
+        AdesioneCreate adesione = new AdesioneCreate();
+        adesione.setIdServizio(idServizio);
+        adesione.setIdSoggetto(idSoggettoAderente);
+        adesione.setSkipCollaudo(skipCollaudo);
+        return adesioniController.createAdesione(adesione).getBody().getIdAdesione();
+    }
+
+    private ServizioUpdate servizioUpdateSkipCollaudo(Servizio servizio, UUID idDominio, boolean skipCollaudo) {
+        IdentificativoServizioUpdate identificativo = identificativoServizioUpdate(servizio, idDominio);
+        identificativo.setSkipCollaudo(skipCollaudo);
+        ServizioUpdate servizioUpdate = new ServizioUpdate();
+        servizioUpdate.setIdentificativo(identificativo);
+        return servizioUpdate;
+    }
+
+    @Test
+    void testUpdateServizioAttivaSkipCollaudoConAdesioniSenzaSkip() {
+        // Un servizio senza collaudo impone lo skip alle adesioni: non si attiva se qualcuna passa dal collaudo
+        Servizio servizio = getServizioSkipCollaudoConAdesioni(false, true, false);
+        assertTrue(serviziController.getServizio(servizio.getIdServizio()).getBody().isVincolaSkipCollaudo());
+
+        BadRequestException e = assertThrows(BadRequestException.class, () ->
+                serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdateSkipCollaudo(servizio, idDominio, true)));
+        assertEquals(ErrorCode.GEN_400_SKIP_COLLAUDO, e.getErrorCode());
+    }
+
+    @Test
+    void testUpdateServizioAttivaSkipCollaudoConAdesioniSkip() {
+        Servizio servizio = getServizioSkipCollaudoConAdesioni(false, true);
+        assertFalse(serviziController.getServizio(servizio.getIdServizio()).getBody().isVincolaSkipCollaudo());
+
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdateSkipCollaudo(servizio, idDominio, true));
+
+        assertTrue(response.getBody().isSkipCollaudo());
+    }
+
+    @Test
+    void testUpdateServizioDisattivaSkipCollaudoConAdesioniSkip() {
+        // Le adesioni con skip lo ricevono dal dominio: il servizio puo` tornare a prevedere il collaudo
+        Servizio servizio = getServizioSkipCollaudoConAdesioni(true, true);
+        assertFalse(serviziController.getServizio(servizio.getIdServizio()).getBody().isVincolaSkipCollaudo());
+
+        ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdateSkipCollaudo(servizio, idDominio, false));
+
+        assertFalse(response.getBody().isSkipCollaudo());
+    }
+
+    @Test
+    void testUpdateServizioCambioDominioSenzaSkipConAdesioniSkip() {
+        Servizio servizio = getServizioSkipCollaudoConAdesioni(false, true);
+
+        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        dominioCreate.setNome("dominio_senza_skip");
+        dominioCreate.setSkipCollaudo(false);
+        dominioCreate.setIdSoggettoReferente(idSoggetto);
+        UUID idDominioSenzaSkip = dominiController.createDominio(dominioCreate).getBody().getIdDominio();
+
+        BadRequestException e = assertThrows(BadRequestException.class, () ->
+                serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdateSkipCollaudo(servizio, idDominioSenzaSkip, false)));
+        assertEquals(ErrorCode.GEN_400_SKIP_COLLAUDO, e.getErrorCode());
+    }
+
 }

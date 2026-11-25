@@ -34,9 +34,16 @@
     </div>
     <div class="nav-controls">
       <div class="gl-w-full btn-group-">
-        <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddReferent' | translate }}</span>
-        </button>
+        @if (_fromReferente) {
+          <button type="button" class="btn btn-default btn-md gl-button btn-icon me-2" (click)="_onBack()">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.Back' | translate }}</span>
+          </button>
+        }
+        @if (_canManage) {
+          <button type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddReferent' | translate }}</span>
+          </button>
+        }
       </div>
     </div>
   </div>
@@ -104,11 +111,13 @@
                     [fields]="_generateReferentFields(referent.source)"
                     [columns]="config.AppConfig?.Layout?.Details?.columns || 6">
                   </ui-form-readonly>
-                  <div class="position-relative">
-                    <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteReferente(referent)">
-                      <i class="bi bi-trash text-danger"></i>
-                    </button>
-                  </div>
+                  @if (_canManage) {
+                    <div class="position-relative">
+                      <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" [attr.aria-label]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteReferente(referent)">
+                        <i class="bi bi-trash text-danger" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  }
                 </div>
               </div>
             }

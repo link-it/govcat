@@ -21,7 +21,8 @@
     <ng-template #popTemplate>
       <div markdown ngPreserveWhitespaces>{{ text }}</div>
     </ng-template>
-    <i class="cursor-pointer {{ iconHelp }}"
+    <button type="button" class="lnk-popover-help-btn"
+      [attr.aria-label]="ariaLabel"
       [popoverTitle]="title"
       [popover]="popTemplate"
       [adaptivePosition]="true"
@@ -29,6 +30,6 @@
       triggers="click"
       [outsideClick]="true"
       [containerClass]="helpContainerClass"
-    ></i>
+    ><i class="{{ iconHelp }}" aria-hidden="true"></i></button>
   </p>
 }

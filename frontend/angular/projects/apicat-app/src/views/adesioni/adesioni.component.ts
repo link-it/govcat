@@ -132,20 +132,19 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   roleTab: string = 'tutte';
   // Issue 229 evolutiva 2 — allineamento al nuovo enum
-  // `RuoloReferente` lato BE (10 valori). Le tab "referente_*"
-  // includono `amministratore_organizzazione` e `operatore_api`
-  // perche` questi ruoli per-org danno visibilita` su tutte le
-  // adesioni dell'organizzazione (rispettivamente referente
-  // primario / operatore tecnico). `utente_organizzazione` resta
-  // come fallback per dati legacy.
+  // `RuoloReferente` lato BE. Per l'amministratore dell'organizzazione
+  // di sessione la tab "referente" usa `amministratore_organizzazione_erogatrice`
+  // (adesioni ai servizi dell'organizzazione) e la tab "referente_adesione"
+  // `amministratore_organizzazione_aderente` (adesioni dell'organizzazione
+  // aderente).
   // NB: `utente_organizzazione` NON deve comparire qui — appartiene
   // a `RuoloUtenteEnum` (ruolo utente globale) mentre il filtro BE
   // `ruolo_referente` accetta solo i valori di `RuoloReferenteEnum`;
   // inviarlo causa 400.
   _allRoleTabs: { key: string, label: string, roles: string[] }[] = [
     { key: 'tutte', label: 'APP.FILTER.All', roles: [] },
-    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'amministratore_organizzazione', 'operatore_api'] },
-    { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione', 'amministratore_organizzazione', 'operatore_api'] },
+    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'amministratore_organizzazione_erogatrice'] },
+    { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione', 'amministratore_organizzazione_aderente'] },
     { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio', 'richiedente_adesione'] }
   ];
   roleTabs: { key: string, label: string, roles: string[] }[] = this._allRoleTabs;
@@ -163,7 +162,8 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' },
     { value: 'richiedente_adesione', label: 'APP.ROLE.richiedente_adesione' },
     { value: 'amministratore_organizzazione', label: 'APP.ROLE.amministratore_organizzazione' },
-    { value: 'operatore_api', label: 'APP.ROLE.operatore_api' }
+    { value: 'amministratore_organizzazione_erogatrice', label: 'APP.ROLE.amministratore_organizzazione_erogatrice' },
+    { value: 'amministratore_organizzazione_aderente', label: 'APP.ROLE.amministratore_organizzazione_aderente' }
   ];
   _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliAdesioni.map(r => [r.value, r.label]));
   _availableRuoliAdesioni: { value: string, label: string }[] = [...this._allRuoliAdesioni];
@@ -222,7 +222,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   generalConfig: any = Tools.Configurazione || null;
   _workflowStati: any[] = Tools.Configurazione?.adesione.workflow.stati || [];
   _workflowStatiServizio: { value: string, label: string }[] = [];
-  _adesioni_multiple: any[] = Tools.Configurazione?.servizio.adesioni_multiple || [];
+  _adesioni_multiple: boolean = Tools.Configurazione?.servizio.adesioni_multiple || false;
 
   minLengthTerm = 1;
 
@@ -309,7 +309,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
       this.generalConfig = Tools.Configurazione || null;
       this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
-      this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || [];
+      this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || false;
       this._initStatiServizio();
       this._updateMapper = Date.now().toString();
       this.updateMultiSelectionMapper();

@@ -45,6 +45,7 @@ import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
@@ -561,7 +562,31 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			return configurazione.getAdesione().getWorkflow().getStatoIniziale();
 		}
 	}
-	
+
+	/**
+	 * Indica se l'utente di sessione può creare un'adesione per un soggetto di un'organizzazione
+	 * a cui non è associato, quando la scelta libera dell'organizzazione è disabilitata.
+	 * Consentito solo a gestore, coordinatore e referente (non tecnico) del servizio o del suo dominio:
+	 * possono aderire per conto di un aderente (comportamento storico, confermato con Issue 451).
+	 * I ruoli per-organizzazione (AMM_ORG/OPERATORE_API) non contano, perché derivano anche
+	 * dall'organizzazione erogatrice e consentirebbero di far aderire organizzazioni terze.
+	 */
+	public boolean isAbilitatoAdesionePerAltraOrganizzazione(AdesioneEntity entity) {
+		UtenteEntity u = this.coreAuthorization.getUtenteSessione();
+
+		if(this.coreAuthorization.isAdmin(u) || this.coreAuthorization.isCoordinatore(u)) {
+			return true;
+		}
+
+		boolean refServizio = entity.getServizio().getReferenti().stream()
+				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
+
+		boolean refDominio = entity.getServizio().getDominio().getReferenti().stream()
+				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
+
+		return refServizio || refDominio;
+	}
+
 	@Override
 	protected List<Ruolo> getRuoli(AdesioneEntity entity) {
 		
@@ -618,30 +643,16 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			lst.add(Ruolo.REFERENTE_TECNICO);
 		}
 
-		// Ruoli per-organizzazione: derivati solo se è valorizzato l'header X-Organization-Context
-		// e quell'organizzazione coincide con una delle due naturali per l'adesione (aderente
-		// o erogatrice). Senza header: nessun ruolo per-org.
+		// Ruolo per-organizzazione: derivato solo se è valorizzato l'header X-Organization-Context.
+		// L'amministratore ottiene REFERENTE_SUPERIORE (autorizza) solo sull'organizzazione
+		// erogatrice: sull'aderente consulta le adesioni ma non le autorizza (Issue 471).
+		// OPERATORE_API non dà ruoli di workflow su nessuno dei due lati: l'operatore gestisce
+		// solo le adesioni di cui è referente, referente tecnico o richiedente (Issue 472).
 		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per esporre direttamente
-		// AMM_ORG/OPERATORE_API invece di mapparli a REFERENTE_SUPERIORE/REFERENTE legacy.
-		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di adesione/servizio/dominio,
-		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
-		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
-		boolean soloRefTecnico = (refTecnicoAdesione || refTecnicoServizio || refTecnicoDominio)
-				&& !refAdesione && !refServizio && !refDominio;
-		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneAderenteAdesione(entity), soloRefTecnico);
-		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneErogatriceAdesione(entity), soloRefTecnico);
+		// AMM_ORG invece di mapparlo a REFERENTE_SUPERIORE legacy.
+		aggiungiRuoloAmministratoreOrganizzazioneErogatrice(lst, getOrganizzazioneErogatriceAdesione(entity));
 
 		return lst;
-	}
-
-	/**
-	 * Organizzazione aderente: quella del soggetto dell'adesione.
-	 */
-	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneAderenteAdesione(AdesioneEntity adesione) {
-		if (adesione.getSoggetto() == null) {
-			return null;
-		}
-		return adesione.getSoggetto().getOrganizzazione();
 	}
 
 	/**
@@ -658,33 +669,21 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	}
 
 	/**
-	 * Aggiunge alla lista dei ruoli workflow il mapping del ruolo per-organizzazione dell'utente
-	 * derivato dall'header X-Organization-Context, ma solo se quell'organizzazione coincide con
-	 * quella naturale indicata (aderente o erogatrice dell'adesione). AMM_ORG → REFERENTE_SUPERIORE,
-	 * OPERATORE_API → REFERENTE. Deduplica se già presente.
-	 *
-	 * @param soloRefTecnico se true, l'utente è esplicitamente referente_tecnico della risorsa:
-	 *                       l'elevazione a REFERENTE dal ruolo OPERATORE_API viene saltata per
-	 *                       preservare i vincoli del referente tecnico.
+	 * Aggiunge REFERENTE_SUPERIORE se l'utente opera, tramite l'header X-Organization-Context,
+	 * come amministratore dell'organizzazione erogatrice indicata. Deduplica se già presente.
 	 */
-	private void aggiungiRuoloPerOrganizzazioneDaSessione(List<Ruolo> lst,
-			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione, boolean soloRefTecnico) {
-		if (organizzazione == null) {
+	private void aggiungiRuoloAmministratoreOrganizzazioneErogatrice(List<Ruolo> lst,
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazioneErogatrice) {
+		if (organizzazioneErogatrice == null) {
 			return;
 		}
 		org.govway.catalogo.core.orm.entity.OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
-		if (orgSessione == null || !orgSessione.getId().equals(organizzazione.getId())) {
+		if (orgSessione == null || !orgSessione.getId().equals(organizzazioneErogatrice.getId())) {
 			return;
 		}
-		org.govway.catalogo.core.orm.entity.RuoloOrganizzazione ruoloSessione = this.coreAuthorization.getRuoloOrganizzazioneSessione();
-		if (ruoloSessione == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE) {
-			if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
-				lst.add(Ruolo.REFERENTE_SUPERIORE);
-			}
-		} else if (!soloRefTecnico && ruoloSessione == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API) {
-			if (!lst.contains(Ruolo.REFERENTE)) {
-				lst.add(Ruolo.REFERENTE);
-			}
+		if (this.coreAuthorization.getRuoloOrganizzazioneSessione() == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
+				&& !lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
+			lst.add(Ruolo.REFERENTE_SUPERIORE);
 		}
 	}
 	
@@ -749,6 +748,36 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	@Override
 	protected ConfigurazioneWorkflow getWorkflow(AdesioneEntity entity) {
 		return this.configurazione.getAdesione().getWorkflow();
+	}
+
+	@Override
+	public void authorizeCambioStato(AdesioneEntity entity, String statoFinale) {
+		super.authorizeCambioStato(entity, statoFinale);
+		checkServizioPubblicatoProduzione(entity, statoFinale);
+	}
+
+	/**
+	 * Un'adesione entra negli stati di produzione, con o senza collaudo, solo con il servizio pubblicato
+	 * in produzione (Issue 478). Il controllo vale solo all'ingresso in produzione: i passaggi fra stati
+	 * di produzione, l'archiviazione e il ripristino dall'archiviazione restano consentiti.
+	 * Gli stati di produzione seguono la convenzione dei nomi <fase>_produzione[_senza_collaudo].
+	 */
+	private void checkServizioPubblicatoProduzione(AdesioneEntity entity, String statoFinale) {
+		String statoIniziale = entity.getStato();
+		if(!isStatoProduzione(statoFinale) || isStatoProduzione(statoIniziale)
+				|| statoIniziale.equals(getWorkflow(entity).getStatoArchiviato())) {
+			return;
+		}
+
+		ServizioEntity servizio = entity.getServizio();
+		if(!AbstractServizioAuthorization.isPubblicatoProduzione(servizio)) {
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SERVICE_NOT_PRODUCTION,
+					Map.of("nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
+		}
+	}
+
+	private static boolean isStatoProduzione(String stato) {
+		return stato.contains("produzione");
 	}
 
 	/**

@@ -42,6 +42,7 @@ import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
@@ -1191,6 +1192,8 @@ public class WorkflowAdesioniTest {
         entityManager.clear();
     	// Creo l'Adesione
     	this.getAdesione();
+    	// L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+    	this.pubblicaServizioInProduzione();
     	
     	//Gestore
     	this.cambioStatoAdesioneFinoA(STATO_RICHIESTO_IN_PRODUZIONE);
@@ -1255,6 +1258,8 @@ public class WorkflowAdesioniTest {
     	
     	// Creo l'Adesione
     	this.getAdesione();
+    	// L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+    	this.pubblicaServizioInProduzione();
     	
     	//Gestore
     	this.cambioStatoAdesioneFinoA(STATO_AUTORIZZATO_IN_PRODUZIONE);
@@ -1318,6 +1323,8 @@ public class WorkflowAdesioniTest {
     	
     	// Creo l'Adesione
     	this.getAdesione();
+    	// L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+    	this.pubblicaServizioInProduzione();
     	
     	//Gestore
     	this.cambioStatoAdesioneFinoA(STATO_IN_CONFIGURAZIONE_PRODUZIONE);
@@ -1381,6 +1388,8 @@ public class WorkflowAdesioniTest {
     	
     	// Creo l'Adesione
     	this.getAdesione();
+    	// L'adesione entra in produzione solo con il servizio pubblicato in produzione (Issue 478)
+    	this.pubblicaServizioInProduzione();
     	
     	//Gestore
     	this.cambioStatoAdesioneFinoA(STATO_PUBBLICATO_IN_PRODUZIONE);
@@ -1434,6 +1443,15 @@ public class WorkflowAdesioniTest {
      * Restituisce la configurazione dello stato successivo a quello indicato, per poter
      * applicare al volo il vincolo sui profili nei test che seguono.
      */
+    /** Porta il servizio in produzione senza percorrere il workflow, non oggetto di questi test. */
+    private void pubblicaServizioInProduzione() {
+        entityManager.createQuery("UPDATE ServizioEntity s SET s.stato = 'pubblicato_produzione' WHERE s.idServizio = :id")
+                .setParameter("id", idServizio.toString())
+                .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+    }
+
     private ConfigurazioneStato getConfigurazioneStatoSuccessivo(String statoAttuale) {
     	return this.configurazione.getAdesione().getWorkflow().getCambiStato().stream()
     			.filter(c -> c.getStatoAttuale().equals(statoAttuale))
@@ -1472,7 +1490,7 @@ public class WorkflowAdesioniTest {
     		// Il servizio richiede il profilo MODI_P1, che non e' abilitato per la transizione
     		statoSuccessivo.setProfili(List.of(PROFILO_INTERNO_HTTPS));
 
-    		NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+    		BadRequestException e = assertThrows(BadRequestException.class, () -> {
     			this.cambiaStatoAdesione(STATO_RICHIESTO_IN_COLLAUDO);
     		}, "Profilo richiesto dal servizio non abilitato per la transizione");
 
@@ -1536,7 +1554,7 @@ public class WorkflowAdesioniTest {
     	try {
     		statoSuccessivo.setProfili(List.of(PROFILO_MODI_P1));
 
-    		NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+    		BadRequestException e = assertThrows(BadRequestException.class, () -> {
     			this.cambiaStatoAdesione(STATO_RICHIESTO_IN_COLLAUDO);
     		}, "Uno dei profili richiesti dal servizio non e' abilitato per la transizione");
 

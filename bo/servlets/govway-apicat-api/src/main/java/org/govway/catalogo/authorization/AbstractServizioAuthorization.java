@@ -37,6 +37,7 @@ import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
@@ -47,11 +48,14 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.services.RateLimitingRegole;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
+import org.govway.catalogo.servlets.model.ConfigurazioneRuolo;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
@@ -66,8 +70,16 @@ import org.springframework.data.domain.Pageable;
 
 public abstract class AbstractServizioAuthorization extends DefaultWorkflowAuthorization<ServizioCreate,ServizioUpdate,ServizioEntity> {
 
+	/** Stati del servizio pubblicato in produzione, con o senza collaudo */
+	private static final Set<String> STATI_PUBBLICATO_PRODUZIONE = Set.of("pubblicato_produzione", "pubblicato_produzione_senza_collaudo");
+
 	public AbstractServizioAuthorization() {
 		super(EntitaEnum.SERVIZIO);
+	}
+
+	/** Indica se il servizio e` pubblicato in produzione, con il percorso con o senza collaudo. */
+	public static boolean isPubblicatoProduzione(ServizioEntity servizio) {
+		return STATI_PUBBLICATO_PRODUZIONE.contains(servizio.getStato());
 	}
 
 	@Autowired
@@ -75,6 +87,9 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 	
 	@Autowired
 	private TassonomiaService tassonomiaService;
+
+	@Autowired
+	private RateLimitingRegole rateLimitingRegole;
 
 	public void authorizeExport() {
 		this.coreAuthorization.requireAdmin();
@@ -149,11 +164,35 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 	protected void checkCampiObbligatoriProduzioneApi(ApiEntity entity,  Map<String, EntitaComplessaError> errore) {
 		checkCampiObbligatoriAmbienteApi(entity.getProduzione(), entity, errore, "produzione");
 		checkEstensioniGruppo(entity, ConfigurazioneClasseDato.PRODUZIONE, errore);
+		checkRateLimitingApi(entity.getProduzione(), entity, errore);
 	}
 
 	protected void checkCampiObbligatoriCollaudoApi(ApiEntity entity,  Map<String, EntitaComplessaError> errore) {
 		checkCampiObbligatoriAmbienteApi(entity.getCollaudo(), entity, errore, "collaudo");
 		checkEstensioniGruppo(entity, ConfigurazioneClasseDato.COLLAUDO, errore);
+		checkRateLimitingApi(entity.getCollaudo(), entity, errore);
+	}
+
+	/**
+	 * Quote di rate limiting required dalla regola dei profili dell'API: almeno un periodo
+	 * dell'ambiente deve valorizzarle. Come per i gruppi di proprieta` custom, una quota non
+	 * modificabile dall'utente per ruoli_abilitati resta a carico di chi ha un ruolo abilitato.
+	 */
+	private void checkRateLimitingApi(ApiConfigEntity config, ApiEntity entity, Map<String, EntitaComplessaError> errore) {
+		if(config == null || !RUOLO.EROGATO_SOGGETTO_DOMINIO.equals(entity.getRuolo())) {
+			return;
+		}
+		RateLimitingRegole.Regola regola = this.rateLimitingRegole.getRegola(entity);
+		checkQuotaRateLimiting(regola.quotaTotale(), config.getRateLimiting().stream().anyMatch(q -> q.getQuota() != null),
+				"rate_limiting.quota_totale", entity, errore);
+		checkQuotaRateLimiting(regola.quotaFruitore(), config.getRateLimiting().stream().anyMatch(q -> q.getQuotaFruitore() != null),
+				"rate_limiting.quota_fruitore", entity, errore);
+	}
+
+	private void checkQuotaRateLimiting(RateLimitingRegole.Quota quota, boolean valorizzata, String nomeCampo, ApiEntity entity, Map<String, EntitaComplessaError> errore) {
+		if(quota != null && quota.required() && !valorizzata && isGruppoProprietaCustomVisibile(quota.ruoliAbilitati(), entity.getServizio())) {
+			requireNotNull(null, nomeCampo, entity, errore);
+		}
 	}
 
 	protected void checkCampiObbligatoriAmbienteApi(ApiConfigEntity config, ApiEntity entity,  Map<String, EntitaComplessaError> errore, String ambiente) {
@@ -422,34 +461,90 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 			lst.add(Ruolo.REFERENTE_TECNICO);
 		}
 
-		// Ruoli per-organizzazione: derivati solo se è valorizzato l'header X-Organization-Context
+		// Ruolo per-organizzazione: derivato solo se è valorizzato l'header X-Organization-Context
 		// e quell'organizzazione coincide con l'organizzazione naturale del workflow del servizio
 		// (org del soggetto referente del dominio). Senza header: nessun ruolo per-org.
 		// AMM_ORG mappa a REFERENTE_SUPERIORE (poteri di autorizzazione, come coordinatore e ref.dominio).
-		// OPERATORE_API mappa a REFERENTE (può gestire ma non autorizzare, come ref.adesione).
+		// OPERATORE_API non dà ruoli di workflow: l'operatore gestisce solo i servizi di cui è
+		// referente, referente tecnico o richiedente (Issue 472).
 		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per esporre direttamente
-		// AMM_ORG/OPERATORE_API invece di mapparli a REFERENTE_SUPERIORE/REFERENTE legacy.
-		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di servizio/dominio,
-		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
-		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
-		boolean soloRefTecnico = (refTecnicoServizio || refTecnicoDominio) && !refServizio && !refDominio;
+		// AMM_ORG invece di mapparlo a REFERENTE_SUPERIORE legacy.
 		OrganizzazioneEntity organizzazioneContesto = getOrganizzazioneContestoServizio(entity);
 		OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
 		if (organizzazioneContesto != null && orgSessione != null
-				&& orgSessione.getId().equals(organizzazioneContesto.getId())) {
-			RuoloOrganizzazione ruoloSessione = this.coreAuthorization.getRuoloOrganizzazioneSessione();
-			if (ruoloSessione == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE) {
-				if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
-					lst.add(Ruolo.REFERENTE_SUPERIORE);
-				}
-			} else if (!soloRefTecnico && ruoloSessione == RuoloOrganizzazione.OPERATORE_API) {
-				if (!lst.contains(Ruolo.REFERENTE)) {
-					lst.add(Ruolo.REFERENTE);
-				}
-			}
+				&& orgSessione.getId().equals(organizzazioneContesto.getId())
+				&& this.coreAuthorization.getRuoloOrganizzazioneSessione() == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
+				&& !lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
+			lst.add(Ruolo.REFERENTE_SUPERIORE);
 		}
 
 		return lst;
+	}
+
+	/**
+	 * Indica se l'utente in sessione puo' accedere al monitoraggio (transazioni e statistiche) del servizio:
+	 * il gestore sempre, gli altri con almeno un ruolo sul servizio tra {@code monitoraggio.ruoli_abilitati}.
+	 * I ruoli tecnici valgono come i corrispondenti ruoli non tecnici.
+	 */
+	public boolean isMonitoraggioConsentito(ServizioEntity entity) {
+		List<Ruolo> ruoli = this.getRuoli(entity);
+		if(ruoli.contains(Ruolo.GESTORE)) {
+			return true;
+		}
+
+		List<ConfigurazioneRuolo> ruoliAbilitati = this.configurazione.getMonitoraggio().getRuoliAbilitati();
+		if(ruoliAbilitati == null || ruoliAbilitati.isEmpty()) {
+			return false;
+		}
+
+		return ruoli.stream()
+				.map(DefaultWorkflowAuthorization::toConfigurazioneRuolo)
+				.anyMatch(ruoliAbilitati::contains);
+	}
+
+	/**
+	 * Verifica che il dominio indicato in creazione o in modifica (quando cambia) appartenga
+	 * all'organizzazione per cui l'utente opera, cioe` che il soggetto referente del dominio sia
+	 * di quell'organizzazione. Gestore e coordinatore non hanno vincoli.
+	 * <ul>
+	 * <li>Con il contesto organizzazione e un ruolo per-organizzazione (amministratore o operatore API),
+	 * il dominio deve appartenere all'organizzazione di sessione.</li>
+	 * <li>Senza contesto organizzazione, solo in creazione: l'utente deve avere un ruolo per-organizzazione
+	 * sull'organizzazione del dominio. In modifica, senza contesto, l'utente opera con i soli ruoli
+	 * personali sul servizio e il vincolo non si applica.</li>
+	 * </ul>
+	 *
+	 * @param dominio dominio richiesto
+	 * @param creazione true in creazione del servizio, false in modifica
+	 */
+	public void authorizeDominio(DominioEntity dominio, boolean creazione) {
+		if(dominio == null || this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore()) {
+			return;
+		}
+
+		OrganizzazioneEntity orgDominio = dominio.getSoggettoReferente().getOrganizzazione();
+
+		if(this.coreAuthorization.getOrganizationContext() != null
+				&& this.coreAuthorization.getOrganizationContext().hasOrganizzazione()) {
+			if(!this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE, RuoloOrganizzazione.OPERATORE_API)) {
+				return;
+			}
+			OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+			if(orgSessione == null) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
+			}
+			if(!orgSessione.getId().equals(orgDominio.getId())) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_DOMINIO_FUORI_ORG,
+						Map.of("orgNome", orgSessione.getNome()));
+			}
+		} else if(creazione) {
+			UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
+			if(utente == null || !this.coreAuthorization.hasRuoloInOrganizzazione(utente, orgDominio,
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE, RuoloOrganizzazione.OPERATORE_API)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
+			}
+		}
 	}
 
 	/**
@@ -521,6 +616,12 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		if(!this.configurazione.getUtente().isConsentiAccessoAnonimo()) {
 			this.coreAuthorization.requireLogged();
 		}
+	}
+
+	@Override
+	public void authorizeModificaDati(ServizioEntity entity, List<ConfigurazioneClasseDato> classiDato) {
+		this.authorizeAnything();
+		super.authorizeModificaDati(entity, classiDato);
 	}
 
 	@Override

@@ -40,8 +40,12 @@ import { motivoSkipCollaudoBloccato } from '../../servizio-verifica-stato';
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
+import { OpzioneIntermediazione, opzioneIntermediazione, opzioniIntermediazione } from '../../opzioni-intermediazione';
 import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
 import { CropPreviewComponent } from '@app/lib/ui/crop-preview/crop-preview.component';
+
+/** Referenti non validi nell'organizzazione di destinazione del servizio. */
+const ERRORE_REFERENTI_ORGANIZZAZIONE = 'VAL.422.REFERENTI.ORGANIZZAZIONE';
 
 /**
  * Form Informazioni Generali del servizio (view + edit) per la FASE 1 del
@@ -89,6 +93,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     saving: boolean = false;
     _error: boolean = false;
     _errorMsg: string = '';
+    /** Spostamento in un'altra organizzazione rifiutato per i referenti: il gestore puo' forzarlo. */
+    _forzaSpostamento: boolean = false;
     _errors: any[] = [];
     _updateData: string = '';
 
@@ -117,6 +123,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     _adesioneDominio: AdesioneDominio = ADESIONE_DOMINIO_LIBERA;
     _hasAdesioniMultiple: boolean = false;
     _isFruizione: boolean = false;
+    /** Opzioni della select che imposta `fruizione` (organizzazione di contesto o esterna). */
+    _opzioniIntermediazione: OpzioneIntermediazione[] = opzioniIntermediazione(null);
     _isDominioDeprecato: boolean = false;
 
     // create-only flags: in edit un servizio puo` gia` avere API/componenti
@@ -126,6 +134,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     /** Domini per la select: ricerca paginata con caricamento allo scroll. */
     dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
+    /** Senza la spunta la select propone solo i domini non deprecati. */
+    _includiDominiDeprecati: boolean = false;
 
     organizzazioniInterne$!: Observable<any[]>;
     organizzazioniInterneInput$ = new Subject<string>();
@@ -169,6 +179,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
     ngOnInit() {
         this.loadAnagrafiche();
+        this._opzioniIntermediazione = opzioniIntermediazione(this.authenticationService.getCurrentOrganization()?.nome);
         this._buildVisibilitaOptions();
         if (this.data) { this._prepareView(); }
     }
@@ -354,8 +365,12 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         this.enableDisableControlAdesioneConsentita();
     }
 
-    _onChangeFruizione(event: any) {
-        this._isFruizione = event.target.checked;
+    _opzioneIntermediazione(fruizione: any): OpzioneIntermediazione {
+        return opzioneIntermediazione(this._opzioniIntermediazione, fruizione);
+    }
+
+    _onChangeFruizione(fruizione: boolean) {
+        this._isFruizione = !!fruizione;
         if (!this._isFruizione) {
             this._formGroup.get('id_organizzazione_interna')?.setValue(null);
             this._formGroup.get('id_soggetto_erogatore')?.setValue(null);
@@ -449,7 +464,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     getDomini(term: string | null = null, page: number = 0): Observable<PaginaTypeahead<any>> {
         const _options: any = { params: { page } };
         if (term) { _options.params.q = term; }
-        if (!this.authenticationService.isGestore()) {
+        if (!this._includiDominiDeprecati) {
             _options.params.deprecato = false;
         }
         return this.apiService.getList('domini', _options).pipe(map((resp: any) => paginaDaRisposta(resp)));
@@ -502,6 +517,12 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
     _initDominiSelect(defaultValue: any[] = []) {
         this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    _onIncludiDominiDeprecati(includi: boolean) {
+        this._includiDominiDeprecati = includi;
+        const _selezionato = this.selectedDominio !== undefined ? this.selectedDominio : this.data?.dominio;
+        this._initDominiSelect(_selezionato ? [_selezionato] : []);
     }
 
     private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
@@ -581,7 +602,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     // Submit
     // -------------------------------------------------------------------------
 
-    onSubmit() {
+    onSubmit(force: boolean = false) {
         this._formGroup.markAllAsTouched();
         if (this._formGroup.invalid) {
             this._error = true;
@@ -592,7 +613,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         this.__resetError();
         const body = this._prepareBodyUpdateServizio(this._formGroup.getRawValue());
         this.saving = true;
-        this.apiService.putElement(this.model, this.id, body).subscribe({
+        this.apiService.putElement(this.model, this.id, body, force ? { params: { force: 'true' } } : undefined).subscribe({
             next: (response: any) => {
                 this.saving = false;
                 this.isEdit = false;
@@ -607,6 +628,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._errors = Tools.filtraErroriComplessi(error.error?.errori);
+                this._forzaSpostamento = !force && this._isGestore() && error?.error?.detail === ERRORE_REFERENTI_ORGANIZZAZIONE;
             }
         });
     }
@@ -662,5 +684,6 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         this._error = false;
         this._errorMsg = '';
         this._errors = [];
+        this._forzaSpostamento = false;
     }
 }

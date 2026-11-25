@@ -253,7 +253,7 @@
               </div>
 
               <div class="form-group stato mb-0">
-                <label class="label-bold" for="stato">{{ 'APP.CLIENT.LABEL.Status' | translate }}
+                <label class="label-bold" [attr.for]="_isEdit ? 'stato' : null">{{ 'APP.CLIENT.LABEL.Status' | translate }}
                   @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'stato'"></span> }
                 </label>
                 @if (_isEdit) {

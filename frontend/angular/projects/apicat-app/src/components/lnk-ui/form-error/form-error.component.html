@@ -17,7 +17,8 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 @if (message) {
-  <div class="gl-alert gl-alert-danger mt-4" role="alert">
-    {{ message }}
+  <div class="lnk-form-error mt-4" role="alert">
+    <i class="bi bi-exclamation-octagon lnk-form-error-icon" aria-hidden="true"></i>
+    <span class="lnk-form-error-text">{{ message }}</span>
   </div>
 }

@@ -35,9 +35,14 @@ import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.servlets.model.StatoUpdate;
+import java.util.Optional;
+import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.services.RateLimitingRegole;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.servlets.model.API;
@@ -51,10 +56,12 @@ import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
 import org.govway.catalogo.servlets.model.ConfigurazioneRiferimentoProprietaCustom;
 import org.govway.catalogo.servlets.model.ConfigurazioneTipoDominioEnum;
+import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.TipoSoggettoGateway;
 import org.govway.catalogo.servlets.model.APICreate;
+import org.govway.catalogo.servlets.model.APIDatiAmbiente;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
@@ -63,6 +70,9 @@ import org.govway.catalogo.servlets.model.AllegatoItemCreate;
 import org.govway.catalogo.servlets.model.AllegatoUpdate;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.ApiUpdate;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingQuota;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloRateLimiting;
+import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.govway.catalogo.servlets.model.DatiCustomUpdate;
 import org.govway.catalogo.servlets.model.DatiSpecificaApiUpdate;
 import org.govway.catalogo.servlets.model.DatiGenericiApiUpdate;
@@ -138,6 +148,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.validation.ConstraintViolationException;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
@@ -204,6 +215,9 @@ public class APITest {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private ApiService apiService;
 
     private static final String UTENTE_GESTORE = "gestore";
     private static UUID ID_UTENTE_GESTORE;
@@ -514,6 +528,113 @@ public class APITest {
     	ResponseEntity<Servizio> aggiornato = serviziController.updateServizio(servizioIntermediato.getIdServizio(), null, servizioUpdate);
     	assertEquals(HttpStatus.OK, aggiornato.getStatusCode());
     	assertEquals("servizio_intermediato_rinominato", aggiornato.getBody().getNome());
+    }
+
+    private static final String STATO_ARCHIVIATO = "archiviato";
+
+    private void cambiaStatoServizio(Servizio servizio, String stato) {
+    	StatoUpdate statoUpdate = new StatoUpdate();
+    	statoUpdate.setStato(stato);
+    	assertEquals(HttpStatus.OK, serviziController.updateStatoServizio(servizio.getIdServizio(), statoUpdate, false).getStatusCode());
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+    }
+
+    /**
+     * Issue 475: le API di un servizio archiviato non occupano nome e versione, come gia`
+     * avviene per i servizi: chi rifa` il servizio puo` riusarle.
+     */
+    @Test
+    void testCreateApiDiServizioArchiviatoConsentita() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	Servizio nuovo = creaServizio("servizio_nuovo", dominio.getIdDominio(), false, null);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, nuovo).getStatusCode());
+    }
+
+    /**
+     * Issue 475: anche rinominando un'API si possono riusare nome e versione di un servizio archiviato.
+     */
+    @Test
+    void testUpdateApiNomeDiServizioArchiviatoConsentito() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	Servizio nuovo = creaServizio("servizio_nuovo", dominio.getIdDominio(), false, null);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	ResponseEntity<API> api = creaApi("API_Y", 1, nuovo);
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+
+    	assertEquals(HttpStatus.OK, apiController.updateApi(api.getBody().getIdApi(), getApiUpdate("API_X", 1), null).getStatusCode());
+    }
+
+    /**
+     * Issue 475: se nel frattempo un altro servizio ha riusato le sue API, il servizio archiviato
+     * non puo` tornare allo stato precedente: le sue API tornerebbero in conflitto.
+     */
+    @Test
+    void testRipristinoServizioArchiviatoConApiRiusataConflitto() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	Servizio nuovo = creaServizio("servizio_nuovo", dominio.getIdDominio(), false, null);
+    	String statoPrecedente = archiviato.getStato();
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, nuovo).getStatusCode());
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+
+    	StatoUpdate ripristino = new StatoUpdate();
+    	ripristino.setStato(statoPrecedente);
+    	ConflictException e = assertThrows(ConflictException.class,
+    			() -> serviziController.updateStatoServizio(archiviato.getIdServizio(), ripristino, false));
+    	assertEquals(ErrorCode.API_409, e.getErrorCode());
+    }
+
+    /**
+     * Issue 475: senza API riusate il servizio archiviato torna allo stato precedente.
+     */
+    @Test
+    void testRipristinoServizioArchiviatoSenzaConflittoConsentito() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	String statoPrecedente = archiviato.getStato();
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+    	cambiaStatoServizio(archiviato, statoPrecedente);
+
+    	assertEquals(statoPrecedente, serviziController.getServizio(archiviato.getIdServizio()).getBody().getStato());
+    }
+
+    /**
+     * Issue 475: con la stessa API su un servizio archiviato e sul servizio che lo sostituisce, i
+     * dati del gateway (monitoraggio, allarmi) vanno attribuiti all'API del servizio attivo, anche
+     * se quella archiviata e` stata creata prima.
+     */
+    @Test
+    void testFindByNomeVersioneSoggettoPreferisceApiNonArchiviata() {
+    	Dominio dominio = this.getDominio();
+    	Servizio archiviato = creaServizio("servizio_archiviato", dominio.getIdDominio(), false, null);
+    	Servizio nuovo = creaServizio("servizio_nuovo", dominio.getIdDominio(), false, null);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, archiviato).getStatusCode());
+    	cambiaStatoServizio(archiviato, STATO_ARCHIVIATO);
+    	UUID idApiNuova = creaApi("API_X", 1, nuovo).getBody().getIdApi();
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+
+    	UUID idSoggetto = UUID.fromString(this.servizioService.find(nuovo.getIdServizio()).get()
+    			.getDominio().getSoggettoReferente().getIdSoggetto());
+
+    	Optional<ApiEntity> api = this.apiService.findByNomeVersioneSoggetto("API_X", 1, idSoggetto, STATO_ARCHIVIATO);
+    	assertTrue(api.isPresent());
+    	assertEquals(idApiNuova.toString(), api.get().getIdApi());
     }
 
     UUID idApi = null;
@@ -2020,7 +2141,11 @@ public class APITest {
     	Dominio dominio = this.getDominio();
     	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
 
-    	assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateDominio("API_X", servizio, "MTLS_FRUIZIONI")));
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateDominio("API_X", servizio, "MTLS_FRUIZIONI")));
+    	// Issue 457: codice specifico con profilo e tipo di dominio ammesso
+    	assertEquals(ErrorCode.VAL_400_PROFILO_TIPO_DOMINIO, e.getErrorCode());
+    	assertEquals("MTLS_FRUIZIONI", e.getParameters().get("profilo"));
+    	assertEquals("esterno", e.getParameters().get("tipoDominio"));
     }
 
     @Test
@@ -2081,10 +2206,46 @@ public class APITest {
 
     		BadRequestException e = assertThrows(BadRequestException.class,
     				() -> apiController.createApi(getApiCreateDominioSoloProduzione("API_X", servizio, "INTERNO_HTTPS")));
-    		assertEquals(ErrorCode.VAL_422, e.getErrorCode());
+    		// Issue 457: codice specifico invece di VAL_422 generico
+    		assertEquals(ErrorCode.VAL_400_PROFILO_COMPATIBILITA, e.getErrorCode());
+    		assertEquals("INTERNO_HTTPS", e.getParameters().get("profilo"));
     	} finally {
     		profilo.setCompatibilita(compatibilitaOriginale);
     	}
+    }
+
+    // Issue 457: profilo non ammesso nel dominio: codice specifico con profilo, dominio e campo
+    @Test
+    void testCreateApiProfiloNonAmmessoNelDominio() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    	// MODI_P1 e` ammesso solo nei domini ModI e Test
+    	this.entityManager.createQuery("update DominioEntity d set d.nome = :nome where d.idDominio = :id")
+    		.setParameter("nome", "Interno").setParameter("id", dominio.getIdDominio().toString()).executeUpdate();
+    	this.entityManager.clear();
+
+    	APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(apiCreate));
+    	assertEquals(ErrorCode.VAL_400_PROFILO_DOMINIO, e.getErrorCode());
+    	assertEquals("MODI_P1", e.getParameters().get("profilo"));
+    	assertEquals("Interno", e.getParameters().get("dominio"));
+    	assertEquals("gruppi_auth_type.profilo", e.getParameters().get("campo"));
+    }
+
+    // Issue 457: profilo SOAP su un'API REST
+    @Test
+    void testCreateApiProfiloNonCompatibile() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    	APICreate apiCreate = getApiCreateDominio("API_X", servizio, "PDND-INTEGRITY-SOAP");
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(apiCreate));
+    	assertEquals(ErrorCode.VAL_400_PROFILO_COMPATIBILITA, e.getErrorCode());
+    	assertEquals("PDND-INTEGRITY-SOAP", e.getParameters().get("profilo"));
+    	assertEquals("soap", e.getParameters().get("compatibilita"));
     }
 
     // Issue 412: gruppi di autenticazione senza alcuna configurazione: 400 esplicito invece di 500
@@ -2205,7 +2366,7 @@ public class APITest {
     		this.entityManager.clear();
 
     		// il monitoraggio usa la ridefinizione
-    		assertEquals("ModIPA", this.filtriUtils.getProfilo(servizio.getIdServizio(), idApi));
+    		assertEquals("ModIPA", this.filtriUtils.getProfilo(servizio.getIdServizio(), idApi, dominio.getSoggettoReferente().getNome()));
 
     		// modificare solo la ridefinizione rivalida i profili gia` associati all'API
     		BadRequestException e = assertThrows(BadRequestException.class,
@@ -2817,6 +2978,51 @@ public class APITest {
     }
 
     @Test
+    void testUpdateApiConfigurazioneParzialeMantieneProtocolloEDatiErogazione() {
+    	// Issue 454: un blocco di configurazione con le sole quote non deve fallire (prima: NPE sul
+    	// protocollo) ne' azzerare i dati di erogazione non inviati
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_conf_parziale", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApiConUrlInvocazione("API_CONF_PARZIALE", servizio, null, List.of("default", "gw_esterno"));
+    	APIDatiAmbiente prima = apiController.getAPI(idApi).getBody().getConfigurazioneProduzione();
+
+    	APIDatiAmbienteUpdate produzione = new APIDatiAmbienteUpdate();
+    	produzione.setRateLimiting(new ArrayList<>());
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setConfigurazioneProduzione(produzione);
+
+    	ResponseEntity<API> aggiornata = apiController.updateApi(idApi, apiUpdate, null);
+
+    	assertEquals(HttpStatus.OK, aggiornata.getStatusCode());
+    	APIDatiAmbiente dopo = aggiornata.getBody().getConfigurazioneProduzione();
+    	assertEquals(prima.getProtocollo(), dopo.getProtocollo());
+    	assertEquals(prima.getProtocolloDettaglio(), dopo.getProtocolloDettaglio());
+    	assertNotNull(prima.getDatiErogazione().getUrl());
+    	assertEquals(prima.getDatiErogazione().getUrl(), dopo.getDatiErogazione().getUrl());
+    	assertEquals(prima.getDatiErogazione().getNomeGateway(), dopo.getDatiErogazione().getNomeGateway());
+    	assertEquals(prima.getDatiErogazione().getVersioneGateway(), dopo.getDatiErogazione().getVersioneGateway());
+    	assertEquals(List.of("default", "gw_esterno"), dopo.getUrlInvocazione());
+    }
+
+    @Test
+    void testUpdateApiNuovoAmbienteSenzaProtocollo() {
+    	// Issue 454: se l'ambiente non esiste ancora il protocollo e` obbligatorio: 400 sul campo, non 500
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_conf_senza_protocollo", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApi("API_CONF_SENZA_PROTOCOLLO", 1, servizio).getBody().getIdApi();
+    	assertNull(apiController.getAPI(idApi).getBody().getConfigurazioneProduzione());
+
+    	APIDatiAmbienteUpdate produzione = new APIDatiAmbienteUpdate();
+    	produzione.setDatiErogazione(getDatiErogazioneTest());
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setConfigurazioneProduzione(produzione);
+
+    	BadRequestException exception = assertThrows(BadRequestException.class, () -> apiController.updateApi(idApi, apiUpdate, null));
+    	assertEquals(ErrorCode.VAL_400_REQUIRED, exception.getErrorCode());
+    	assertEquals("configurazione_produzione.protocollo", exception.getParameters().get("campo"));
+    }
+
+    @Test
     void testCreateApiUrlInvocazioneNonCensita() {
     	Dominio dominio = this.getDominio();
     	Servizio servizio = creaServizio("servizio_url_sconosciuta", dominio.getIdDominio(), false, null);
@@ -2955,5 +3161,273 @@ public class APITest {
 
     	assertEquals(HttpStatus.OK, apiController.deleteAPI(idApi).getStatusCode());
     	assertThrows(NotFoundException.class, () -> apiController.getAPI(idApi));
+    }
+
+    // ==================== Rate limiting (Issue 402) ====================
+
+    private static RateLimitingApi rateLimiting(Integer quota, RateLimitingPeriodoEnum periodo) {
+    	return rateLimiting(quota, null, periodo);
+    }
+
+    private static RateLimitingApi rateLimiting(Integer quota, Integer quotaFruitore, RateLimitingPeriodoEnum periodo) {
+    	RateLimitingApi rl = new RateLimitingApi();
+    	rl.setQuota(quota);
+    	rl.setQuotaFruitore(quotaFruitore);
+    	rl.setPeriodo(periodo);
+    	return rl;
+    }
+
+    private APICreate getApiCreateRateLimiting(String nome, Servizio servizio, String profilo, List<RateLimitingApi> collaudo) {
+    	APICreate apiCreate = getApiCreateDominio(nome, servizio, profilo);
+    	apiCreate.getConfigurazioneCollaudo().setRateLimiting(collaudo);
+    	return apiCreate;
+    }
+
+    private ApiUpdate getApiUpdateRateLimiting(List<RateLimitingApi> collaudo) {
+    	APIDatiAmbienteUpdate datiCollaudo = new APIDatiAmbienteUpdate();
+    	datiCollaudo.setProtocollo(ProtocolloEnum.REST);
+    	datiCollaudo.setDatiErogazione(getDatiErogazioneTest());
+    	datiCollaudo.setRateLimiting(collaudo);
+
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setConfigurazioneCollaudo(datiCollaudo);
+    	return apiUpdate;
+    }
+
+    /**
+     * Rende PDND il profilo indicato (pdnd_type) con la regola di default dei profili PDND, come
+     * avverrebbe al caricamento di una configurazione che non dichiara il rate_limiting del profilo.
+     * Restituisce l'azione che ripristina il profilo.
+     */
+    private Runnable rendiProfiloPdnd(String codice) {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione(codice);
+    	String pdndTypeOriginale = profilo.getPdndType();
+    	ConfigurazioneProfiloRateLimiting rateLimitingOriginale = profilo.getRateLimiting();
+    	profilo.setPdndType("eservice");
+    	profilo.setRateLimiting(null);
+    	RateLimitingRegole.applicaDefault(this.configurazione);
+    	return () -> {
+    		profilo.setPdndType(pdndTypeOriginale);
+    		profilo.setRateLimiting(rateLimitingOriginale);
+    	};
+    }
+
+    /** Imposta la regola di rate limiting del profilo indicato; restituisce l'azione che la ripristina. */
+    private Runnable impostaRegolaRateLimiting(String codice, ConfigurazioneProfiloRateLimiting regola) {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione(codice);
+    	ConfigurazioneProfiloRateLimiting originale = profilo.getRateLimiting();
+    	profilo.setRateLimiting(regola);
+    	return () -> profilo.setRateLimiting(originale);
+    }
+
+    @Test
+    void testRateLimitingApiDefaultApplicatoAiProfili() {
+    	// Senza blocco rate_limiting in configurazione: sola quota totale e tutti i periodi
+    	ConfigurazioneProfiloRateLimiting regola = getProfiloConfigurazione("MODI_P1").getRateLimiting();
+    	assertEquals(List.of(RateLimitingPeriodoEnum.MINUTO, RateLimitingPeriodoEnum.ORA, RateLimitingPeriodoEnum.GIORNO), regola.getPeriodi());
+    	assertNotNull(regola.getQuotaTotale());
+    	assertFalse(regola.getQuotaTotale().isRequired());
+    	assertNull(regola.getQuotaFruitore());
+
+    	// Profili PDND: quota totale e quota fruitore, solo giorno
+    	Runnable ripristina = rendiProfiloPdnd("PDND");
+    	try {
+    		ConfigurazioneProfiloRateLimiting pdnd = getProfiloConfigurazione("PDND").getRateLimiting();
+    		assertEquals(List.of(RateLimitingPeriodoEnum.GIORNO), pdnd.getPeriodi());
+    		assertNotNull(pdnd.getQuotaTotale());
+    		assertNotNull(pdnd.getQuotaFruitore());
+    	} finally {
+    		ripristina.run();
+    	}
+    }
+
+    @Test
+    void testRateLimitingApiCreazioneEAggiornamento() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
+
+    	UUID idApi = apiController.createApi(getApiCreateRateLimiting("API_RL", servizio, "MODI_P1",
+    			List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO), rateLimiting(20, RateLimitingPeriodoEnum.ORA)))).getBody().getIdApi();
+    	entityManager.flush();
+    	entityManager.clear();
+
+    	// Quote ordinate per periodo, dal piu` breve al piu` lungo
+    	API api = apiController.getAPI(idApi).getBody();
+    	assertEquals(List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA), rateLimiting(300, RateLimitingPeriodoEnum.GIORNO)),
+    			api.getConfigurazioneCollaudo().getRateLimiting());
+
+    	// Sostituzione integrale: quota giornaliera aggiornata, oraria rimossa, al minuto aggiunta
+    	apiController.updateApi(idApi, getApiUpdateRateLimiting(List.of(rateLimiting(5, RateLimitingPeriodoEnum.MINUTO), rateLimiting(500, RateLimitingPeriodoEnum.GIORNO))), null);
+    	entityManager.flush();
+    	entityManager.clear();
+    	assertEquals(List.of(rateLimiting(5, RateLimitingPeriodoEnum.MINUTO), rateLimiting(500, RateLimitingPeriodoEnum.GIORNO)),
+    			apiController.getAPI(idApi).getBody().getConfigurazioneCollaudo().getRateLimiting());
+
+    	// Lista assente: quote invariate
+    	apiController.updateApi(idApi, getApiUpdateRateLimiting(null), null);
+    	entityManager.flush();
+    	entityManager.clear();
+    	assertEquals(2, apiController.getAPI(idApi).getBody().getConfigurazioneCollaudo().getRateLimiting().size());
+
+    	// Lista vuota: nessun rate limiting
+    	apiController.updateApi(idApi, getApiUpdateRateLimiting(List.of()), null);
+    	entityManager.flush();
+    	entityManager.clear();
+    	assertNull(apiController.getAPI(idApi).getBody().getConfigurazioneCollaudo().getRateLimiting());
+    }
+
+    @Test
+    void testRateLimitingApiValidazione() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_RL", servizio, "MODI_P1",
+    			List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO), rateLimiting(100, RateLimitingPeriodoEnum.GIORNO)))));
+    	assertEquals(ErrorCode.API_400_RATE_LIMITING_DUPLICATE, e.getErrorCode());
+
+    	// Quota non positiva: rifiutata dalla validazione del modello (minimum 1)
+    	assertThrows(ConstraintViolationException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_RL", servizio, "MODI_P1",
+    			List.of(rateLimiting(0, RateLimitingPeriodoEnum.GIORNO)))));
+
+    	// Periodo senza quote
+    	e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_RL", servizio, "MODI_P1",
+    			List.of(rateLimiting(null, RateLimitingPeriodoEnum.GIORNO)))));
+    	assertEquals(ErrorCode.API_400_RATE_LIMITING_QUOTA_ASSENTE, e.getErrorCode());
+
+    	// La regola di default dei profili non PDND non prevede la quota fruitore
+    	e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_RL", servizio, "MODI_P1",
+    			List.of(rateLimiting(300, 10, RateLimitingPeriodoEnum.GIORNO)))));
+    	assertEquals(ErrorCode.API_400_RATE_LIMITING_QUOTA_NON_PREVISTA, e.getErrorCode());
+    	assertEquals("quota_fruitore", e.getParameters().get("quota"));
+    }
+
+    @Test
+    void testRateLimitingApiErogataAderenteRifiutato() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
+
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+    	apiCreate.setIdServizio(servizio.getIdServizio());
+    	APIDatiAmbienteCreate datiCollaudo = new APIDatiAmbienteCreate();
+    	datiCollaudo.setProtocollo(ProtocolloEnum.REST);
+    	datiCollaudo.setRateLimiting(List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO)));
+    	apiCreate.setConfigurazioneCollaudo(datiCollaudo);
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(apiCreate));
+    	assertEquals(ErrorCode.API_400_RATE_LIMITING_RUOLO, e.getErrorCode());
+    }
+
+    @Test
+    void testRateLimitingApiProfiloPdnd() {
+    	Runnable ripristina = rendiProfiloPdnd("PDND");
+    	try {
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
+
+    		// Solo il periodo giornaliero
+    		BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_PDND", servizio, "PDND",
+    				List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)))));
+    		assertEquals(ErrorCode.API_400_RATE_LIMITING_PERIODO, e.getErrorCode());
+
+    		// La quota fruitore non supera la quota totale
+    		e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_PDND", servizio, "PDND",
+    				List.of(rateLimiting(300, 400, RateLimitingPeriodoEnum.GIORNO)))));
+    		assertEquals(ErrorCode.API_400_RATE_LIMITING_QUOTA_FRUITORE_SUPERIORE, e.getErrorCode());
+
+    		// Quota totale e quota fruitore, oppure una sola delle due
+    		UUID idApi = apiController.createApi(getApiCreateRateLimiting("API_PDND", servizio, "PDND",
+    				List.of(rateLimiting(300, 50, RateLimitingPeriodoEnum.GIORNO)))).getBody().getIdApi();
+    		entityManager.flush();
+    		entityManager.clear();
+    		assertEquals(List.of(rateLimiting(300, 50, RateLimitingPeriodoEnum.GIORNO)),
+    				apiController.getAPI(idApi).getBody().getConfigurazioneCollaudo().getRateLimiting());
+    		apiController.updateApi(idApi, getApiUpdateRateLimiting(List.of(rateLimiting(null, 50, RateLimitingPeriodoEnum.GIORNO))), null);
+    		entityManager.flush();
+    		entityManager.clear();
+    		assertEquals(List.of(rateLimiting(null, 50, RateLimitingPeriodoEnum.GIORNO)),
+    				apiController.getAPI(idApi).getBody().getConfigurazioneCollaudo().getRateLimiting());
+
+    		// La verifica e` sullo stato finale: passare a un profilo PDND con quote non giornaliere e` rifiutato
+    		UUID idApiModi = apiController.createApi(getApiCreateRateLimiting("API_MODI", servizio, "MODI_P1",
+    				List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)))).getBody().getIdApi();
+    		entityManager.flush();
+    		entityManager.clear();
+    		e = assertThrows(BadRequestException.class, () -> apiController.updateApi(idApiModi, getApiUpdateProfilo("PDND", "risorsa1"), null));
+    		assertEquals(ErrorCode.API_400_RATE_LIMITING_PERIODO, e.getErrorCode());
+    	} finally {
+    		ripristina.run();
+    	}
+    }
+
+    @Test
+    void testRateLimitingApiProfiloSenzaPdndTypeNonVincolato() {
+    	// Senza pdnd_type il profilo non e` PDND, anche se l'auth_type e` pdnd: regola di default
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
+
+    	assertEquals(HttpStatus.OK, apiController.createApi(getApiCreateRateLimiting("API_PDND", servizio, "PDND",
+    			List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)))).getStatusCode());
+    }
+
+    @Test
+    void testRateLimitingApiPiuProfiliRegolaPiuRestrittiva() {
+    	Runnable ripristina = rendiProfiloPdnd("PDND");
+    	try {
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
+
+    		// MODI_P1 (tutti i periodi, sola quota totale) + PDND (solo giorno, quota fruitore)
+    		AuthTypeApiResource pdnd = new AuthTypeApiResource();
+    		pdnd.setProfilo("PDND");
+    		pdnd.setResources(List.of("risorsa2"));
+
+    		APICreate oraria = getApiCreateRateLimiting("API_MISTA", servizio, "MODI_P1", List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)));
+    		oraria.setGruppiAuthType(new ArrayList<>(List.of(oraria.getGruppiAuthType().get(0), pdnd)));
+    		BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(oraria));
+    		assertEquals(ErrorCode.API_400_RATE_LIMITING_PERIODO, e.getErrorCode());
+
+    		APICreate giornaliera = getApiCreateRateLimiting("API_MISTA", servizio, "MODI_P1", List.of(rateLimiting(300, 50, RateLimitingPeriodoEnum.GIORNO)));
+    		giornaliera.setGruppiAuthType(new ArrayList<>(List.of(giornaliera.getGruppiAuthType().get(0), pdnd)));
+    		assertEquals(HttpStatus.OK, apiController.createApi(giornaliera).getStatusCode());
+    	} finally {
+    		ripristina.run();
+    	}
+    }
+
+    @Test
+    void testRateLimitingApiRuoliAbilitati() {
+    	// Quota totale riservata al referente tecnico del servizio: il gestore la modifica solo con la force
+    	ConfigurazioneProfiloRateLimiting regola = new ConfigurazioneProfiloRateLimiting();
+    	regola.setPeriodi(List.of(RateLimitingPeriodoEnum.GIORNO));
+    	regola.setQuotaTotale(new ConfigurazioneRateLimitingQuota().required(false).ruoliAbilitati(List.of(Ruolo.REFERENTE_TECNICO)));
+    	Runnable ripristina = impostaRegolaRateLimiting("MODI_P1", regola);
+    	try {
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
+
+    		NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_RL", servizio, "MODI_P1",
+    				List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO)))));
+    		assertEquals(ErrorCode.AUT_403_RATE_LIMITING_RUOLI_ABILITATI, e.getErrorCode());
+
+    		UUID idApi = apiController.createApi(getApiCreateRateLimiting("API_RL", servizio, "MODI_P1", null)).getBody().getIdApi();
+    		entityManager.flush();
+    		entityManager.clear();
+
+    		// Con la force del gestore
+    		apiController.updateApi(idApi, getApiUpdateRateLimiting(List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO))), true);
+    		entityManager.flush();
+    		entityManager.clear();
+
+    		// Quote reinviate invariate: nessun controllo sui ruoli
+    		assertEquals(HttpStatus.OK, apiController.updateApi(idApi, getApiUpdateRateLimiting(List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO))), null).getStatusCode());
+    		entityManager.flush();
+    		entityManager.clear();
+
+    		// Quote modificate senza force: rifiutato
+    		e = assertThrows(NotAuthorizedException.class, () -> apiController.updateApi(idApi, getApiUpdateRateLimiting(List.of(rateLimiting(400, RateLimitingPeriodoEnum.GIORNO))), null));
+    		assertEquals(ErrorCode.AUT_403_RATE_LIMITING_RUOLI_ABILITATI, e.getErrorCode());
+    	} finally {
+    		ripristina.run();
+    	}
     }
 }

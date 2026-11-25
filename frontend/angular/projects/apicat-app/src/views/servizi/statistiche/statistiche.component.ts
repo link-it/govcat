@@ -22,6 +22,9 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import { CommonModule } from '@angular/common';
 import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
 import { TranslateService } from '@ngx-translate/core';
 import { BsDatepickerConfig, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
 
@@ -29,6 +32,10 @@ import { Tools, ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk';
+import { soggettoMonitoraggio, tipoMonitoraggio } from '../monitoraggio-soggetti';
+import { statoErrore } from '../servizio-accessibile';
+import { ServizioMonitorMenuComponent } from '../components/servizio-monitor-menu/servizio-monitor-menu.component';
+import { QUERY_PARAM_AMBIENTE, ambienteServizio, collaudoSaltato } from '../ambiente-servizio';
 
 import moment from 'moment';
 
@@ -115,14 +122,12 @@ interface DistributionOperationItem {
   erogatore: string;
 }
 
-// does not work
 interface DistributionApplicationItem {
   nome: string;
   valore: number;
   soggetto: string;
 }
 
-// does not work
 interface DistributionTokenClientIdItem {
   client_id: string;
   soggetto: string;
@@ -130,15 +135,22 @@ interface DistributionTokenClientIdItem {
   valore: number;
 }
 
-// does not work
 interface DistributionTokenIssuerItem {
   issuer: string;
   valore: number;
 }
 
 interface DistributionPrincipalItem {
-  indirizzo: string;
+  principal: string;
+  autenticazione?: string;
+  /** @deprecated usare principal */
+  indirizzo?: string;
   valore: number;
+}
+
+/** Etichetta della serie con il dettaglio tra parentesi: ngx-charts usa il nome come chiave, valori uguali si sovrappongono. */
+function etichettaConDettaglio(nome: string, dettaglio?: string): string {
+  return dettaglio ? `${nome} (${dettaglio})` : nome;
 }
 
 interface DistributionIpItem {
@@ -193,7 +205,7 @@ const domainStatistics = [
   templateUrl: 'statistiche.component.html',
   styleUrls: ['statistiche.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective, ServizioMonitorMenuComponent]
 })
 export class StatisticheComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'StatisticheComponent';
@@ -204,6 +216,8 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   id: number | null = null;
   environmentId: string = 'collaudo'; // collaudo / produzione
+  /** Ambiente richiesto da chi apre la pagina (vetrina o menu del servizio). */
+  _ambienteRichiesto: string | null = null;
 
   service: any = null;
 
@@ -273,6 +287,8 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   showLegend: boolean = true;
   legendTitle: string = 'Legend';
   legendPosition = LegendPosition.Right;
+  /** Legenda del grafico a torta sotto il grafico: a destra le etichette lunghe vengono troncate. */
+  pieLegendPosition = LegendPosition.Below;
   showXAxisLabel: boolean = true;
   tooltipDisabled: boolean = false;
   showText: boolean = true;
@@ -390,11 +406,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
     this.config = this.configService.getConfiguration();
 
-    const allowedExportTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.formati_report || [];
-    const filteredExportList = allowedExportTypes.length
-        ? this.exportListDefault.filter(el => allowedExportTypes.includes(el.action.split('export-')[1]))
-        : this.exportListDefault;
-    this.exportList = [ ...filteredExportList ];
+    this._initExportList();
 
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
@@ -411,15 +423,52 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     });
   }
 
+  private _initExportList() {
+    const allowedExportTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.formati_report || [];
+    const filteredExportList = allowedExportTypes.length
+        ? this.exportListDefault.filter(el => allowedExportTypes.includes(el.action.split('export-')[1]))
+        : this.exportListDefault;
+    this.exportList = [ ...filteredExportList ];
+  }
+
+  /**
+   * Dopo un refresh della pagina la configurazione remota può non essere ancora disponibile alla
+   * creazione del componente: la si recupera e si riapplicano i filtri di formati e tipi di distribuzione.
+   */
+  private _caricaConfigurazione() {
+    if (this.generalConfig) { return; }
+    const _config$: Observable<any> = Tools.Configurazione
+      ? of(Tools.Configurazione)
+      : this.apiService.getList('configurazione').pipe(catchError(() => of(null)));
+    _config$.subscribe((config: any) => {
+      if (!config) { return; }
+      this.generalConfig = config;
+      this._initExportList();
+      this._aggiornaTipiDistribuzione();
+    });
+  }
+
+  /** Ricalcola le distribuzioni proposte e azzera la scelta se non è più tra quelle disponibili. */
+  private _aggiornaTipiDistribuzione() {
+    this.setupAdesioneField(this._formGroup.get('api')?.value);
+    const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
+    if (distributionType && !this.distributionTypes.some((dt) => dt.code === distributionType.code)) {
+      this._formGroup.get('distribution_type')?.setValue(null);
+    }
+  }
+
   @HostListener('window:resize') _onResize() {
     this.desktop = (window.innerWidth >= 992);
   }
 
   ngOnInit() {
+    this._caricaConfigurazione();
+
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.id = params['id'];
-        this.environmentId = params['id_ambiente'] || 'collaudo';
+        this._ambienteRichiesto = params['id_ambiente'] || this.route.snapshot?.queryParams?.[QUERY_PARAM_AMBIENTE] || null;
+        this.environmentId = ambienteServizio(this.service, this._ambienteRichiesto);
         this.configService.getConfig(this.model).subscribe(
           (config: any) => {
             this.statisticheConfig = config;
@@ -592,19 +641,10 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
     adesioneControl.enable();
 
-    let _distributionTypes: DistributionType[] = [];
     if (apiValue && apiValue.ruolo === 'erogato_soggetto_aderente') {
         adesioneControl.setValidators([Validators.required]);
-        _distributionTypes = [
-          ...this.distributionTypesDefault,
-          ...this.distributionTypesAdherentSubject
-        ];
     } else {
         adesioneControl.clearValidators();
-        _distributionTypes = [
-          ...this.distributionTypesDefault,
-          ...this.distributionTypesSubjectDomain
-        ];
 
         const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
 
@@ -614,6 +654,14 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         }
     }
 
+    // Il monitoraggio prevede le distribuzioni per token solo per le erogazioni e quella per Principal solo per le fruizioni
+    const _distributionTypes: DistributionType[] = [
+      ...this.distributionTypesDefault,
+      ...(this._tipoMonitoraggioStatistiche(apiValue) === 'fruizioni'
+        ? this.distributionTypesAdherentSubject
+        : this.distributionTypesSubjectDomain)
+    ];
+
     const allowedTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.tipi_distribuzione || [];
     const filteredDistributionTypes = allowedTypes.length
         ? _distributionTypes.filter(dt => allowedTypes.includes(dt.code))
@@ -621,6 +669,14 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     this.distributionTypes = [ ...filteredDistributionTypes ];
 
     adesioneControl.updateValueAndValidity();
+  }
+
+  /** Percorso del monitoraggio (erogazioni/fruizioni) della statistica; senza API scelta dipende solo dal servizio. */
+  private _tipoMonitoraggioStatistiche(api: any): string {
+    if (api) {
+      return this._tipoVerifica(api);
+    }
+    return this.service?.fruizione ? 'fruizioni' : 'erogazioni';
   }
 
   public canShowAdesioneAdherentSubject() {
@@ -647,6 +703,11 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         next: (response: any) => {
           this.service = response;
           this._initBreadcrumb();
+          this._aggiornaTipiDistribuzione();
+          const _ambiente = ambienteServizio(this.service, this._ambienteRichiesto);
+          if (_ambiente !== this.environmentId) {
+            this._cambiaAmbiente(_ambiente);
+          }
         },
         error: (error: any) => {
           Tools.OnError(error);
@@ -766,15 +827,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   _tipoVerifica(api: any) {
-    if (api.ruolo === 'erogato_soggetto_dominio') {
-      if (this.service?.soggetto_erogatore) {
-        return 'fruizioni';
-      } else {
-        return 'erogazioni';
-      }
-    } else {
-      return 'fruizioni';
-    }
+    return tipoMonitoraggio(api, this.service);
   }
 
   _hasPDNDAuthType(api: any) {
@@ -793,7 +846,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   _getSoggettoNome() {
-      return this.service?.soggetto_erogatore?.nome || this.service?.dominio?.soggetto_referente?.nome
+    return soggettoMonitoraggio(this.service);
   }
 
   _isSoggettoPDND() {
@@ -962,15 +1015,13 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
             break;
           }
           case StatisticsUrl.DistribuzioneApplicativo: {
-            // does not work
             const applicationValues = result.valori as DistributionApplicationItem[];
-            this.single = applicationValues.map((v) => ({name: v.nome, value: v.valore}));
+            this.single = applicationValues.map((v) => ({name: etichettaConDettaglio(v.nome, v.soggetto), value: v.valore}));
             break;
           }
           case StatisticsUrl.DistribuzioneTokenClientId: {
-            // possibly multi
             const tokenClientIdValues = result.valori as DistributionTokenClientIdItem[];
-            this.single = tokenClientIdValues.map((v) => ({name: v.client_id, value: v.valore}));
+            this.single = tokenClientIdValues.map((v) => ({name: v.applicativo ? etichettaConDettaglio(v.applicativo, v.client_id) : v.client_id, value: v.valore}));
             break;
           }
           case StatisticsUrl.DistribuzioneIssuer: {
@@ -980,7 +1031,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
           }
           case StatisticsUrl.DistribuzionePrincipal: {
             const principalValues = result.valori as DistributionPrincipalItem[];
-            this.single = principalValues.map((v) => ({name: v.indirizzo, value: v.valore}));
+            this.single = principalValues.map((v) => ({name: etichettaConDettaglio(v.principal ?? v.indirizzo ?? '', v.autenticazione), value: v.valore}));
             break;
           }
           case StatisticsUrl.DistribuzioneIp: {
@@ -993,9 +1044,29 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
       error: (error: any) => {
         this._spin = false;
         this._setErrorMessages(true);
-        this._errorMsg = error.error?.message || error.message;
+        this._errorMsg = this._messaggioErroreReport(error);
       }
     });
+  }
+
+  /** Messaggio dell'errore di un report: il codice del monitoraggio tradotto; un 404 senza codice noto non mostra il testo HTTP. */
+  private _messaggioErroreReport(error: any): string {
+    const _codice: string | undefined = error?.error?.detail;
+    if (_codice) {
+      const _params = error.error.errori?.[0]?.params || {};
+      const _chiave = `APP.MESSAGE.ERROR.${_codice}`;
+      let _testo: any = this.translate.instant(_chiave, _params);
+      if (_testo && typeof _testo === 'object') {
+        _testo = this.translate.instant(`${_chiave}.DEFAULT`, _params);
+      }
+      if (typeof _testo === 'string' && !_testo.startsWith(_chiave)) {
+        return _testo;
+      }
+    }
+    if (statoErrore(error) === 404) {
+      return this.translate.instant('APP.MESSAGE.ERROR.StatisticaNonDisponibile');
+    }
+    return error?.error?.message || error?.message;
   }
 
   onBreadcrumb(event: any) {
@@ -1010,13 +1081,28 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     Tools.ScrollElement('container-scroller', 0);
   }
 
+  /** Servizio pubblicato in produzione senza collaudo: c'è solo la produzione. */
+  get _collaudoSaltato(): boolean {
+    return collaudoSaltato(this.service);
+  }
+
+  /** Ambiente nell'URL, per riaprire la pagina (o la vetrina) sullo stesso ambiente. */
+  _aggiornaAmbienteUrl(ambiente: string) {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { [QUERY_PARAM_AMBIENTE]: ambiente }, queryParamsHandling: 'merge', replaceUrl: true });
+  }
+
   _showCollaudo() {
-    this.environmentId = 'collaudo';
-    this._resetData();
+    if (this._collaudoSaltato) { return; }
+    this._cambiaAmbiente('collaudo');
   }
 
   _showProduzione() {
-    this.environmentId = 'produzione';
+    this._cambiaAmbiente('produzione');
+  }
+
+  _cambiaAmbiente(ambiente: string) {
+    this._aggiornaAmbienteUrl(ambiente);
+    this.environmentId = ambiente;
     this._resetData();
   }
 

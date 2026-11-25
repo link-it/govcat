@@ -1,0 +1,71 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="modal-header align-items-center gap-3">
+  <div class="flex-grow-1 min-w-0">
+    <h5 class="modal-title mb-0" id="storico-stati-title">{{ 'APP.WORKFLOW.STORICO.Titolo' | translate }}</h5>
+    @if (sottotitolo) { <div class="text-muted small text-truncate">{{ sottotitolo }}</div> }
+  </div>
+  <button type="button" class="btn-close" [attr.aria-label]="'APP.BUTTON.Close' | translate" (click)="chiudi()"></button>
+</div>
+<div class="modal-body">
+  @if (_errorMsg) {
+    <div class="gl-alert gl-alert-danger" role="alert"><span>{{ _errorMsg }}</span></div>
+  } @else if (_caricato && !_voci.length) {
+    <p class="ss-vuoto">{{ 'APP.WORKFLOW.STORICO.Nessuno' | translate }}</p>
+  }
+
+  @if (_voci.length) {
+    <ol class="ss-lista" aria-labelledby="storico-stati-title">
+      @for (voce of _voci; track $index) {
+        <li class="ss-voce">
+          <div class="ss-meta">
+            <time [attr.datetime]="voce.data">{{ voce.data | date:'dd/MM/yyyy HH:mm' }}</time>
+            @if (_utente(voce); as utente) {
+              <span class="ss-utente"><i class="bi bi-person" aria-hidden="true"></i>{{ utente }}</span>
+            }
+          </div>
+          <div class="ss-cambio">
+            @if (voce.stato_precedente) {
+              <span class="ss-stato" [style.background-color]="_sfondo(voce.stato_precedente)" [style.color]="_colore(voce.stato_precedente)">
+                <span class="visually-hidden">{{ 'APP.WORKFLOW.STORICO.Da' | translate }}</span>
+                {{ ('APP.WORKFLOW.STATUS.' + voce.stato_precedente) | translate }}
+              </span>
+            } @else {
+              <span class="ss-creazione">{{ 'APP.WORKFLOW.STORICO.Creazione' | translate }}</span>
+            }
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            <span class="ss-stato" [style.background-color]="_sfondo(voce.stato)" [style.color]="_colore(voce.stato)">
+              <span class="visually-hidden">{{ 'APP.WORKFLOW.STORICO.A' | translate }}</span>
+              {{ ('APP.WORKFLOW.STATUS.' + voce.stato) | translate }}
+            </span>
+          </div>
+        </li>
+      }
+    </ol>
+  }
+
+  @if (_loading) {
+    <div class="ss-caricamento" role="status">
+      <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{{ 'APP.LABEL.Loading' | translate }}
+    </div>
+  }
+  @if (_altre && !_errorMsg) {
+    <div class="ss-sentinella" #sentinella aria-hidden="true"></div>
+  }
+</div>

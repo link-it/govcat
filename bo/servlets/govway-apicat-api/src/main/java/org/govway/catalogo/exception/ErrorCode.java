@@ -87,6 +87,30 @@ public enum ErrorCode {
     /** URL di invocazione indicata piu` volte sulla stessa specifica */
     API_400_URL_DUPLICATE("URL di invocazione duplicata"),
 
+    /** Periodo indicato piu` volte nel rate limiting della specifica di un ambiente */
+    API_400_RATE_LIMITING_DUPLICATE("Periodo di rate limiting duplicato"),
+
+    /** Rate limiting dichiarato su un'API non erogata dal soggetto del dominio */
+    API_400_RATE_LIMITING_RUOLO("Rate limiting non previsto per il ruolo dell'API"),
+
+    /** Periodo di rate limiting non ammesso dai profili dell'API */
+    API_400_RATE_LIMITING_PERIODO("Periodo di rate limiting non ammesso dai profili dell'API"),
+
+    /** Quota (totale o fruitore) non prevista dai profili dell'API */
+    API_400_RATE_LIMITING_QUOTA_NON_PREVISTA("Quota di rate limiting non prevista dai profili dell'API"),
+
+    /** Periodo di rate limiting senza quota totale ne' quota fruitore */
+    API_400_RATE_LIMITING_QUOTA_ASSENTE("Periodo di rate limiting senza quote"),
+
+    /** Quota fruitore superiore alla quota totale dello stesso periodo */
+    API_400_RATE_LIMITING_QUOTA_FRUITORE_SUPERIORE("Quota fruitore superiore alla quota totale"),
+
+    /** Quota fruitore inferiore a quote gia` assegnate ad adesioni non archiviate */
+    API_400_RATE_LIMITING_QUOTA_FRUITORE_ASSEGNATE("Quota fruitore inferiore a quote gia` assegnate ai fruitori"),
+
+    /** Rimozione di un periodo di rate limiting su cui ci sono quote di adesioni non archiviate */
+    API_400_RATE_LIMITING_FRUITORI("Periodo di rate limiting con quote assegnate ai fruitori"),
+
     /** Allegato servizio duplicato */
     SRV_400_DUPLICATE("Allegato servizio duplicato"),
 
@@ -104,8 +128,14 @@ public enum ErrorCode {
     /** Immagine per il servizio non trovata */
     SRV_404_IMAGE("Immagine servizio non trovata"),
 
-    /** Il servizio non è eliminabile */
-    SRV_400_NOT_DELETABLE("Servizio non eliminabile"),
+    /** Il servizio non è eliminabile perché ha adesioni */
+    SRV_400_NOT_DELETABLE_ADESIONI("Servizio non eliminabile: ha adesioni"),
+
+    /** Il servizio non è eliminabile perché ha API */
+    SRV_400_NOT_DELETABLE_API("Servizio non eliminabile: ha API"),
+
+    /** Il package non è eliminabile perché contiene servizi */
+    SRV_400_NOT_DELETABLE_PACKAGE("Package non eliminabile: contiene servizi"),
 
     /** Gruppo già associato al servizio */
     SRV_409_GROUP("Gruppo già associato"),
@@ -133,6 +163,9 @@ public enum ErrorCode {
 
     /** Operazione non valida sul servizio */
     SRV_400_INVALID("Operazione non valida sul servizio"),
+
+    /** Visibilita` non consentita per un servizio (es. componente su un servizio non package) */
+    SRV_400_VISIBILITY("Visibilità non consentita per il servizio"),
 
     /** Servizio non multi adesione in un dominio multi adesione */
     SRV_400_MULTI_ADESIONE("Multi adesione obbligatoria per i servizi del dominio"),
@@ -162,6 +195,9 @@ public enum ErrorCode {
 
     /** Utente gia' associato all'organizzazione */
     ORG_409_USER("Utente gia' associato all'organizzazione"),
+
+    /** Utente referente di servizi, domini o adesioni dell'organizzazione: il cambio di ruolo va confermato */
+    ORG_409_UTENTE_REFERENTE("Utente referente di servizi, domini o adesioni dell'organizzazione"),
 
     // ==================== DOMINI ====================
 
@@ -199,6 +235,9 @@ public enum ErrorCode {
 
     /** Soggetto non aderente */
     SOG_400_NOT_ADERENTE("Soggetto non aderente"),
+
+    /** Soggetto non referente */
+    SOG_400_NOT_REFERENTE("Soggetto non referente"),
 
     /** Soggetto di organizzazione diversa */
     SOG_400_ORG_MISMATCH("Soggetto di organizzazione diversa"),
@@ -331,14 +370,38 @@ public enum ErrorCode {
     /** Stato adesione non valido per monitoraggio */
     ADE_400_STATE_MONITORING("Stato adesione non valido per monitoraggio"),
 
+    /** Monitoraggio di una fruizione per adesione: l'adesione non ha client per l'API nell'ambiente */
+    ADE_400_MONITORING_CLIENT_ASSENTE("Nessun client dell'adesione per il monitoraggio dell'API"),
+
+    /** Monitoraggio di una fruizione per adesione: l'adesione ha più client distinti per l'API nell'ambiente */
+    ADE_400_MONITORING_CLIENT_MULTIPLI("Più client dell'adesione per il monitoraggio dell'API"),
+
     /** Stato servizio non consente adesione */
     ADE_400_STATE_SERVICE("Stato servizio non consente adesione"),
+
+    /** Quota di rate limiting per un'API non del servizio o non erogata dal soggetto del dominio */
+    ADE_400_RATE_LIMITING_API("API non prevista per il rate limiting dell'adesione"),
+
+    /** Quota di rate limiting per un periodo non dichiarato dal servizio */
+    ADE_400_RATE_LIMITING_PERIODO("Periodo di rate limiting non previsto dal servizio"),
+
+    /** Quota di rate limiting indicata piu` volte per la stessa API e periodo */
+    ADE_400_RATE_LIMITING_DUPLICATE("Quota di rate limiting duplicata"),
+
+    /** Quota di rate limiting superiore alla quota fruitore dichiarata dal servizio */
+    ADE_400_RATE_LIMITING_QUOTA_FRUITORE("Quota di rate limiting superiore alla quota fruitore del servizio"),
 
     /** Referente adesione duplicato */
     ADE_409_REFERENT("Referente adesione duplicato"),
 
-    /** Skip collaudo non consentito dal servizio */
+    /** Skip collaudo non consentito dal dominio del servizio */
     ADE_409_STATE_SKIP_COLLAUDO("Skip collaudo non consentito"),
+
+    /** Skip collaudo obbligatorio: il servizio non prevede il collaudo */
+    ADE_409_STATE_SKIP_COLLAUDO_REQUIRED("Skip collaudo obbligatorio"),
+
+    /** Servizio non ancora pubblicato in produzione: l'adesione non puo` entrare in produzione */
+    ADE_409_STATE_SERVICE_NOT_PRODUCTION("Servizio non pubblicato in produzione"),
 
     /** Adesione disabilitata per il servizio */
     ADE_409_STATE_DISABLED("Adesione disabilitata per il servizio"),
@@ -462,6 +525,30 @@ public enum ErrorCode {
     /** Statistiche non disponibili */
     MON_404_STATS("Statistiche non disponibili"),
 
+    /** Monitoraggio di audit non abilitato */
+    MON_404_AUDIT("Monitoraggio di audit non abilitato"),
+
+    /** API senza proprietà di audit valorizzate nell'ambiente */
+    MON_400_AUDIT_API("API non abilitata al monitoraggio di audit"),
+
+    /** API non indicata nella ricerca delle transazioni con informazioni di audit */
+    MON_400_AUDIT_ID_API("API obbligatoria per il monitoraggio di audit"),
+
+    /** API indicata nel monitoraggio senza configurazione nell'ambiente richiesto */
+    MON_400_API_AMBIENTE("API non configurata nell'ambiente monitorato"),
+
+    /** Soggetto indicato nel monitoraggio diverso dal soggetto referente del dominio del servizio */
+    MON_400_SOGGETTO("Soggetto non coerente con il servizio monitorato"),
+
+    /** Monitoraggio del servizio non consentito con i ruoli dell'utente sul servizio */
+    MON_403("Monitoraggio del servizio non consentito con i ruoli dell'utente"),
+
+    /** Transazione non appartenente a un servizio su cui l'utente puo' accedere al monitoraggio */
+    MON_403_TRANSAZIONE("Monitoraggio della transazione non consentito con i ruoli dell'utente"),
+
+    /** Ricerca di monitoraggio rifiutata da GovWay (400): soggetto o profilo non allineati tra GovCat e GovWay */
+    MON_409_GOVWAY("Soggetto o profilo del monitoraggio non allineati con GovWay"),
+
     // ==================== TRANSAZIONI ====================
 
     /** Transazione non trovata */
@@ -514,7 +601,7 @@ public enum ErrorCode {
     /** Operazione di scrittura verso la PDND riservata agli utenti con ruolo PDND amministratore */
     AUT_403_RUOLO_PDND("Operazione riservata agli utenti con ruolo PDND amministratore"),
 
-    /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione */
+    /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione; lo stesso vale per amministratore e operatore API che creano un servizio o ne cambiano il dominio */
     AUT_403_AMM_ORG_DOMINIO_FUORI_ORG("Dominio non appartenente all'organizzazione di sessione dell'amministratore"),
 
     /** Un amministratore organizzazione può approvare la richiesta cambio organizzazione solo quando è amministratore dell'organizzazione target */
@@ -525,6 +612,9 @@ public enum ErrorCode {
 
     /** Gruppo di proprietà custom non modificabile: nessun ruolo dell'utente è tra i ruoli abilitati del gruppo */
     AUT_403_GRUPPO_RUOLI_ABILITATI("Gruppo di proprietà custom non modificabile con i ruoli dell'utente"),
+
+    /** Quota di rate limiting dell'API non modificabile con i ruoli dell'utente sul servizio */
+    AUT_403_RATE_LIMITING_RUOLI_ABILITATI("Quota di rate limiting non modificabile con i ruoli dell'utente"),
 
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
@@ -548,6 +638,18 @@ public enum ErrorCode {
 
     /** Valore non ammesso per il profilo di interoperabilità GovWay */
     VAL_400_PROFILO_GOVWAY("Profilo di interoperabilità GovWay non valido"),
+
+    /** Profilo non ammesso per il tipo di dominio (erogazione/fruizione) del servizio */
+    VAL_400_PROFILO_TIPO_DOMINIO("Profilo non ammesso per il tipo di dominio"),
+
+    /** Profilo non ammesso nel dominio del servizio */
+    VAL_400_PROFILO_DOMINIO("Profilo non ammesso nel dominio"),
+
+    /** Profilo non ammesso per il soggetto referente del dominio */
+    VAL_400_PROFILO_SOGGETTO("Profilo non ammesso per il soggetto referente del dominio"),
+
+    /** Profilo non compatibile con il tipo di API (REST/SOAP) */
+    VAL_400_PROFILO_COMPATIBILITA("Profilo non compatibile con il tipo di API"),
 
     /** Valore fuori dal range consentito */
     VAL_400_RANGE("Valore fuori range"),
@@ -588,6 +690,9 @@ public enum ErrorCode {
     /** Ambiente URL e body non corrispondenti */
     VAL_400_ENVIRONMENT_MISMATCH("Ambiente URL e body non corrispondenti"),
 
+    /** Quota di rate limiting non positiva */
+    VAL_400_RATE_LIMITING_QUOTA("Quota di rate limiting non valida"),
+
     /** Richiesta non valida semanticamente */
     VAL_422("Richiesta non valida semanticamente"),
 
@@ -600,11 +705,11 @@ public enum ErrorCode {
     /** API non appartiene al servizio */
     VAL_422_API_SERVICE_MISMATCH("API non appartiene al servizio"),
 
-    /** Skip collaudo non consentito */
-    VAL_422_SKIP_COLLAUDO("Skip collaudo non consentito"),
-
     /** Profilo non compatibile con il profilo di interoperabilità GovWay dell'API */
     VAL_422_PROFILO_GOVWAY("Profilo non compatibile con il profilo di interoperabilità GovWay dell'API"),
+
+    /** Referenti non validi per l'organizzazione sotto cui passa la risorsa */
+    VAL_422_REFERENTI_ORGANIZZAZIONE("Referenti non validi per l'organizzazione di destinazione"),
 
     // ==================== WORKFLOW ====================
 
@@ -614,8 +719,8 @@ public enum ErrorCode {
     /** Transizione di stato non abilitata per i profili richiesti dal servizio */
     WFL_400_PROFILO("Transizione stato non abilitata per i profili richiesti"),
 
-    /** Modifica di dati non consentita nello stato corrente */
-    WFL_400_DATA_NOT_MODIFIABLE("Modifica dati non consentita"),
+    /** Modifica di dati non consentita all'utente nello stato corrente */
+    WFL_403_DATA_NOT_MODIFIABLE("Modifica dati non consentita"),
 
     /** Workflow non trovato */
     WFL_404("Workflow non trovato"),

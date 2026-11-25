@@ -229,6 +229,37 @@ describe('StatisticheComponent', () => {
     expect(component.environmentId).toBe('produzione');
   });
 
+  it('should land on produzione and keep collaudo disabled for a service without testing', () => {
+    mockApiService.getDetails.mockImplementation(() => of({ nome: 'S', versione: '1', skip_collaudo: true }));
+    component.id = 42;
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component._collaudoSaltato).toBe(true);
+    expect(component.environmentId).toBe('produzione');
+    component._showCollaudo();
+    expect(component.environmentId).toBe('produzione');
+  });
+
+  it('should land on produzione for a service published in production, keeping collaudo available', () => {
+    mockApiService.getDetails.mockImplementation(() => of({ nome: 'S', versione: '1', stato: 'pubblicato_produzione' }));
+    component.id = 42;
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component.environmentId).toBe('produzione');
+    expect(mockRouter.navigate).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { ambiente: 'produzione' }, replaceUrl: true }));
+    component._showCollaudo();
+    expect(component.environmentId).toBe('collaudo');
+  });
+
+  it('should keep the environment chosen in the view', () => {
+    mockApiService.getDetails.mockImplementation(() => of({ nome: 'S', versione: '1', stato: 'pubblicato_produzione' }));
+    component.id = 42;
+    component._ambienteRichiesto = 'collaudo';
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component.environmentId).toBe('collaudo');
+  });
+
   it('should toggle _showFilter on _toggleFilter', () => {
     component._showFilter = true;
     component._toggleFilter();
@@ -399,6 +430,40 @@ describe('StatisticheComponent', () => {
         (dt: any) => dt.code === 'distribuzione_principal'
       );
       expect(hasAdherentSubject).toBe(false);
+    });
+
+    it('fruizione service with an API of the domain should propose Principal and not the tokens', () => {
+      component.service = { fruizione: true };
+      component._formGroup.get('api')?.setValue({ ruolo: 'erogato_soggetto_dominio' });
+
+      const codes = component.distributionTypes.map((dt: any) => dt.code);
+      expect(codes).toContain('distribuzione_principal');
+      expect(codes).not.toContain('distribuzione_token_client_id');
+      expect(codes).not.toContain('distribuzione_token_issuer');
+    });
+
+    it('without an API should choose the distributions from the service type', () => {
+      component.service = { fruizione: true };
+      component._formGroup.get('api')?.setValue(null);
+      expect(component.distributionTypes.map((dt: any) => dt.code)).toContain('distribuzione_principal');
+
+      component.service = { fruizione: false };
+      component._formGroup.get('api')?.setValue(null);
+      const codes = component.distributionTypes.map((dt: any) => dt.code);
+      expect(codes).toContain('distribuzione_token_client_id');
+      expect(codes).not.toContain('distribuzione_principal');
+    });
+
+    it('should reset a token distribution when the loaded service turns out to be a fruizione', () => {
+      component._formGroup.get('api')?.setValue({ ruolo: 'erogato_soggetto_dominio' });
+      const token = component.distributionTypes.find((dt: any) => dt.code === 'distribuzione_token_client_id');
+      component._formGroup.get('distribution_type')?.setValue(token);
+
+      component.service = { fruizione: true };
+      (component as any)._aggiornaTipiDistribuzione();
+
+      expect(component._formGroup.get('distribution_type')?.value).toBeNull();
+      expect(component.distributionTypes.map((dt: any) => dt.code)).toContain('distribuzione_principal');
     });
 
     it('api null + distribution in domainStatistics should enable adesione', () => {
@@ -641,7 +706,7 @@ describe('StatisticheComponent', () => {
     };
 
     function makeFormValid() {
-      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoTest' } } };
       // Set api directly without triggering valueChanges subscription
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(andamentoTemporaleDist);
@@ -774,7 +839,7 @@ describe('StatisticheComponent', () => {
       expect(component.single).toEqual([{ name: 'GET /api', value: 30 }]);
     });
 
-    it('DistribuzioneApplicativo should map nome to single', () => {
+    it('DistribuzioneApplicativo should map nome and soggetto to single', () => {
       const dist = {
         trendReport: false,
         value: 'distribuzione-applicativo',
@@ -785,14 +850,14 @@ describe('StatisticheComponent', () => {
       makeFormValid();
       component._formGroup.get('distribution_type')?.setValue(dist);
 
-      const valori = [{ nome: 'App1', valore: 40, soggetto: 'S1' }];
+      const valori = [{ nome: 'App1', valore: 40, soggetto: 'S1' }, { nome: 'App1', valore: 5, soggetto: 'S2' }, { nome: 'App2', valore: 3 }];
       mockApiService.postMonitor.mockImplementation(() => of({ valori }));
 
       component._onSubmit(component._formGroup.getRawValue());
-      expect(component.single).toEqual([{ name: 'App1', value: 40 }]);
+      expect(component.single).toEqual([{ name: 'App1 (S1)', value: 40 }, { name: 'App1 (S2)', value: 5 }, { name: 'App2', value: 3 }]);
     });
 
-    it('DistribuzioneTokenClientId should map client_id to single', () => {
+    it('DistribuzioneTokenClientId should map applicativo and client_id to single', () => {
       const dist = {
         trendReport: false,
         value: 'distribuzione-token-clientid',
@@ -803,11 +868,11 @@ describe('StatisticheComponent', () => {
       makeFormValid();
       component._formGroup.get('distribution_type')?.setValue(dist);
 
-      const valori = [{ client_id: 'client-123', soggetto: 'S1', applicativo: 'A1', valore: 25 }];
+      const valori = [{ client_id: 'client-123', soggetto: 'S1', applicativo: 'A1', valore: 25 }, { client_id: 'client-456', valore: 2 }];
       mockApiService.postMonitor.mockImplementation(() => of({ valori }));
 
       component._onSubmit(component._formGroup.getRawValue());
-      expect(component.single).toEqual([{ name: 'client-123', value: 25 }]);
+      expect(component.single).toEqual([{ name: 'A1 (client-123)', value: 25 }, { name: 'client-456', value: 2 }]);
     });
 
     it('DistribuzioneIssuer should map issuer to single', () => {
@@ -828,7 +893,7 @@ describe('StatisticheComponent', () => {
       expect(component.single).toEqual([{ name: 'https://issuer.example.com', value: 15 }]);
     });
 
-    it('DistribuzionePrincipal should map indirizzo to single', () => {
+    it('DistribuzionePrincipal should map principal and autenticazione to single', () => {
       const dist = {
         trendReport: false,
         value: 'distribuzione-principal',
@@ -839,11 +904,19 @@ describe('StatisticheComponent', () => {
       makeFormValid();
       component._formGroup.get('distribution_type')?.setValue(dist);
 
-      const valori = [{ indirizzo: 'user@example.com', valore: 35 }];
+      const valori = [
+        { principal: 'user@example.com', autenticazione: 'basic', indirizzo: 'user@example.com', valore: 35 },
+        { principal: 'user@example.com', autenticazione: 'ssl', valore: 4 },
+        { indirizzo: 'old@example.com', valore: 1 }
+      ];
       mockApiService.postMonitor.mockImplementation(() => of({ valori }));
 
       component._onSubmit(component._formGroup.getRawValue());
-      expect(component.single).toEqual([{ name: 'user@example.com', value: 35 }]);
+      expect(component.single).toEqual([
+        { name: 'user@example.com (basic)', value: 35 },
+        { name: 'user@example.com (ssl)', value: 4 },
+        { name: 'old@example.com', value: 1 }
+      ]);
     });
 
     it('DistribuzioneIp should map indirizzo to single', () => {
@@ -894,6 +967,38 @@ describe('StatisticheComponent', () => {
       expect(component._spin).toBe(false);
       expect(component._error).toBe(true);
       expect(component._errorMsg).toBe('Server error');
+    });
+
+    it('a 404 without a known code should show a readable message instead of the HTTP text', () => {
+      makeFormValid();
+      const error = { status: 404, error: { detail: 'No static resource monitor/v1/report' }, message: 'Http failure response: 404' };
+      mockApiService.postMonitor.mockImplementation(() => throwError(() => error));
+
+      component._onSubmit(component._formGroup.getRawValue());
+
+      expect(component._errorMsg).toBe('APP.MESSAGE.ERROR.StatisticaNonDisponibile');
+    });
+
+    it('a 404 rethrown by the error interceptor should show the readable message', () => {
+      makeFormValid();
+      const error = { message: 'Http failure response: 404 OK', error: { status: 404, detail: 'No static resource monitor/v1/report' } };
+      mockApiService.postMonitor.mockImplementation(() => throwError(() => error));
+
+      component._onSubmit(component._formGroup.getRawValue());
+
+      expect(component._errorMsg).toBe('APP.MESSAGE.ERROR.StatisticaNonDisponibile');
+    });
+
+    it('a monitoring error code should be translated with its parameters', () => {
+      makeFormValid();
+      mockTranslate.instant.mockImplementation((key: string, params?: any) =>
+        key === 'APP.MESSAGE.ERROR.MON.404.STATS' ? `Monitoraggio non disponibile (${params?.tipo})` : key);
+      const error = { status: 404, error: { detail: 'MON.404.STATS', errori: [{ params: { tipo: 'statistiche' } }] } };
+      mockApiService.postMonitor.mockImplementation(() => throwError(() => error));
+
+      component._onSubmit(component._formGroup.getRawValue());
+
+      expect(component._errorMsg).toBe('Monitoraggio non disponibile (statistiche)');
     });
 
     it('error without error.error.message should use error.message', () => {
@@ -969,7 +1074,7 @@ describe('StatisticheComponent', () => {
     };
 
     function makeFormValidForExport() {
-      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoTest' } } };
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(dist);
     }
@@ -1051,7 +1156,7 @@ describe('StatisticheComponent', () => {
 
   describe('_getReportUri', () => {
     it('should return correct URI format', () => {
-      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoTest' } } };
       component.environmentId = 'collaudo';
       const api = { id_api: 1, ruolo: 'erogato_soggetto_dominio' };
       component._formGroup.get('api')?.setValue(api);
@@ -1064,7 +1169,7 @@ describe('StatisticheComponent', () => {
     });
 
     it('should return produzione for produzione environment', () => {
-      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoTest' } } };
       component.environmentId = 'produzione';
       const api = { id_api: 1, ruolo: 'erogato_soggetto_dominio' };
       component._formGroup.get('api')?.setValue(api);
@@ -1081,12 +1186,12 @@ describe('StatisticheComponent', () => {
   // ========== _tipoVerifica ==========
 
   describe('_tipoVerifica', () => {
-    it('erogato_soggetto_dominio with soggetto_erogatore should return fruizioni', () => {
-      component.service = { soggetto_erogatore: { nome: 'Test' } };
+    it('erogato_soggetto_dominio of a fruition should return fruizioni', () => {
+      component.service = { fruizione: true, soggetto_erogatore: { nome: 'Test' } };
       expect(component._tipoVerifica({ ruolo: 'erogato_soggetto_dominio' })).toBe('fruizioni');
     });
 
-    it('erogato_soggetto_dominio without soggetto_erogatore should return erogazioni', () => {
+    it('erogato_soggetto_dominio of an erogation should return erogazioni', () => {
       component.service = { soggetto_erogatore: null };
       expect(component._tipoVerifica({ ruolo: 'erogato_soggetto_dominio' })).toBe('erogazioni');
     });
@@ -1571,9 +1676,9 @@ describe('StatisticheComponent', () => {
   // ========== _getSoggettoNome ==========
 
   describe('_getSoggettoNome', () => {
-    it('should return soggetto_erogatore nome when available', () => {
-      component.service = { soggetto_erogatore: { nome: 'InternalSubject' }, dominio: { soggetto_referente: { nome: 'RefSubject' } } };
-      expect((component as any)._getSoggettoNome()).toBe('InternalSubject');
+    it('should return the referent of the domain, the internal subject, also for a fruition (Issue #424)', () => {
+      component.service = { fruizione: true, soggetto_erogatore: { nome: 'RemoteProvider' }, dominio: { soggetto_referente: { nome: 'RefSubject' } } };
+      expect((component as any)._getSoggettoNome()).toBe('RefSubject');
     });
 
     it('should return soggetto_referente nome when soggetto_erogatore is null', () => {
@@ -1581,9 +1686,9 @@ describe('StatisticheComponent', () => {
       expect((component as any)._getSoggettoNome()).toBe('RefSubject');
     });
 
-    it('should return undefined when both are null', () => {
+    it('should return an empty name when the referent is missing', () => {
       component.service = { soggetto_erogatore: null, dominio: { soggetto_referente: null } };
-      expect((component as any)._getSoggettoNome()).toBeUndefined();
+      expect((component as any)._getSoggettoNome()).toBe('');
     });
   });
 
@@ -1736,7 +1841,7 @@ describe('StatisticheComponent', () => {
         label: 'Test',
         tableFirstColumnLabel: 'Data'
       };
-      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoTest' } } };
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(trendDist);
       // trendDist sets report_time_interval to 'orario' which sets useTimepicker=true
@@ -1771,7 +1876,7 @@ describe('StatisticheComponent', () => {
         label: 'Test',
         tableFirstColumnLabel: 'Data'
       };
-      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoTest' } } };
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(dist);
 
@@ -1793,7 +1898,7 @@ describe('StatisticheComponent', () => {
         label: 'Test',
         tableFirstColumnLabel: 'Esito'
       };
-      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoTest' } } };
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(dist);
       component._formGroup.get('report_transaction_outcome_type')?.setValue('personalizzato');
@@ -1839,6 +1944,74 @@ describe('StatisticheComponent', () => {
 
       const hasOk = component.transactionOutcomes.some((o: any) => o.value === 'ok');
       expect(hasOk).toBe(true);
+    });
+  });
+
+  // ========== configurazione non ancora caricata (refresh della pagina) ==========
+
+  describe('configurazione caricata dopo la creazione', () => {
+    const configurazione = {
+      monitoraggio: {
+        statistiche: {
+          tipi_distribuzione: ['andamento_temporale', 'distribuzione_esiti'],
+          formati_report: ['csv']
+        }
+      }
+    };
+
+    it('should fetch the remote configuration and filter export formats and distribution types', () => {
+      mockApiService.getList.mockImplementation((path: string) =>
+        path === 'configurazione' ? of(configurazione) : of({ content: [] })
+      );
+      const comp = createComponent({ generalConfig: null });
+      expect(comp.exportList.length).toBe(4);
+
+      comp.ngOnInit();
+
+      expect(mockApiService.getList).toHaveBeenCalledWith('configurazione');
+      expect(comp.exportList.map((e: any) => e.label)).toEqual(['CSV']);
+      comp._formGroup.get('api')?.setValue({ ruolo: 'erogato_soggetto_dominio' });
+      expect(comp.distributionTypes.map((dt: any) => dt.code)).toEqual(['andamento_temporale', 'distribuzione_esiti']);
+    });
+
+    it('should use the configuration loaded after the construction without fetching it again', () => {
+      const comp = createComponent({ generalConfig: null });
+      Tools.Configurazione = configurazione;
+
+      comp.ngOnInit();
+
+      expect(mockApiService.getList).not.toHaveBeenCalledWith('configurazione');
+      expect(comp.exportList.length).toBe(1);
+      expect(comp.distributionTypes.every(
+        (dt: any) => configurazione.monitoraggio.statistiche.tipi_distribuzione.includes(dt.code)
+      )).toBe(true);
+    });
+
+    it('should reset a selected distribution type that the configuration does not allow', () => {
+      const comp = createComponent({ generalConfig: null });
+      comp._formGroup.get('api')?.setValue({ ruolo: 'erogato_soggetto_dominio' });
+      const nonConsentito = comp.distributionTypes.find(
+        (dt: any) => !configurazione.monitoraggio.statistiche.tipi_distribuzione.includes(dt.code)
+      );
+      expect(nonConsentito).toBeTruthy();
+      comp._formGroup.get('distribution_type')?.setValue(nonConsentito);
+      Tools.Configurazione = configurazione;
+
+      comp.ngOnInit();
+
+      expect(comp._formGroup.get('distribution_type')?.value).toBeNull();
+    });
+
+    it('should keep the full lists when the remote configuration cannot be loaded', () => {
+      mockApiService.getList.mockImplementation((path: string) =>
+        path === 'configurazione' ? throwError(() => new Error('errore')) : of({ content: [] })
+      );
+      const comp = createComponent({ generalConfig: null });
+
+      comp.ngOnInit();
+
+      expect(comp.exportList.length).toBe(4);
+      expect(comp.generalConfig).toBeNull();
     });
   });
 });

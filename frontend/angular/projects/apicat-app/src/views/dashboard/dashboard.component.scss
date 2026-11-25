@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.25s ease, filter 0.25s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.25s ease;
   overflow: hidden;
 
   &:hover {
@@ -38,23 +38,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   &.summary-card-active {
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1), inset 0 0 0 3px #fff;
-    filter: brightness(1.08);
 
     .summary-card-icon {
       opacity: 0.45;
     }
-
-    .summary-card-label {
-      opacity: 1;
-    }
   }
 
+  // Attenuata senza opacità, che abbasserebbe il contrasto delle scritte
   &.summary-card-dimmed {
-    opacity: 0.55;
+    box-shadow: none;
     filter: saturate(0.6);
 
     &:hover {
-      opacity: 0.8;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
       filter: saturate(0.85);
     }
   }
@@ -94,7 +90,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  opacity: 0.85;
   margin-top: 2px;
 }
 

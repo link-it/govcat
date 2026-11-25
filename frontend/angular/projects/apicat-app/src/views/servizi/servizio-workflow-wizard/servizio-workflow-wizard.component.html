@@ -53,6 +53,7 @@
       }
       @if (data) {
         <app-monitor-dropdown
+          [service_id]="data.id_servizio"
           [showMonitoring]="Tools.Configurazione?.servizio?.api?.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
           [returnWeb]="true"
           [otherActions]="_showExternalOtherActions ? _otherActions : []"
@@ -67,6 +68,15 @@
           [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate"
           [btnTooltip]="'APP.TOOLTIP.DeleteService'"
           (onAction)="confirmDeleteServizio()"
+        ></lnk-button>
+      } @else if (data) {
+        <lnk-button
+          [type]="'button'"
+          [icon]="'bi bi-trash'"
+          [onlyIcon]="true"
+          [ariaDisabled]="true"
+          [ariaLabel]="('APP.TOOLTIP.DeleteService' | translate) + ': ' + (_motivoNonEliminabile() | translate)"
+          [btnTooltip]="_motivoNonEliminabile()"
         ></lnk-button>
       }
     </div>
@@ -244,8 +254,10 @@
                   @let openS = isReferentGroupOpen('servizio');
                   <div class="lnk-ref-group" [class.is-open]="openS">
                     <div class="lnk-ref-group-hd" (click)="toggleReferentGroup('servizio')">
-                      <h2 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiServizio' | translate }}
-                        <span class="lnk-ref-count">{{ servizioReferenti.length }}</span>
+                      <h2 class="mb-0">
+                        <button type="button" class="lnk-ref-group-toggle" [attr.aria-expanded]="openS"
+                          (click)="$event.stopPropagation(); toggleReferentGroup('servizio')">{{ 'APP.SERVICES.WIZARD.ReferentiServizio' | translate }}
+                          <span class="lnk-ref-count">{{ servizioReferenti.length }}</span></button>
                       </h2>
                       @if (openS && canAddReferente() && !_addReferentOpen) {
                         <button type="button" class="lnk-btn lnk-btn-sm" (click)="$event.stopPropagation(); openAddReferente()">
@@ -274,8 +286,11 @@
                             @if (ref.tipo) {
                               <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
                             }
+                            @if (ref.ruolo_non_valido) {
+                              <lnk-ruolo-non-valido></lnk-ruolo-non-valido>
+                            }
                             @if (canAddReferente()) {
-                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteReferente(ref)">
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteReferente(ref)">
                                 <i class="bi bi-trash text-danger"></i>
                               </button>
                             }
@@ -292,8 +307,10 @@
                   @let openD = isReferentGroupOpen('dominio');
                   <div class="lnk-ref-group" [class.is-open]="openD">
                     <div class="lnk-ref-group-hd" (click)="toggleReferentGroup('dominio')">
-                      <h2 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiDominio' | translate }}
-                        <span class="lnk-ref-count">{{ dominioReferenti.length }}</span>
+                      <h2 class="mb-0">
+                        <button type="button" class="lnk-ref-group-toggle" [attr.aria-expanded]="openD"
+                          (click)="$event.stopPropagation(); toggleReferentGroup('dominio')">{{ 'APP.SERVICES.WIZARD.ReferentiDominio' | translate }}
+                          <span class="lnk-ref-count">{{ dominioReferenti.length }}</span></button>
                       </h2>
                       <i class="bi bi-chevron-down lnk-ref-group-chev" [class.is-open]="openD" aria-hidden="true"></i>
                     </div>
@@ -308,6 +325,9 @@
                             </div>
                             @if (ref.tipo) {
                               <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
+                            }
+                            @if (ref.ruolo_non_valido) {
+                              <lnk-ruolo-non-valido></lnk-ruolo-non-valido>
                             }
                           </div>
                         }
@@ -364,14 +384,14 @@
                           @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
                         </div>
                       </div>
-                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_downloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="body" (click)="downloadAllegato(all, i)">
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_downloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="#main-content" (click)="downloadAllegato(all, i)">
                         @if (_downloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
                       </button>
                       @if (canEditAllegato()) {
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.TOOLTIP.Edit' | translate" [tooltip]="'APP.TOOLTIP.Edit' | translate" container="body" (click)="openAllegatoDialog(all)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.TOOLTIP.Edit' | translate" [tooltip]="'APP.TOOLTIP.Edit' | translate" container="#main-content" (click)="openAllegatoDialog(all)">
                           <i class="bi bi-pencil"></i>
                         </button>
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteAllegato(all)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteAllegato(all)">
                           <i class="bi bi-trash text-danger"></i>
                         </button>
                       }
@@ -421,7 +441,7 @@
                         @if (g.descrizione_sintetica) { <div class="when text-break">{{ g.descrizione_sintetica }}</div> }
                       </div>
                       @if (canManageGruppi()) {
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteGruppo(g)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteGruppo(g)">
                           <i class="bi bi-trash text-danger"></i>
                         </button>
                       }
@@ -523,6 +543,20 @@
                             <div class="body">
                               <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
                               @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
+                              @let quoteApi = apiRateLimiting(api);
+                              @if (quoteApi.length) {
+                                <div class="when api-rate-limiting">
+                                  <i class="bi bi-speedometer2" aria-hidden="true"></i>
+                                  <span class="visually-hidden">{{ 'APP.API.RATE_LIMITING.Titolo' | translate }}:</span>
+                                  @for (q of quoteApi; track q.periodo) {
+                                    @if (q.quota) {
+                                      {{ q.quota | localeNumber }} / {{ _rateLimitingLabel(q.periodo) | translate | lowercase }}@if (q.quota_fruitore) { ({{ 'APP.API.RATE_LIMITING.MaxPerFruitore' | translate: { quota: (q.quota_fruitore | localeNumber) } }}) }
+                                    } @else {
+                                      {{ 'APP.API.RATE_LIMITING.MaxPerFruitorePeriodo' | translate: { quota: (q.quota_fruitore | localeNumber), periodo: (_rateLimitingLabel(q.periodo) | translate | lowercase) } }}
+                                    }@if (!$last) { · }
+                                  }
+                                </div>
+                              }
                             </div>
                             @if (apiDaCompletare(api)) {
                               <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
@@ -546,7 +580,7 @@
                             } @else {
                               <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                       [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
-                                      [tooltip]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate" container="body"
+                                      [tooltip]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate" container="#main-content"
                                       (click)="isRowView ? closeApiSettings() : openApiSettingsView(api)">
                                 <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
                               </button>
@@ -556,7 +590,7 @@
                                       [class.is-active]="_apiAllegatiOpenId === api.id_api"
                                       [attr.aria-label]="'APP.SERVICES.TITLE.Attachments' | translate"
                                       [attr.aria-pressed]="_apiAllegatiOpenId === api.id_api"
-                                      [tooltip]="'APP.SERVICES.TITLE.Attachments' | translate" container="body"
+                                      [tooltip]="'APP.SERVICES.TITLE.Attachments' | translate" container="#main-content"
                                       (click)="toggleApiAllegati(api)">
                                 <i class="bi bi-paperclip"></i>
                                 @if (_apiAllegatiCount[api.id_api]) {
@@ -569,7 +603,7 @@
                             @if (canEditApi() && !isRowOpen) {
                               <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                       [attr.aria-label]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate"
-                                      [tooltip]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate" container="body"
+                                      [tooltip]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate" container="#main-content"
                                       (click)="openApiInfo(api)">
                                 <i class="bi bi-pencil"></i>
                               </button>
@@ -577,7 +611,7 @@
                             @if (canDeleteApi() && !isRowOpen) {
                               <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                       [attr.aria-label]="'APP.BUTTON.Remove' | translate"
-                                      [tooltip]="'APP.BUTTON.Remove' | translate" container="body"
+                                      [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content"
                                       (click)="confirmDeleteApi(api)">
                                 <i class="bi bi-trash text-danger"></i>
                               </button>
@@ -636,11 +670,11 @@
                                       @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
                                     </div>
                                   </div>
-                                  <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_apiAllegatiDownloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="body" (click)="downloadApiAllegato(api, all, i)">
+                                  <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_apiAllegatiDownloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="#main-content" (click)="downloadApiAllegato(api, all, i)">
                                     @if (_apiAllegatiDownloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
                                   </button>
                                   @if (canEditApi()) {
-                                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteApiAllegato(api, all)">
+                                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteApiAllegato(api, all)">
                                       <i class="bi bi-trash text-danger"></i>
                                     </button>
                                   }
@@ -706,6 +740,7 @@
               @if (hasServiceWorkflowActions() && _rifiutoOpen) {
                 <app-wizard-rifiuto-form class="d-block mt-3"
                   [oggetto]="_oggettoRifiuto"
+                  [testo]="_testoRifiuto"
                   [statoPrecedente]="_statoPrecedenteLabel"
                   [saving]="_changingStatus"
                   [errorMsg]="_rifiutoErrore"

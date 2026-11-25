@@ -21,6 +21,7 @@ package batch;
 
 import java.io.IOException;
 
+import org.govway.catalogo.core.business.utils.ProfiloGovwayResolver;
 import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneReader;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.slf4j.Logger;
@@ -35,7 +36,6 @@ public class SoggettoDTOFactory {
 	@Value("${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}")
 	private String configurazioneJsonPath;
 
-	private String tipoGatewayDefault = "ModI";
 	private String tipoGatewayConfigurazione;
 	private boolean tipoGatewayConfigurazioneLetto = false;
 
@@ -113,25 +113,9 @@ public class SoggettoDTOFactory {
 	public String getTipoGateway(SoggettoEntity soggetto, String profiloGovwayProfili) {
 		if (soggetto == null) return null;
 
-		if (soggetto.getTipoGateway() != null) {
-			return soggetto.getTipoGateway();
-		}
-
-		if (profiloGovwayProfili != null) {
-			return profiloGovwayProfili;
-		}
-
-		String profiloGatewayDefaultConf = this.getProfiloGatewayDefault();
-		if (profiloGatewayDefaultConf != null) {
-			return profiloGatewayDefaultConf;
-		}
-
-		String tipoGatewayConf = this.getTipoGatewayConfigurazione();
-		if (tipoGatewayConf != null) {
-			return tipoGatewayConf;
-		}
-
-		return this.tipoGatewayDefault;
+		// Stessa logica usata dal monitoraggio di govcat-api (Issue 440)
+		return ProfiloGovwayResolver.risolvi(soggetto.getTipoGateway(), profiloGovwayProfili,
+				this::getProfiloGatewayDefault, this::getTipoGatewayConfigurazione);
 	}
 
 }

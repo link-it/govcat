@@ -18,9 +18,9 @@
 -->
 <div [ngClass]="__headBarClass()">
   <div class="d-flex justify-content-between w-100">
-    <div class="d-flex flex-row align-content-center flex-grow-1">
+    <div class="d-flex flex-row align-content-center flex-grow-1 headbar-brand">
       <img [src]="'assets/images/' + logo" alt="Logo" class="header-logo" *ngIf="logo">
-      <p class="my-0 flex-grow-1 align-self-center" [ngClass]="{ 'd-block': showMobileTitle, 'd-none': !showMobileTitle, 'd-sm-block': !showMobileTitle }" [class.ms-4]="logo" [class.h4-]="!logo" *ngIf="title">{{ title }}</p>
+      <p class="my-0 flex-grow-1 align-self-center headbar-title" [ngClass]="{ 'd-block': showMobileTitle, 'd-none': !showMobileTitle, 'd-sm-block': !showMobileTitle }" [class.ms-4]="logo" [class.h4-]="!logo" *ngIf="title">{{ title }}</p>
     </div>
     <ng-container *ngIf="!anonymous">
       <div class="align-self-center d-flex justify-content-end">
@@ -89,9 +89,9 @@
 
           <div id="language" class="ml-auto" *ngIf="_showLanguageMenu && _translations && _translations.length > 1">
             <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
-              <i class="bi bi-translate align-middle"></i>
+              <i class="bi bi-translate align-middle" aria-hidden="true"></i>
               <div class="d-inline ms-2 align-middle">{{ _currentLanguage }}</div>
-              <span class="material-icons-outlined align-middle mx-1">expand_more</span>
+              <span class="material-icons-outlined align-middle mx-1" aria-hidden="true">expand_more</span>
             </button>
             <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" style="right: auto;" aria-labelledby="language">
               <div class="gl-new-dropdown-inner">
@@ -117,12 +117,13 @@
 
           <div class="ml-auto" *ngIf="loggedIn">
             <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
+              <span class="visually-hidden">{{ 'APP.LABEL.UserMenu' | translate:{ utente: _userName || _username } }}</span>
               <lnk-avatar
                 [email]="_userEmail || _username"
                 [name]="_userName"
-                [alt]="_userName || _username"
+                [decorative]="true"
                 [size]="23"></lnk-avatar>
-              <span class="material-icons-outlined align-middle mx-1">expand_more</span>
+              <span class="material-icons-outlined align-middle mx-1" aria-hidden="true">expand_more</span>
             </button>
             <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="menu-action">
               <div class="gl-new-dropdown-inner">

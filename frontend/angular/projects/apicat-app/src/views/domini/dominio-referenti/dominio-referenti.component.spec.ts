@@ -16,6 +16,7 @@ describe('DominioReferentiComponent', () => {
   let mockEventsManagerService: any;
   let mockApiService: any;
   let mockUtilService: any;
+  let mockAuthService: any;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -61,6 +62,10 @@ describe('DominioReferentiComponent', () => {
     mockUtilService = {
       getUtenti: vi.fn().mockReturnValue(of([]))
     };
+    mockAuthService = {
+      canManageReferentiDominio: vi.fn().mockReturnValue(false),
+      getUser: vi.fn().mockReturnValue({ id_utente: 'me' })
+    };
 
     component = new DominioReferentiComponent(
       mockRoute as any,
@@ -71,7 +76,8 @@ describe('DominioReferentiComponent', () => {
       mockTools as any,
       mockEventsManagerService as any,
       mockApiService as any,
-      mockUtilService as any
+      mockUtilService as any,
+      mockAuthService as any
     );
   });
 
@@ -135,6 +141,59 @@ describe('DominioReferentiComponent', () => {
       component.id = 0;
       component._initBreadcrumb();
       expect(component.breadcrumbs[2].label).toBe('APP.TITLE.New');
+    });
+  });
+
+  describe('contesto referente di dominio', () => {
+    const _referente = (id: string) => ({ source: { tipo: 'referente', utente: { id_utente: id } } });
+
+    beforeEach(() => {
+      mockRouter.url = '/miei-domini/d1/referenti';
+      mockRouter.navigateByUrl = vi.fn();
+      mockRoute.snapshot = { queryParams: { returnUrl: '/servizi/s1/view' } };
+      component.ngOnInit();
+    });
+
+    it('should return to the page of origin without pages reserved to the managers', () => {
+      expect(component._fromReferente).toBe(true);
+      expect(component._returnUrl).toBe('/servizi/s1/view');
+      component.dominio = { nome: 'Interno' };
+      component._initBreadcrumb();
+      const urls = component.breadcrumbs.map((b: any) => b.url);
+      expect(urls.some((u: string) => u.startsWith('/domini') || u.startsWith('/organizzazione-manage'))).toBe(false);
+      component._onBack();
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/servizi/s1/view');
+    });
+
+    it('should ignore an external return url', () => {
+      mockRoute.snapshot = { queryParams: { returnUrl: '//evil.example' } };
+      component._returnUrl = '/servizi';
+      component.ngOnInit();
+      expect(component._returnUrl).toBe('/servizi');
+    });
+
+    it('should enable the commands from the domain and its referents', () => {
+      component.dominio = { id_dominio: 'd1' };
+      component._referentiDominio = [{ tipo: 'referente', utente: { id_utente: 'me' } }];
+      mockAuthService.canManageReferentiDominio.mockReturnValue(true);
+      component._updateCanManage();
+      expect(mockAuthService.canManageReferentiDominio).toHaveBeenCalledWith(component.dominio, component._referentiDominio);
+      expect(component._canManage).toBe(true);
+    });
+
+    it('should go back after removing itself', () => {
+      mockModalService.show.mockReturnValue({ content: { onClose: of(true) } });
+      mockAuthService.canManageReferentiDominio.mockReturnValue(false);
+      component._deleteReferente(_referente('me'));
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/servizi/s1/view');
+    });
+
+    it('should reload the list after removing another referent', () => {
+      mockModalService.show.mockReturnValue({ content: { onClose: of(true) } });
+      const spy = vi.spyOn(component, '_loadDominioReferenti').mockImplementation(() => {});
+      component._deleteReferente(_referente('other'));
+      expect(mockRouter.navigateByUrl).not.toHaveBeenCalled();
+      expect(spy).toHaveBeenCalled();
     });
   });
 

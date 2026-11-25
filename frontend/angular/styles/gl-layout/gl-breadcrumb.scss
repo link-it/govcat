@@ -39,6 +39,9 @@
 
 .breadcrumbs-list {
   display: flex;
+  // A larghezze ridotte le voci vanno a capo invece di uscire dalla finestra
+  flex-wrap: wrap;
+  row-gap: 4px;
   margin-bottom: 0;
   line-height: 16px;
 }
@@ -49,11 +52,16 @@
 
 .breadcrumbs-list > li {
   position: relative;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .breadcrumbs-list > li > a {
   font-size: 12px;
   color: currentColor;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

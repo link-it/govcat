@@ -51,6 +51,7 @@ public class ApiSpecification implements Specification<ApiEntity> {
 	private boolean filtraSoggettoErogatore = false;
 	private Optional<UUID> idSoggettoErogatore = Optional.empty();
 	private List<UUID> idApiEscluse = new ArrayList<>();
+	private Optional<String> statoServizioEscluso = Optional.empty();
 
 	@Override
 	public Predicate toPredicate(Root<ApiEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -108,7 +109,7 @@ public class ApiSpecification implements Specification<ApiEntity> {
 		// I filtri su soggetto referente, intermediazione ed ente erogatore condividono UN SOLO join
 		// sui servizi: usando join distinti la condizione diventerebbe "esiste un servizio con quel
 		// referente E (un altro) servizio intermediato", mentre devono valere sullo stesso servizio.
-		if (idSoggetto.isPresent() || servizioIntermediato.isPresent() || filtraSoggettoErogatore) {
+		if (idSoggetto.isPresent() || servizioIntermediato.isPresent() || filtraSoggettoErogatore || statoServizioEscluso.isPresent()) {
 			Join<ApiEntity, ServizioEntity> servizioJoin = root.join(ApiEntity_.servizi);
 
 			if (idSoggetto.isPresent()) {
@@ -125,6 +126,10 @@ public class ApiSpecification implements Specification<ApiEntity> {
 				} else {
 					predLst.add(cb.isNull(servizioJoin.get(ServizioEntity_.soggettoErogatore)));
 				}
+			}
+
+			if (statoServizioEscluso.isPresent()) {
+				predLst.add(cb.notEqual(servizioJoin.get(ServizioEntity_.stato), statoServizioEscluso.get()));
 			}
 		}
 
@@ -218,6 +223,18 @@ public class ApiSpecification implements Specification<ApiEntity> {
 	public void setIdSoggettoErogatore(Optional<UUID> idSoggettoErogatore) {
 		this.filtraSoggettoErogatore = true;
 		this.idSoggettoErogatore = idSoggettoErogatore;
+	}
+
+	public Optional<String> getStatoServizioEscluso() {
+		return statoServizioEscluso;
+	}
+
+	/**
+	 * Considera solo le api associate ad almeno un servizio in uno stato diverso da quello
+	 * indicato (tipicamente lo stato archiviato del workflow dei servizi).
+	 */
+	public void setStatoServizioEscluso(Optional<String> statoServizioEscluso) {
+		this.statoServizioEscluso = statoServizioEscluso;
 	}
 
 	public List<UUID> getIdApiEscluse() {

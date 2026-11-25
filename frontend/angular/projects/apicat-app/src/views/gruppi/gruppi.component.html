@@ -42,8 +42,8 @@
       }
       <ng-template [appHasPermission]="'gruppi'" [action]="'create'">
         <div class="">
-          <button aria-label="Add group" type="button" class="btn btn-confirm btn-md gl-button" (click)="_onNew()">
-            <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddGroup' | translate }}</span>
+          <button type="button" class="btn btn-confirm btn-md gl-button" (click)="_onNew()">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddGroup' | translate }}</span>
           </button>
         </div>
       </ng-template>

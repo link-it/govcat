@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -75,22 +76,42 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 
 	private static final String PARAM_CAMPO = "campo";
 
+	private static final String PARAM_ID_ERRORE = "idErrore";
+
 	private record Violazione(ErrorCode errorCode, String campo, Map<String, String> params) {}
 
+	@Override
 	protected ResponseEntity<Object> toEntity(Exception ex, HttpStatus status) {
+		return new ResponseEntity<>(toProblem(ex, status), status);
+	}
 
+	/**
+	 * Risposta 500 con l'identificativo dell'errore scritto nel log: in instance (urn:uuid)
+	 * e tra i params, dove alimenta il placeholder {{idErrore}} della traduzione.
+	 */
+	@Override
+	protected ResponseEntity<Object> toInternalErrorEntity(AbstractGovCatException ex, String idErrore) {
+		Problem problem = toProblem(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+		problem.setInstance(URI.create("urn:uuid:" + idErrore));
+		Map<String, String> params = new HashMap<>();
+		if(ex.getParameters() != null) {
+			params.putAll(ex.getParameters());
+		}
+		params.put(PARAM_ID_ERRORE, idErrore);
+		problem.getErrori().get(0).setParams(params);
+		return new ResponseEntity<>(problem, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	private Problem toProblem(Exception ex, HttpStatus status) {
 		Problem problem = newProblem(status);
 		problem.setDetail(ex.getMessage());
-
 
 		if(ex instanceof UpdateEntitaComplessaNonValidaSemanticamenteException) {
 			problem.setErrori(((UpdateEntitaComplessaNonValidaSemanticamenteException)ex).getErrori());
 		} else if(ex instanceof AbstractGovCatException) {
 			problem.setErrori(getErrori((AbstractGovCatException)ex));
 		}
-
-		return new ResponseEntity<>(problem, status);
-
+		return problem;
 	}
 
 	private List<EntitaComplessaError> getErrori(AbstractGovCatException ex) {

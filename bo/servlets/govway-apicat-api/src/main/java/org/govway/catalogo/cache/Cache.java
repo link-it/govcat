@@ -87,7 +87,7 @@ public class Cache<V> {
 		this.logger.debug("[CACHE] Rimozione dell'elemento con chiave ["+entry.getKey()+"] inserito in data ["+entry.getValue().getDataCreazione()+"] ok? " + r);
 	}
 
-	public Optional<V> get(String key) {
+	public synchronized Optional<V> get(String key) {
 		V object = null;
 		if(this.map.containsKey(key)) {
 			CachedObject<V> o = this.map.get(key);

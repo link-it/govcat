@@ -75,7 +75,6 @@ export interface LnkApiTag {
     <div class="api"
          role="button"
          [attr.tabindex]="0"
-         [attr.aria-label]="nome"
          (click)="action.emit($event)"
          (keydown.enter)="action.emit($event)"
          (keydown.space)="action.emit($event); $event.preventDefault()">

@@ -22,21 +22,28 @@ package org.govway.catalogo.core.dao.specifications;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.criteria.AbstractQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.DominioEntity_;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity_;
+import org.govway.catalogo.core.orm.entity.SoggettoEntity_;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.jpa.domain.Specification;
@@ -131,4 +138,55 @@ public class ServizioSpecificationUtils {
 		};
 	}
 	
+
+	/**
+	 * Servizi la cui organizzazione titolare (organizzazione del soggetto referente del dominio)
+	 * e` quella indicata: e` l'organizzazione erogatrice secondo il workflow.
+	 */
+	public static Specification<ServizioEntity> byOrganizzazioneTitolare(Long idOrganizzazione) {
+		return (Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) ->
+			organizzazioneTitolare(root, cb, idOrganizzazione);
+	}
+
+	/**
+	 * Predicato: l'organizzazione del soggetto referente del dominio del servizio e` quella indicata.
+	 * I join sono LEFT, cosi` il predicato si puo` comporre in OR senza escludere i servizi privi
+	 * della relazione.
+	 */
+	public static Predicate organizzazioneTitolare(From<?, ServizioEntity> servizio, CriteriaBuilder cb, Long idOrganizzazione) {
+		return cb.equal(
+				servizio.join(ServizioEntity_.dominio, JoinType.LEFT)
+					.join(DominioEntity_.soggettoReferente, JoinType.LEFT)
+					.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+					.get(OrganizzazioneEntity_.id),
+				idOrganizzazione);
+	}
+
+	/**
+	 * Predicato: l'organizzazione indicata ha almeno un'adesione al servizio. Usa una subquery EXISTS,
+	 * che non altera la cardinalita` del result set.
+	 */
+	public static Predicate organizzazioneAderente(From<?, ServizioEntity> servizio, AbstractQuery<?> query, CriteriaBuilder cb, Long idOrganizzazione) {
+		Subquery<Integer> subAdesioni = query.subquery(Integer.class);
+		Root<AdesioneEntity> adesione = subAdesioni.from(AdesioneEntity.class);
+		subAdesioni.select(cb.literal(1)).where(
+				cb.equal(adesione.get(AdesioneEntity_.servizio), servizio),
+				cb.equal(
+						adesione.join(AdesioneEntity_.soggetto, JoinType.LEFT)
+							.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+							.get(OrganizzazioneEntity_.id),
+						idOrganizzazione));
+		return cb.exists(subAdesioni);
+	}
+
+	/**
+	 * Visibilita` dell'amministratore di un'organizzazione: i servizi di cui l'organizzazione e`
+	 * titolare (in ogni stato) e quelli a cui ha aderito (anche riservati o privati).
+	 */
+	public static Predicate visibilitaAmministratoreOrganizzazione(From<?, ServizioEntity> servizio, AbstractQuery<?> query, CriteriaBuilder cb, Long idOrganizzazione) {
+		return cb.or(
+				organizzazioneTitolare(servizio, cb, idOrganizzazione),
+				organizzazioneAderente(servizio, query, cb, idOrganizzazione));
+	}
+
 }

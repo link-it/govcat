@@ -95,11 +95,6 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     @Input() adesione: any = null;
     @Input() config: any = null;
     @Input() grant: Grant | null = null;
-    /** Ruoli referente del profilo utente (`/profilo/ruoli.ruoli_referente`),
-        passati dal wizard padre. Usati come fonte aggiuntiva nel
-        check di modificabilita`: il grant per-adesione puo` non
-        contenere i referenti contestuali. */
-    @Input() ruoliReferenteProfilo: string[] = [];
     @Input() environment: string = '';
     @Input() singleColumn: boolean = false;
     @Input() isEdit: boolean = false;
@@ -498,36 +493,13 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     }
 
     /**
-     * Mapper di modificabilita` del client. Oltre al check su
-     * `grant.collaudo`/`grant.produzione === Scrittura` (fallback),
-     * abilitano la modifica: gestore, amm.org, operatore_api e
-     * referenti (servizio/dominio/adesione inclusi tecnici) — questi
-     * possono "gestire l'adesione al proprio servizio" anche quando il
-     * BE non valorizza `Scrittura` nel grant. Lo state-gating
-     * (collaudo/produzione effettivamente modificabili) resta
-     * governato dal padre via `[isEdit]`.
+     * Mapper di modificabilita` del client: il gestore oppure chi ha la
+     * scrittura nel grant per l'ambiente (`grant.collaudo`/`grant.produzione`).
+     * Lo state-gating (collaudo/produzione effettivamente modificabili)
+     * resta governato dal padre via `[isEdit]`.
      */
     _isModifiableMapper = (_item: any = null): boolean => {
-        // Combina i ruoli del grant per-adesione con i ruoli referente
-        // del profilo: il grant BE puo` non contenere i referenti
-        // contestuali (es. `referente_tecnico_servizio`).
-        const ruoli: string[] = [
-            ...(this.grant?.ruoli || []),
-            ...(this.ruoliReferenteProfilo || [])
-        ];
-        if (this.authenticationService.isGestore(ruoli)) { return true; }
-        // Ruoli per-org sull'org di sessione.
-        if (this.authenticationService.isAmministratoreOrganizzazione()) { return true; }
-        if (this.authenticationService.isOperatoreApi()) { return true; }
-        // Referenti (incluso referente tecnico: per "Gestire adesioni"
-        // la matrice include anche i tecnici).
-        const referentiManage = [
-            'referente_servizio', 'referente_tecnico_servizio',
-            'referente_dominio', 'referente_tecnico_dominio',
-            'referente_adesione', 'referente_tecnico_adesione'
-        ];
-        if (ruoli.some((r: string) => referentiManage.includes(r))) { return true; }
-        // Fallback: rights espliciti per environment.
+        if (this.authenticationService.isGestore(this.grant?.ruoli || [])) { return true; }
         if (this.grant) {
             if ((this.environment === AmbienteEnum.Collaudo) && (this.grant.collaudo === RightsEnum.Scrittura)) {
                 return true;

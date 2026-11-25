@@ -51,6 +51,7 @@
               [grant]="grant"
               [config]="config"
               [workflow]="generalConfig.adesione.workflow"
+              [produzioneBloccata]="_isProduzioneBloccata()"
               (action)="onWorkflowAction($event)"
             ></ui-workflow>
           }
@@ -165,7 +166,7 @@
               }
             </div>
             <div class="lnk-vetrina d-flex align-items-center gap-2">
-              @if (adesione?.servizio?.id_servizio) {
+              @if (adesione?.servizio?.id_servizio && _servizioAccessibile) {
                 <button type="button"
                         class="btnc"
                         [attr.aria-label]="'APP.BUTTON.GoToService' | translate"
@@ -191,6 +192,12 @@
               }
             </div>
           </div>
+          @if (attesaPubblicazioneProduzione) {
+            <div class="lnk-banner is-warn mb-4" role="status">
+              <div class="icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div>
+              <div class="body"><span>{{ 'APP.ADESIONI.MESSAGE.SkipCollaudoAttesaProduzione' | translate:{ servizio: adesione.servizio?.nome, versione: adesione.servizio?.versione } }}</span></div>
+            </div>
+          }
           @if (disclaimersGenerali.length > 0) {
             <div class="adesione-disclaimers mb-4">
               @for (item of disclaimersGenerali; track $index) {
@@ -856,7 +863,6 @@
     [adesione]="adesione"
     [environment]="AmbienteEnum.Collaudo"
     [grant]="grant"
-    [ruoliReferenteProfilo]="_ruoliReferenteProfilo"
     [config]="adesioniClientsConfig"
     [singleColumn]="singleColumn"
     [isEdit]="isEdit"
@@ -879,6 +885,13 @@
     [nextState]="getNextStateWorkflow()"
     [inlineEdit]="wizardNewLayout"
   ></app-adesione-lista-erogazioni>
+  <app-adesione-rate-limiting
+    [adesione]="adesione"
+    [environment]="AmbienteEnum.Collaudo"
+    [grant]="grant"
+    [mock]="rateLimitingMock"
+    (salvato)="rateLimitingAggiornato = rateLimitingAggiornato + 1"
+  ></app-adesione-rate-limiting>
   @for (item of proprietaCustomFiltered[AmbienteEnum.Collaudo]; track item; let last = $last; let even = $even) {
     <div class="settings-">
       <div class="settings-content-">
@@ -933,7 +946,6 @@
     [adesione]="adesione"
     [environment]="AmbienteEnum.Produzione"
     [grant]="grant"
-    [ruoliReferenteProfilo]="_ruoliReferenteProfilo"
     [config]="adesioniClientsConfig"
     [singleColumn]="singleColumn"
     [isEdit]="isEdit"
@@ -956,6 +968,13 @@
     [nextState]="getNextStateWorkflow()"
     [inlineEdit]="wizardNewLayout"
   ></app-adesione-lista-erogazioni>
+  <app-adesione-rate-limiting
+    [adesione]="adesione"
+    [environment]="AmbienteEnum.Produzione"
+    [grant]="grant"
+    [mock]="rateLimitingMock"
+    (salvato)="rateLimitingAggiornato = rateLimitingAggiornato + 1"
+  ></app-adesione-rate-limiting>
   @for (item of proprietaCustomFiltered[AmbienteEnum.Produzione]; track item; let last = $last; let even = $even) {
     <div class="settings-" [class.border-bottom-]="last">
       <div class="settings-content-">
@@ -1168,7 +1187,7 @@
           [servizio]="servizio"
           [grant]="grant"
           [config]="adesioniClientsConfig"
-          [singleColumn]="singleColumn"ß
+          [singleColumn]="singleColumn"
           [editable]="canEditMapper()"
           [externalEditControl]="true"
         ></app-adesione-form>
@@ -1332,6 +1351,9 @@
         {{ ('APP.ROLE.' + referent.source.tipo) | translate }}
       </span>
     }
+    @if (referent.source?.ruolo_non_valido) {
+      <lnk-ruolo-non-valido></lnk-ruolo-non-valido>
+    }
     @if (deletable) {
       <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
               [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body"
@@ -1488,11 +1510,11 @@
                   <!-- Lista pulsanti di cambio stato (analogo al menu
                        di `ui-workflow`): stato_successivo + stati_ulteriori.
                        Ogni pulsante e` gated dal mapper
-                       `_isWorkflowActionEnabled` (combina grant
-                       per-adesione + ruoli_referente del profilo). -->
+                       `_isWorkflowActionEnabled` (ruoli del grant). -->
                   @if (_hasAnyWorkflowAction() && _rifiutoOpen) {
                     <app-wizard-rifiuto-form class="d-block mt-3"
                       [oggetto]="_oggettoRifiuto"
+                      [testo]="_testoRifiuto"
                       [statoPrecedente]="_statoPrecedenteLabel"
                       [saving]="changingStatus"
                       [errorMsg]="_rifiutoErrore"
@@ -1508,6 +1530,14 @@
 
                     <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3"
                          [style.border-top]="_subStepDisclaimers?.length ? '1px solid var(--line)' : null">
+                      @if (canVerificareRateLimiting(section)) {
+                        <app-adesione-rate-limiting-verifica class="me-auto"
+                          [adesione]="adesione"
+                          [ambiente]="section"
+                          [mock]="rateLimitingMock"
+                          [aggiorna]="rateLimitingAggiornato">
+                        </app-adesione-rate-limiting-verifica>
+                      }
                       @if (canRifiutare(section)) {
                         <lnk-button
                           [label]="'APP.WORKFLOW.RIFIUTO.Rifiuta' | translate"

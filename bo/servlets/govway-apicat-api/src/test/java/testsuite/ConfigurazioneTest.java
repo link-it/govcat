@@ -1,11 +1,14 @@
 package testsuite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.govway.catalogo.OpenAPI2SpringBoot;
@@ -27,6 +30,9 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneNoteVetrina;
+import org.govway.catalogo.servlets.model.ConfigurazioneRuolo;
+import org.govway.catalogo.servlets.model.ConfigurazioneServizio;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
@@ -52,6 +58,10 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
@@ -129,5 +139,60 @@ public class ConfigurazioneTest {
     	
     	assertEquals(HttpStatus.OK, status.getStatusCode());
         assertNotNull(status.getBody());
+    }
+
+    /** Lo stesso mapper con cui OpenAPI2SpringBoot legge il configurazione.json. */
+    private static ObjectMapper configurazioneMapper() {
+        ObjectMapper om = new ObjectMapper();
+        om.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        om.registerModule(OpenAPI2SpringBoot.stepWizardStatiAliasModule());
+        return om;
+    }
+
+    @Test
+    void testGetConfigurazioneNoteVetrina() {
+        ResponseEntity<Configurazione> configurazione = configurazioneController.getConfigurazione();
+
+        ConfigurazioneNoteVetrina noteVetrina = configurazione.getBody().getServizio().getNoteVetrina();
+        assertNotNull(noteVetrina, "servizio.note_vetrina del configurazione.json di test deve essere esposta dalla GET /configurazione");
+        assertTrue(noteVetrina.isAbilitato());
+        assertEquals(List.of(ConfigurazioneRuolo.REFERENTE_SUPERIORE, ConfigurazioneRuolo.REFERENTE), noteVetrina.getRuoliAbilitati());
+    }
+
+    @Test
+    void testNoteVetrinaAssente() throws Exception {
+        // retrocompatibilita': un configurazione.json senza la chiave deve continuare a essere letto
+        ConfigurazioneServizio servizio = configurazioneMapper().readValue("{}", ConfigurazioneServizio.class);
+
+        assertNull(servizio.getNoteVetrina());
+    }
+
+    @Test
+    void testNoteVetrinaSoloAbilitato() throws Exception {
+        ConfigurazioneServizio servizio = configurazioneMapper().readValue(
+                "{\"note_vetrina\":{\"abilitato\":false}}", ConfigurazioneServizio.class);
+
+        assertNotNull(servizio.getNoteVetrina());
+        assertFalse(servizio.getNoteVetrina().isAbilitato());
+    }
+
+    @Test
+    void testNoteVetrinaTuttiIRuoli() throws Exception {
+        ConfigurazioneServizio servizio = configurazioneMapper().readValue(
+                "{\"note_vetrina\":{\"abilitato\":true,\"ruoli_abilitati\":[\"richiedente\",\"referente\",\"referente_superiore\",\"gestore\"]}}",
+                ConfigurazioneServizio.class);
+
+        assertEquals(List.of(ConfigurazioneRuolo.RICHIEDENTE, ConfigurazioneRuolo.REFERENTE,
+                ConfigurazioneRuolo.REFERENTE_SUPERIORE, ConfigurazioneRuolo.GESTORE),
+                servizio.getNoteVetrina().getRuoliAbilitati());
+    }
+
+    @Test
+    void testNoteVetrinaRuoloNonPrevisto() {
+        // i ruoli tecnici non sono configurabili: valgono come i corrispondenti non tecnici
+        ObjectMapper om = configurazioneMapper();
+        assertThrows(JsonMappingException.class, () -> om.readValue(
+                "{\"note_vetrina\":{\"abilitato\":true,\"ruoli_abilitati\":[\"referente_tecnico\"]}}",
+                ConfigurazioneServizio.class));
     }
 }

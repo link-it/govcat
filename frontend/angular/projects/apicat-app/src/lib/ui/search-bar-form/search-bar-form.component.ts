@@ -441,11 +441,24 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     Object.keys(data).forEach(key => {
       // Salta chiavi vuote o non valide
       if (key && key.trim() !== '') {
-        _valuesPatch[key] = data[key];
+        _valuesPatch[key] = this.__restoreValue(key, data[key]);
       }
     });
     this.formGroup.patchValue(_valuesPatch);
     this._onSearch(true, false);
+  }
+
+  /**
+   * Un `Date` salvato in localStorage torna come stringa ISO con orario: il datepicker richiede un `Date`.
+   * Le date semplici (`YYYY-MM-DD` degli input nativi) restano stringhe.
+   */
+  private __restoreValue(key: string, value: any): any {
+    const _field = this.searchFields.find((item: any) => item.field === key);
+    if (_field?.type === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+      const _date = moment(value, moment.ISO_8601);
+      return _date.isValid() ? _date.toDate() : value;
+    }
+    return value;
   }
 
   _openSearch(event: any = null) {
@@ -460,14 +473,18 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     }
   }
 
-  _clearSearch(event: any) {
+  /** Svuota la ricerca; i campi in `mantieni` conservano il valore corrente. */
+  _clearSearch(event: any, mantieni: string[] = []) {
     if (this.simple) {
       this.query = '';
     } else {
+      const _mantenuti: any = {};
+      mantieni.forEach((key: string) => { _mantenuti[key] = this.formGroup.get(key)?.value; });
       this.query = '';
       this._tokens = [];
       this._currentValues = {};
       this.formGroup.reset();
+      this.formGroup.patchValue(_mantenuti);
       this._placeholder = this.placeholder;
     }
     this.formGroup.markAllAsTouched();

@@ -120,7 +120,7 @@
              — la sorgente da cui questa adesione e` nata. La CTA
              porta a `/servizi/:id_servizio` (rispetta middle/Ctrl
              click via `navigationService.shouldOpenInNewTab`). -->
-        @if (adesione.servizio.id_servizio) {
+        @if (adesione.servizio.id_servizio && _servizioAccessibile) {
           <lnk-action-banner
             icon="bi-grid-3x3-gap"
             [title]="'APP.BUTTON.GoToService' | translate"
@@ -135,7 +135,7 @@
         <!-- Layout 2-col: sidebar Referenti + main Configurazione. -->
         <div class="layout">
           @if (_showReferents) {
-            <aside>
+            <aside [attr.aria-label]="'APP.LABEL.SubscriptionInfo' | translate">
               <div class="card card-pad-tight">
                 <div class="section-title">
                   <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>

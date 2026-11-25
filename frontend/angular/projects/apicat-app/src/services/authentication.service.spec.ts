@@ -40,7 +40,8 @@ describe('AuthenticationService', () => {
     };
     configService = {
       getConfiguration: vi.fn().mockReturnValue(mockConfig),
-      getAppConfig: vi.fn().mockReturnValue(mockConfig.AppConfig)
+      getAppConfig: vi.fn().mockReturnValue(mockConfig.AppConfig),
+      getSessionPrefix: vi.fn().mockReturnValue('GWAC')
     };
     eventsManagerService = { broadcast: vi.fn() };
     permessiService = {
@@ -274,6 +275,12 @@ describe('AuthenticationService', () => {
       expect(service.logout(true)).toBe(true);
       (oauthService as any).logoutUrl = '';
       expect(service.logout(true)).toBe(false);
+    });
+
+    it('should remove the user preferences of the services list', () => {
+      localStorage.setItem('GWAC_SERVIZI', 'x');
+      service.logout();
+      expect(localStorage.getItem('GWAC_SERVIZI')).toBeNull();
     });
 
     it('should remove session from localStorage', () => {
@@ -662,7 +669,19 @@ describe('AuthenticationService', () => {
     });
 
     it('should return false when grant does not match ruoli_abilitati', () => {
-      expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['referente'])).toBe(false);
+      expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['richiedente'])).toBe(false);
+    });
+
+    it('should let the referents of the grant edit even when they cannot change the state', () => {
+      expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['referente'])).toBe(true);
+      expect(service.canEdit('servizio', 'servizio', 'pubblicato', ['referente_superiore'])).toBe(true);
+    });
+
+    it('should not let an API operator or an organization admin without roles in the grant edit', () => {
+      vi.spyOn(service, 'isOperatoreApi').mockReturnValue(true);
+      vi.spyOn(service, 'isAmministratoreOrganizzazione').mockReturnValue(true);
+      expect(service.canEdit('servizio', 'servizio', 'pubblicato', [])).toBe(false);
+      expect(service.canEdit('adesione', 'adesione', 'pubblicato', [])).toBe(false);
     });
 
     it('should add referente when referente_tecnico is in grant', () => {
@@ -706,8 +725,8 @@ describe('AuthenticationService', () => {
           }
         }
       };
-      // _ssra will be [], intersection with ['referente'] is [], length 0 -> false
-      expect(service.canEdit('servizio', 'servizio', 'bozza', ['referente'])).toBe(false);
+      // _ssra will be [], intersection with ['richiedente'] is [], length 0 -> false
+      expect(service.canEdit('servizio', 'servizio', 'bozza', ['richiedente'])).toBe(false);
     });
   });
 
@@ -1346,6 +1365,47 @@ describe('AuthenticationService', () => {
     });
   });
 
+  // --- canVedereNoteVetrina (Issue 484) ---
+
+  describe('canVedereNoteVetrina', () => {
+    const conf = (note_vetrina: any) => { Tools.Configurazione = { servizio: { note_vetrina } }; };
+
+    it('should hide the notes without the configuration key', () => {
+      Tools.Configurazione = { servizio: {} };
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+      Tools.Configurazione = null;
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+    });
+
+    it('should hide the notes when disabled, even with a matching role', () => {
+      conf({ abilitato: false, ruoli_abilitati: ['referente'] });
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+    });
+
+    it('should treat the technical roles as the non technical ones', () => {
+      conf({ abilitato: true, ruoli_abilitati: ['referente'] });
+      expect(service.canVedereNoteVetrina(['referente_tecnico'])).toBe(true);
+      conf({ abilitato: true, ruoli_abilitati: ['referente_superiore'] });
+      expect(service.canVedereNoteVetrina(['referente_tecnico_superiore'])).toBe(true);
+    });
+
+    it('should admit the manager only when listed', () => {
+      conf({ abilitato: true, ruoli_abilitati: ['referente'] });
+      expect(service.canVedereNoteVetrina(['gestore'])).toBe(false);
+      conf({ abilitato: true, ruoli_abilitati: ['gestore'] });
+      expect(service.canVedereNoteVetrina(['gestore'])).toBe(true);
+    });
+
+    it('should hide the notes with no enabled roles or to the anonymous user', () => {
+      conf({ abilitato: true, ruoli_abilitati: [] });
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+      conf({ abilitato: true });
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+      conf({ abilitato: true, ruoli_abilitati: ['referente'] });
+      expect(service.canVedereNoteVetrina([])).toBe(false);
+    });
+  });
+
   // --- canMonitoraggio ---
 
   describe('canMonitoraggio', () => {
@@ -1437,6 +1497,19 @@ describe('AuthenticationService', () => {
         { generale: { lettura: ['gestore'], scrittura: ['gestore'] } }
       );
       expect(result).toEqual({ canRead: true, canWrite: true });
+    });
+
+    it('should use the configuration passed instead of Tools.Configurazione', () => {
+      service.setCurrentSession({ principal: 'u', roles: [], utente: { id_utente: '1', nome: 'A', cognome: 'B', ruolo: 'coordinatore' } });
+      Tools.Configurazione = null;
+      permessiService.verificaPermessi.mockReturnValue({ canRead: true, canWrite: false });
+
+      service.verificacanPermessiMenuAmministrazione('domini', { amministrazione: { domini: { lettura: ['coordinatore'] } } });
+      expect(permessiService.verificaPermessi).toHaveBeenCalledWith(
+        ['coordinatore'],
+        'domini',
+        { domini: { lettura: ['coordinatore'] } }
+      );
     });
 
     it('should pass empty object when Tools.Configurazione is null', () => {
@@ -1711,6 +1784,49 @@ describe('AuthenticationService', () => {
           ruolo_organizzazione: RuoloOrganizzazioneEnum.AmministratoreOrganizzazione
         });
         expect(service.canCreateAdesione()).toBe(false);
+      });
+    });
+
+    describe('canManageReferentiDominio', () => {
+      const dominio = { soggetto_referente: { organizzazione: { id_organizzazione: 'org-R' } } };
+      const referenti = [
+        { tipo: 'referente', utente: { id_utente: 'ref' } },
+        { tipo: 'referente_tecnico', utente: { id_utente: 'tec' } }
+      ];
+      const setUser = (id: string, org: any, ruolo: RuoloOrganizzazioneEnum | null) => {
+        service.setCurrentSession({ utente: { id_utente: id, ruolo: 'utente_organizzazione' } });
+        orgContext.setCurrent({ organizzazione: org, ruolo_organizzazione: ruolo });
+      };
+
+      it('should pass for gestori and coordinatori', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'gestore' } });
+        expect(service.canManageReferentiDominio(dominio, [])).toBe(true);
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'coordinatore' } });
+        expect(service.canManageReferentiDominio(dominio, [])).toBe(true);
+      });
+
+      it('should pass for the admin of the domain organization in session', () => {
+        setUser('u', orgSoloReferente, RuoloOrganizzazioneEnum.AmministratoreOrganizzazione);
+        expect(service.canManageReferentiDominio(dominio, [])).toBe(true);
+      });
+
+      it('should pass for the domain referent with the domain organization in session', () => {
+        setUser('ref', orgSoloReferente, RuoloOrganizzazioneEnum.OperatoreApi);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(true);
+      });
+
+      it('should not pass for the technical referent or an API operator not referent', () => {
+        setUser('tec', orgSoloReferente, RuoloOrganizzazioneEnum.OperatoreApi);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(false);
+        setUser('other', orgSoloReferente, RuoloOrganizzazioneEnum.OperatoreApi);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(false);
+      });
+
+      it('should not pass with another organization or no role in session', () => {
+        setUser('ref', orgSoloAderente, RuoloOrganizzazioneEnum.AmministratoreOrganizzazione);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(false);
+        setUser('ref', orgSoloReferente, null);
+        expect(service.canManageReferentiDominio(dominio, referenti)).toBe(false);
       });
     });
   });

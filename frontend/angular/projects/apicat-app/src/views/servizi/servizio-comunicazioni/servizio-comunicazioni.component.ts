@@ -31,6 +31,7 @@ import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.di
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
 
 import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
+import { ServizioMonitorMenuComponent } from '../components/servizio-monitor-menu/servizio-monitor-menu.component';
 
 import { Page } from '@app/models/page';
 import { Messaggio } from './messaggio';
@@ -44,7 +45,7 @@ import moment from 'moment';
   templateUrl: 'servizio-comunicazioni.component.html',
   styleUrls: ['servizio-comunicazioni.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, AutoFillScrollDirective, NotificationBarComponent]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, AutoFillScrollDirective, NotificationBarComponent, ServizioMonitorMenuComponent]
 })
 export class ServizioComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioComunicazioniComponent';

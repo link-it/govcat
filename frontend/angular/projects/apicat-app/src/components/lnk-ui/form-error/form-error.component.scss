@@ -16,3 +16,30 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// Stesso stile dei banner di errore del wizard (lnk-banner is-err), piu' compatto.
+.lnk-form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--err-soft, #ffe9eb);
+  border: 1px solid #ffc4c9;
+  border-left: 3px solid var(--err, #d81f2c);
+  border-radius: var(--radius, 10px);
+  color: var(--err-ink, #b81e2b);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.lnk-form-error-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.lnk-form-error-text {
+  flex: 1;
+  min-width: 0;
+}

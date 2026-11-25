@@ -184,8 +184,9 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 			if (!authorization.getAutorizzazione().getTokenRichiedente().booleanValue())
 				throw new IOException("autorizzazione non impostata in modalita token richiedente");
 
-			// L'applicativo risiede sotto il soggetto aderente/fruitore, che puo' differire dal
-			// soggetto dell'erogazione: va indicato esplicitamente nel binding per essere risolto.
+			// Per le erogazioni l'applicativo risiede sotto il soggetto aderente, che puo' differire
+			// dal soggetto dell'erogazione: va indicato nel binding. Per le fruizioni il soggetto
+			// viene omesso dall'invoker, il contratto di govway non lo prevede (Issue 444).
 			Response response = this.invokers.getConfigInvoker().postApplicativoToServizioToken(api, client.getNome(), soggettoApplicativo.getNomeGateway());
 			
 			this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);

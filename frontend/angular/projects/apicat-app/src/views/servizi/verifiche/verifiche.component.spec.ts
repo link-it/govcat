@@ -286,14 +286,19 @@ describe('VerificheComponent', () => {
     expect(component._isErogatoSoggettoDominioMapper({ ruolo: 'erogato_soggetto_aderente' })).toBe(false);
   });
 
-  it('should return erogazioni for _tipoVerificaMapper with erogato_soggetto_dominio and no soggetto_erogatore', () => {
+  it('should return erogazioni for _tipoVerificaMapper with erogato_soggetto_dominio of an erogation', () => {
     component.service = { dominio: { soggetto_referente: { nome: 'test' } } };
     expect(component._tipoVerificaMapper({ ruolo: 'erogato_soggetto_dominio' })).toBe('erogazioni');
   });
 
-  it('should return fruizioni for _tipoVerificaMapper with erogato_soggetto_dominio and soggetto_erogatore', () => {
-    component.service = { soggetto_erogatore: { nome: 'test' } };
+  it('should return fruizioni for _tipoVerificaMapper with erogato_soggetto_dominio of a fruition', () => {
+    component.service = { fruizione: true, soggetto_erogatore: { nome: 'test' } };
     expect(component._tipoVerificaMapper({ ruolo: 'erogato_soggetto_dominio' })).toBe('fruizioni');
+  });
+
+  it('should use the remote provider of a fruition as provider of the checks (Issue #424)', () => {
+    expect(component._providerMapper({ fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'Ente' } } })).toBe('EnteRemoto');
+    expect(component._providerMapper({ dominio: { soggetto_referente: { nome: 'Ente' } } })).toBe('');
   });
 
   it('should return fruizioni for _tipoVerificaMapper with other roles', () => {

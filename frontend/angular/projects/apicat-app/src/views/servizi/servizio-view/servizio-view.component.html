@@ -40,8 +40,12 @@
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (!_spin) {
       <div class="nav-controls">
+        @if (_mostraNotaVetrina) {
+          <app-servizio-nota-vetrina class="me-2" [nota]="data.note"></app-servizio-nota-vetrina>
+        }
         @if (_updateData | mapper:_canManagementComunicazioniMapper) {
           <app-monitor-dropdown
+            [service_id]="data?.id_servizio"
             [showComunications]="_updateData | mapper:_canManagementComunicazioniMapper"
             [showMonitoring]="(_updateData | mapper:_canManagementMapper) && (_updateData | mapper:_canJoinMapper) && (_updateData | mapper:_canMonitoraggioMapper)"
             [showManagement]="_updateData | mapper:_canManagementMapper"
@@ -67,10 +71,17 @@
       <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
     }
     @if (!data && !_spin) {
-      <ui-box-message [image]="'./assets/images/illustrations/no-data.svg'"
-                      [message]="'APP.MESSAGE.NoData' | translate"
-                      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
-      </ui-box-message>
+      @if (_servizioNonDisponibile) {
+        <ui-box-message [image]="'./assets/images/illustrations/no-data.svg'"
+                        [message]="'APP.MESSAGE.ServizioNonDisponibile' | translate"
+                        [subMessage]="'APP.MESSAGE.ServizioNonDisponibileHelp' | translate">
+        </ui-box-message>
+      } @else {
+        <ui-box-message [image]="'./assets/images/illustrations/no-data.svg'"
+                        [message]="'APP.MESSAGE.NoData' | translate"
+                        [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+        </ui-box-message>
+      }
     }
 
     @if (_showScroll) {
@@ -167,6 +178,16 @@
                 }
               </button>
             }
+            @if (_canManageReferentiDominio) {
+              <button type="button" class="btnc btnc-default" (click)="_gotoReferentiDominio()">
+                <i class="bi bi-people me-2" aria-hidden="true"></i>{{ 'APP.BUTTON.DomainReferents' | translate }}
+              </button>
+            }
+            @if (_canShowRateLimiting()) {
+              <button type="button" class="btnc btnc-default" (click)="_openRateLimitingDialog()">
+                <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>{{ 'APP.SERVICES.RATE_LIMITING.Titolo' | translate }}
+              </button>
+            }
             @if (_canShowPdndHeroMenu()) {
               <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="pdnd-hero-actions">
                 <button aria-haspopup="true" aria-expanded="false" type="button" class="btnc btnc-default dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
@@ -246,12 +267,12 @@
 
         @if (_adesioneDataReady) {
 
-          <!-- 1. CTA Aderisci: nessuna adesione ancora presente.
+          <!-- 1. CTA Aderisci: nessuna adesione dell'organizzazione corrente.
                   Mostrato a qualsiasi ruolo abilitato (gestore, referenti,
                   amministratore/operatore org) purche` ammissibile e con
                   permesso di creare l'adesione. -->
           @if ((_updateData | mapper:_canJoinMapper)
-               && !_hasJoined
+               && !_hasJoinedOrganizzazione
                && (_updateData | mapper:_isAmmissibileMapper)
                && (_updateData | mapper:_canCreateAdesioneMapper)) {
             <lnk-action-banner
@@ -289,7 +310,7 @@
                && !(_updateData | mapper:_isGestoreMapper)
                && !(_updateData | mapper:_isReferenteMapper)
                && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper)
-               && _hasJoined) {
+               && _hasJoinedOrganizzazione) {
             <lnk-action-banner
               icon="bi-display"
               [title]="'APP.BUTTON.GoAdesione' | translate"
@@ -302,7 +323,7 @@
           }
 
           <!-- 4. Adesione gia` esistente (info) -->
-          @if (_hasJoined && !data.multi_adesione
+          @if (_hasAdesioneAttivaOrganizzazione && !data.multi_adesione
                && !(_updateData | mapper:_isGestoreMapper)
                && !(_updateData | mapper:_isAnonymousMapper)
                && (_updateData | mapper:_canJoinMapper)) {
@@ -318,7 +339,7 @@
                && !(_updateData | mapper:_isGestoreMapper)
                && !(_updateData | mapper:_isAnonymousMapper)
                && (_updateData | mapper:_canJoinMapper)
-               && !_hasJoined) {
+               && !_hasJoinedOrganizzazione) {
             <lnk-action-banner
               icon="bi-shield-exclamation"
               [title]="'APP.MESSAGE.OrgNonAmmissibile' | translate"
@@ -366,7 +387,7 @@
              Su mobile la sidebar scende sotto documentazione e API. -->
         <div [class.layout]="_showAside">
           @if (_showAside) {
-            <aside>
+            <aside [attr.aria-label]="'APP.LABEL.ServiceInfo' | translate">
               @if (_showReferents) {
                 <div class="card card-pad-tight">
                   <div class="section-title">

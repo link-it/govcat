@@ -17,11 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Injectable } from '@angular/core';
-import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 import { ConfigService } from '@linkit/components';
 import { AuthenticationService } from '../services/authentication.service';
+import { OpenAPIService } from '../services/openAPI.service';
+import { configurazioneRemota$ } from './configurazione-remota';
 
+/**
+ * Accesso alle pagine di amministrazione: il gestore, oppure chi ha il permesso di lettura sul menu
+ * nella configurazione `amministrazione`. Tassonomie e dashboard richiedono anche la funzione abilitata.
+ * Dopo un ricaricamento della pagina la configurazione remota viene richiesta prima di decidere.
+ */
 @Injectable()
 export class GestoreGuard implements CanActivate {
 
@@ -30,39 +39,29 @@ export class GestoreGuard implements CanActivate {
   constructor(
     private router: Router,
     private authenticationService: AuthenticationService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private apiService: OpenAPIService
   ) {
     this.appConfig = this.configService.getAppConfig();
   }
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    const menu = state.url.split('/')[1];
-    const _taxonomiesRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
-    const _showTaxonomies = _taxonomiesRemoteConfig?.tassonomie_abilitate || false;
-    if (state.url === '/tassonomie' && !_showTaxonomies) {
-      this.router.navigate(['/servizi']);
-      return false;  
-    }
-    if (state.url === '/monitoraggio') {
-      const _dashboardRemoteConfig: any = this.authenticationService._getConfigModule('dashboard');
-      const _hasDashboard = _dashboardRemoteConfig.abilitato || false;
-      if (_hasDashboard) {
-        if (this.authenticationService.isGestore()) {
-          return true;
-        } else if (this.authenticationService.verificacanPermessiMenuAmministrazione(menu).canRead) {
-          return true;
-        }
-      }
-      this.router.navigate(['/servizi']);
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
+    const _negato = this.router.createUrlTree(['/servizi']);
+    return configurazioneRemota$(this.apiService).pipe(
+      catchError(() => of(null)),
+      map((configurazione: any) => this._consentito(state.url.split('?')[0], configurazione) ? true : _negato)
+    );
+  }
+
+  private _consentito(url: string, configurazione: any): boolean {
+    if (url === '/tassonomie' && !configurazione?.servizio?.tassonomie_abilitate) {
       return false;
-    } else {
-      if (this.authenticationService.isGestore()) {
-        return true;
-      } else if (this.authenticationService.verificacanPermessiMenuAmministrazione(menu).canRead) {
-        return true;
-      }
     }
-    this.router.navigate(['/servizi']);
-    return false;
+    if (url === '/monitoraggio' && !configurazione?.dashboard?.abilitato) {
+      return false;
+    }
+    const menu = url.split('/')[1];
+    return this.authenticationService.isGestore()
+      || this.authenticationService.verificacanPermessiMenuAmministrazione(menu, configurazione).canRead;
   }
 }

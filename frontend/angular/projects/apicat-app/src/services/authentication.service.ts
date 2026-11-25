@@ -19,7 +19,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
-import { Tools, EventType, ConfigService, EventsManagerService } from '@linkit/components';
+import { Tools, EventType, ConfigService, EventsManagerService, LocalStorageService } from '@linkit/components';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 import { OrganizationContextService } from '@services/organization-context.service';
@@ -249,6 +249,7 @@ export class AuthenticationService {
   private readonly oauthService = inject(OAuthService);
   private readonly permessiService = inject(PermessiService);
   private readonly organizationContextService = inject(OrganizationContextService);
+  private readonly localStorageService = inject(LocalStorageService);
 
   constructor() {
     this.config = this.configService.getConfiguration();
@@ -293,6 +294,8 @@ export class AuthenticationService {
       try { sessionStorage.setItem(LOGOUT_VOLONTARIO_KEY, '1'); } catch { /* storage non disponibile */ }
     }
     localStorage.removeItem(AUTH_CONST.storageSession);
+    // Preferenze della lista servizi legate all'utente (es. "I miei servizi")
+    this.localStorageService.remove('SERVIZI');
     this.organizationContextService.clear();
 
     // Check if there's an access token to revoke (even if expired)
@@ -633,22 +636,22 @@ export class AuthenticationService {
     if (!state) { return false; }
     if (state === 'archiviato') { return false; }
 
-    // Stakeholder bypass: amm.org, op.api e referenti
-    // (servizio/dominio/adesione, inclusi tecnici) possono entrare in
-    // edit mode indipendentemente da `stato_successivo.ruoli_abilitati`
-    // (che governa solo le transizioni di workflow). I
-    // `dati_non_modificabili` restano applicati per campo via
-    // `canEditField`.
+    // Stakeholder bypass: i referenti (servizio/dominio/adesione, inclusi
+    // tecnici e l'amministratore dell'organizzazione erogatrice, che ha
+    // `referente_superiore`) possono entrare in edit mode indipendentemente
+    // da `stato_successivo.ruoli_abilitati` (che governa solo le transizioni
+    // di workflow). Il ruolo nell'organizzazione di sessione non basta:
+    // servono i ruoli del grant. I `dati_non_modificabili` restano applicati
+    // per campo via `canEditField`.
     const stakeholders = [
+      GrantRole.Referente, GrantRole.ReferenteTecnico,
+      GrantRole.ReferenteSuperiore, GrantRole.ReferenteTecnicoSuperiore,
       'referente_servizio', 'referente_tecnico_servizio',
       'referente_dominio', 'referente_tecnico_dominio',
       'referente_adesione', 'referente_tecnico_adesione',
       'utente_organizzazione'
     ];
-    const isStakeholder = grant.some((r: string) => stakeholders.includes(r))
-      || this.isAmministratoreOrganizzazione()
-      || this.isOperatoreApi();
-    if (isStakeholder) { return true; }
+    if (grant.some((r: string) => stakeholders.includes(r))) { return true; }
 
     // Fallback workflow-based (es. richiedente): edit consentito
     // solo se l'utente puo` transizionare allo `stato_successivo` e
@@ -1003,11 +1006,23 @@ export class AuthenticationService {
     return monitoraggio.abilitato && !!_intersection.length;
   }
 
+  /**
+   * Note del servizio nella vetrina (`servizio.note_vetrina`): solo se abilitate e ai ruoli elencati,
+   * con i ruoli tecnici equiparati ai non tecnici. Il gestore e` ammesso solo se elencato.
+   */
+  canVedereNoteVetrina(grant: string[] = [], servizio: any = this._getConfigModule('servizio')): boolean {
+    const _conf = servizio?.note_vetrina;
+    if (!_conf?.abilitato) {
+      return false;
+    }
+    return _.intersection(expandTecnicoGrants(grant || []), _conf.ruoli_abilitati || []).length > 0;
+  }
+
   // Verifica permessi menu amministrazione
 
-  verificacanPermessiMenuAmministrazione(menu: string): { canRead: boolean; canWrite: boolean } {
+  verificacanPermessiMenuAmministrazione(menu: string, configurazione: any = Tools.Configurazione): { canRead: boolean; canWrite: boolean } {
     const ruoli = this._effectiveRoles();
-    const permessi = Tools.Configurazione ? (Tools.Configurazione['amministrazione'] || {}) : {};
+    const permessi = configurazione ? (configurazione['amministrazione'] || {}) : {};
 
     return this.permessiService.verificaPermessi(ruoli, menu, permessi);
   }
@@ -1051,6 +1066,25 @@ export class AuthenticationService {
     const role = this.getCurrentOrganizationRole();
     if (!role) { return false; }
     return !!this.getCurrentOrganization()?.aderente;
+  }
+
+  /**
+   * Vero se l'utente puo' aggiungere e rimuovere i referenti del dominio:
+   * gestore e coordinatore; con l'organizzazione del dominio in sessione,
+   * l'amministratore dell'organizzazione oppure il referente (non tecnico)
+   * del dominio con ruolo operatore API o amministratore.
+   * `referenti` e' l'elenco di `GET /domini/{id}/referenti`.
+   */
+  canManageReferentiDominio(dominio: any, referenti: any[] = []): boolean {
+    if (this.isGestore() || this.isCoordinatore()) { return true; }
+    const idOrgDominio = dominio?.soggetto_referente?.organizzazione?.id_organizzazione;
+    const idOrgSessione = this.getCurrentOrganization()?.id_organizzazione;
+    if (!idOrgDominio || idOrgDominio !== idOrgSessione) { return false; }
+    const role = this.getCurrentOrganizationRole();
+    if (role === RuoloOrganizzazioneEnum.AmministratoreOrganizzazione) { return true; }
+    if (role !== RuoloOrganizzazioneEnum.OperatoreApi) { return false; }
+    const idUtente = this.getUser()?.id_utente;
+    return !!idUtente && (referenti || []).some((r: any) => r?.tipo === 'referente' && r?.utente?.id_utente === idUtente);
   }
 
   hasMenuAmministrazione(): boolean {

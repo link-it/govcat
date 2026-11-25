@@ -362,9 +362,9 @@ public class AdesioneServizioIntegrationTest {
         ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
         
-        //CREO IL SERVIZIO jonio-v. 1
+        //CREO IL SERVIZIO jonio-v. 1 (con collaudo: le adesioni passano dal collaudo, Issue 478)
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setSkipCollaudo(false);
         servizioCreate.setNome("jonio");
 		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());

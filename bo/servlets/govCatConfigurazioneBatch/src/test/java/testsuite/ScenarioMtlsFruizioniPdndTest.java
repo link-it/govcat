@@ -34,11 +34,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.dto.DTOAdesione;
 import org.govway.catalogo.core.dto.DTOAdesione.AmbienteEnum;
 import org.govway.catalogo.core.dto.DTOAdesioneAPI;
 import org.govway.catalogo.core.dto.DTOApi;
+import org.govway.catalogo.core.dto.DTOQuotaRateLimiting;
 import org.govway.catalogo.core.dto.DTOSoggetto;
 import org.govway.catalogo.core.dto.HttpsClient;
 import org.junit.jupiter.api.AfterEach;
@@ -153,6 +157,10 @@ class ScenarioMtlsFruizioniPdndTest {
 	}
 
 	private static GruppoServizio gruppoServizio(boolean fruizione, Map<String, String> estensioni) {
+		return gruppoServizio(fruizione, estensioni, api -> {});
+	}
+
+	private static GruppoServizio gruppoServizio(boolean fruizione, Map<String, String> estensioni, Consumer<DTOApi> personalizzazione) {
 		DTOSoggetto aderente = new DTOSoggetto("Aderente", "APIGateway", false);
 		DTOSoggetto erogatore = new DTOSoggetto("Erogatore", "APIGateway", true);
 		DTOSoggetto fruitore = fruizione ? new DTOSoggetto(FRUITORE, "APIGateway", true) : null;
@@ -160,6 +168,7 @@ class ScenarioMtlsFruizioniPdndTest {
 		DTOAdesioneAPI adesioneApi = new DTOAdesioneAPI("MTLS_FRUIZIONI_PDND", "GET /risorsa", NOME_CLIENT, null);
 		DTOApi api = new DTOApi("ApiDiProva", 1, DTOApi.RUOLO.EROGATO_SOGGETTO_DOMINIO,
 				DTOApi.PROTOCOLLO.OPENAPI_3, estensioni, List.of(adesioneApi));
+		personalizzazione.accept(api);
 
 		DTOAdesione adesione = new DTOAdesione(List.of(api), Map.of(), erogatore, aderente, fruitore,
 				AmbienteEnum.COLLAUDO, List.of(), "collaudo_in_configurazione");
@@ -170,6 +179,20 @@ class ScenarioMtlsFruizioniPdndTest {
 				.adesioneAPI(adesioneApi)
 				.nomeAPI("ApiDiProva")
 				.gruppo("Predefinito");
+	}
+
+	/** Fruizione con le quote dell'adesione e la finalità indicata in configurazione.json (Issue 446). */
+	private static GruppoServizio fruizioneConQuote(Map<String, String> estensioni, String finalita, DTOQuotaRateLimiting... quote) {
+		return gruppoServizio(true, estensioni, api -> {
+			api.setRateLimiting(List.of(quote));
+			api.setFinalita(true, finalita);
+		});
+	}
+
+	private List<JsonObject> bodies(String ultimoSegmentoPath) {
+		List<String> bodies = this.bodyPerPath.get(ultimoSegmentoPath);
+		assertNotNull(bodies, "nessuna richiesta su /" + ultimoSegmentoPath + ": " + this.richieste);
+		return bodies.stream().map(b -> JsonParser.parseString(b).getAsJsonObject()).toList();
 	}
 
 	private static GruppoServizio fruizioneCompleta() {
@@ -270,6 +293,52 @@ class ScenarioMtlsFruizioniPdndTest {
 				Map.of(CHIAVE_PURPOSE_ID, FINALITA, CHIAVE_RATE_LIMITING, "molte")));
 		assertNotNull(erroreQuota);
 		assertTrue(erroreQuota.contains("non numerica"), erroreQuota);
+	}
+
+	@Test
+	@DisplayName("Issue 446: una policy per ogni periodo delle quote dell'adesione, la quota legacy è ignorata")
+	void quoteDellAdesionePerPeriodo() throws Exception {
+		scenario(true).configureAPI(client(), fruizioneConQuote(Map.of(CHIAVE_RATE_LIMITING, "500"), FINALITA,
+				new DTOQuotaRateLimiting(DTOQuotaRateLimiting.PERIODO.MINUTO, 5),
+				new DTOQuotaRateLimiting(DTOQuotaRateLimiting.PERIODO.ORA, 60),
+				new DTOQuotaRateLimiting(DTOQuotaRateLimiting.PERIODO.GIORNO, 1000)));
+
+		Map<String, JsonObject> policy = bodies("rate-limiting").stream()
+				.collect(Collectors.toMap(p -> p.getAsJsonObject("configurazione").get("intervallo").getAsString(), p -> p));
+		assertEquals(Set.of("minuti", "orario", "giornaliero"), policy.keySet());
+
+		assertEquals(NOME_CLIENT, policy.get("giornaliero").get("nome").getAsString());
+		assertEquals(1000, policy.get("giornaliero").get("soglia_valore").getAsInt());
+		assertEquals(NOME_CLIENT + "_ora", policy.get("orario").get("nome").getAsString());
+		assertEquals(60, policy.get("orario").get("soglia_valore").getAsInt());
+		assertEquals(NOME_CLIENT + "_minuto", policy.get("minuti").get("nome").getAsString());
+		assertEquals(5, policy.get("minuti").get("soglia_valore").getAsInt());
+		policy.values().forEach(p -> assertEquals(NOME_CLIENT, p.getAsJsonObject("filtro").get("applicativo_fruitore").getAsString()));
+	}
+
+	@Test
+	@DisplayName("Issue 446: la finalità indicata in configurazione.json prevale sulla property del configuratore")
+	void finalitaDallaConfigurazione() throws Exception {
+		String daConfigurazione = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
+		scenario(true).configureAPI(client(), fruizioneConQuote(Map.of(CHIAVE_PURPOSE_ID, FINALITA), daConfigurazione));
+
+		assertEquals(daConfigurazione, unicoBody("proprieta").get("valore").getAsString());
+		// senza quote dell'adesione né quota legacy nessuna policy
+		assertNull(this.bodyPerPath.get("rate-limiting"), this.richieste.toString());
+	}
+
+	@Test
+	@DisplayName("Issue 446: getError richiede la finalità configurata in configurazione.json e ignora la quota legacy")
+	void getErrorConFinalitaInConfigurazione() throws Exception {
+		DTOQuotaRateLimiting giorno = new DTOQuotaRateLimiting(DTOQuotaRateLimiting.PERIODO.GIORNO, 100);
+
+		// anche senza le property del configuratore
+		String errore = scenario(false).getError(client(), fruizioneConQuote(Map.of(), null, giorno));
+		assertNotNull(errore);
+		assertTrue(errore.contains("adesione.rate_limiting.finalita"), errore);
+
+		// la quota legacy non numerica non conta se l'adesione ha quote
+		assertNull(scenario(true).getError(client(), fruizioneConQuote(Map.of(CHIAVE_RATE_LIMITING, "molte"), FINALITA, giorno)));
 	}
 
 	@Test

@@ -53,10 +53,10 @@ import org.govway.catalogo.core.services.ClientService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
-import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.AdesioneClientCreate;
 import org.govway.catalogo.servlets.model.AdesioneClientProposto;
@@ -79,7 +79,6 @@ import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProprietaCustomAdesione;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
-import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoAdesioneClientUpdateEnum;
@@ -265,12 +264,21 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 	}
 
 	public AdesioneEntity toEntity(AdesioneIdentificativoUpdate src, AdesioneEntity entity) {
+		boolean skipCollaudoPrecedente = entity.isSkipCollaudo();
+		ServizioEntity servizioPrecedente = entity.getServizio();
+
 		BeanUtils.copyProperties(src, entity);
 		
 		entity.setIdLogico(src.getIdLogico());
 		entity.setServizio(getServizio(src.getIdServizio()));
 
-		setSkipCollaudo(src.isSkipCollaudo(), entity);
+		// Flag non indicato: resta invariato
+		boolean skipCollaudo = src.isSkipCollaudo() != null ? src.isSkipCollaudo() : skipCollaudoPrecedente;
+		// Le adesioni pregresse senza skip a un servizio senza collaudo restano modificabili:
+		// lo skip obbligatorio si verifica solo se cambiano il flag o il servizio
+		boolean verificaSkipObbligatorio = skipCollaudo != skipCollaudoPrecedente
+				|| !entity.getServizio().equals(servizioPrecedente);
+		setSkipCollaudo(skipCollaudo, entity, verificaSkipObbligatorio);
 
 		SoggettoEntity soggetto = getSoggetto(src.getIdSoggetto());
 
@@ -299,11 +307,22 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 //		return entity;
 //	}
 //	
-	private void setSkipCollaudo(Boolean skipCollaudo, AdesioneEntity entity) {
+	/**
+	 * Lo skip collaudo dell'adesione e` consentito dal dominio del servizio, come per i servizi, ed e`
+	 * imposto dal servizio senza collaudo, che non ha un ambiente di collaudo a cui aderire (Issue 478).
+	 */
+	private void setSkipCollaudo(boolean skipCollaudo, AdesioneEntity entity, boolean verificaSkipObbligatorio) {
 		entity.setSkipCollaudo(skipCollaudo);
 
-		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO, java.util.Map.of("nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione()));
+		ServizioEntity servizio = entity.getServizio();
+		if(entity.isSkipCollaudo() && !servizio.getDominio().isSkipCollaudo()) {
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO, java.util.Map.of("nomeDominio", servizio.getDominio().getNome(),
+					"nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
+		}
+
+		if(verificaSkipObbligatorio && !entity.isSkipCollaudo() && servizio.isSkipCollaudo()) {
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO_REQUIRED, java.util.Map.of("nomeServizio", servizio.getNome(),
+					"versioneServizio", servizio.getVersione()));
 		}
 	}
 
@@ -345,7 +364,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setServizio(getServizio(src.getIdServizio()));
 		entity.setSoggetto(getSoggetto(src.getIdSoggetto()));
 
-		setSkipCollaudo(src.isSkipCollaudo(), entity);
+		setSkipCollaudo(Boolean.TRUE.equals(src.isSkipCollaudo()), entity, true);
 
 		check(entity);
 
@@ -361,16 +380,12 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(configurazione.getAdesione()!= null &&
 				!configurazione.getAdesione().isSceltaLiberaOrganizzazione()) {
 
-			
-			Grant grant = this.adesioneAuthorization.getGrant(entity);
-			
-			boolean admin = grant.getRuoli().contains(Ruolo.GESTORE);
-			boolean ref = grant.getRuoli().contains(Ruolo.REFERENTE) || grant.getRuoli().contains(Ruolo.REFERENTE_SUPERIORE);
-
-			if(!admin && !ref) {
+			// Il controllo non usa il grant dell'adesione: i ruoli per-organizzazione (AMM_ORG/OPERATORE_API)
+			// lo arricchirebbero anche sull'organizzazione erogatrice, consentendo di aderire a nome di altri (Issue 451).
+			if(!this.adesioneAuthorization.isAbilitatoAdesionePerAltraOrganizzazione(entity)) {
 				// Multi-org: l'utente di sessione deve essere associato all'organizzazione del soggetto dell'adesione
 				if (!this.organizzazioneService.isAssociatoA(utenteSessione, entity.getSoggetto().getOrganizzazione())) {
-					throw new BadRequestException(ErrorCode.AUT_403_ORG_ADHESION,
+					throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_ADHESION,
 							java.util.Map.of("nomeOrganizzazione", entity.getSoggetto().getOrganizzazione().getNome()));
 				}
 			}
@@ -388,27 +403,23 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		if(entity.getServizio().isAdesioneDisabilitata()) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_DISABLED, java.util.Map.of("servizio", servizioK));
+			throw new ConflictException(ErrorCode.ADE_409_STATE_DISABLED, java.util.Map.of("servizio", servizioK));
 		}
 
 		if(entity.getServizio().getVisibilita() != null && entity.getServizio().getVisibilita().equals(VISIBILITA.COMPONENTE)) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_VISIBILITY, java.util.Map.of("servizio", servizioK));
+			throw new ConflictException(ErrorCode.ADE_409_STATE_VISIBILITY, java.util.Map.of("servizio", servizioK));
 		}
 
 		if(entity.getServizio().isMultiAdesione() && entity.getIdLogico()==null) {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of("campo", "id_logico"));
 		}
 
 		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getDominio().getSoggettoReferente().getId())) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_SUBJECT_MISMATCH, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getDominio().getSoggettoReferente().getNome()));
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SUBJECT_MISMATCH, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getDominio().getSoggettoReferente().getNome()));
 		}
 
 		if(!entity.getSoggetto().isAderente()) {
 			throw new BadRequestException(ErrorCode.SOG_400_NOT_ADERENTE, java.util.Map.of("nomeSoggetto", entity.getSoggetto().getNome()));
-		}
-
-		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422_SKIP_COLLAUDO, java.util.Map.of("servizio", servizioK));
 		}
 	}
 
@@ -564,7 +575,9 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 									&& est.getDocumento() != null && est.getDocumento().getUuid().equals(p.getUuid()))
 							.map(ee -> ee.getDocumento()).findAny().orElseThrow(() -> new BadRequestException(ErrorCode.DOC_404)));
 				} else {
-					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+					// proprieta` di tipo file senza contenuto ne' riferimento a un documento gia` caricato
+					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED,
+							Map.of("campo", "proprieta_custom." + apc.getGruppo() + "." + p.getNome() + ".content"));
 				}
 			} else {
 				e.setValore(p.getValore());

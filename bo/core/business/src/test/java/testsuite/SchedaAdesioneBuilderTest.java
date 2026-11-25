@@ -18,6 +18,8 @@ import org.govway.catalogo.core.orm.entity.ErogazioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RateLimitingPeriodo;
+import org.govway.catalogo.core.orm.entity.AdesioneRateLimitingEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
@@ -26,12 +28,14 @@ import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.stampe.StampePdf;
+import org.govway.catalogo.stampe.model.ApiType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -234,6 +238,59 @@ public class SchedaAdesioneBuilderTest {
         assertTrue(pdf.length > 10);
     }
 
+    @Test
+    void testRateLimitingCampiDedicatiPrevalgonoSuProprietaCustom() throws Exception {
+        ApiEntity api = apiEntity("ApiTest", 1, "EROGATO_SOGGETTO_DOMINIO");
+        servizio.setApi(Set.of(api));
+
+        // Proprieta' custom di collaudo, superate dai campi dedicati
+        EstensioneAdesioneEntity quotaCustom = new EstensioneAdesioneEntity();
+        quotaCustom.setNome("rate_limiting_quota");
+        quotaCustom.setValore("100");
+        quotaCustom.setAmbiente(AmbienteEnum.COLLAUDO);
+        quotaCustom.setApi(api);
+        EstensioneAdesioneEntity periodoCustom = new EstensioneAdesioneEntity();
+        periodoCustom.setNome("rate_limiting_periodo");
+        periodoCustom.setValore("minuto");
+        periodoCustom.setAmbiente(AmbienteEnum.COLLAUDO);
+        periodoCustom.setApi(api);
+        // Proprieta' custom di produzione, unico dato per quell'ambiente
+        EstensioneAdesioneEntity quotaCustomProd = new EstensioneAdesioneEntity();
+        quotaCustomProd.setNome("rate_limiting_quota");
+        quotaCustomProd.setValore("1000");
+        quotaCustomProd.setAmbiente(AmbienteEnum.PRODUZIONE);
+        quotaCustomProd.setApi(api);
+        EstensioneAdesioneEntity periodoCustomProd = new EstensioneAdesioneEntity();
+        periodoCustomProd.setNome("rate_limiting_periodo");
+        periodoCustomProd.setValore("ora");
+        periodoCustomProd.setAmbiente(AmbienteEnum.PRODUZIONE);
+        periodoCustomProd.setApi(api);
+        adesione.setEstensioni(List.of(quotaCustom, periodoCustom, quotaCustomProd, periodoCustomProd));
+
+        AdesioneRateLimitingEntity giorno = new AdesioneRateLimitingEntity();
+        giorno.setApi(api);
+        giorno.setAmbiente(AmbienteEnum.COLLAUDO);
+        giorno.setPeriodo(RateLimitingPeriodo.GIORNO);
+        giorno.setQuota(300);
+        AdesioneRateLimitingEntity ora = new AdesioneRateLimitingEntity();
+        ora.setApi(api);
+        ora.setAmbiente(AmbienteEnum.COLLAUDO);
+        ora.setPeriodo(RateLimitingPeriodo.ORA);
+        ora.setQuota(20);
+        adesione.setRateLimiting(List.of(giorno, ora));
+
+        ApiType collaudo = ReflectionTestUtils.invokeMethod(builder, "getRateLimitingApi", adesione, AmbienteEnum.COLLAUDO, List.of(api), true);
+        assertEquals(2, collaudo.getRow().size());
+        assertEquals("ApiTest v1", collaudo.getRow().get(0).getLabel());
+        assertEquals("300 / giorno", collaudo.getRow().get(0).getValore());
+        assertEquals("20 / ora", collaudo.getRow().get(1).getValore());
+
+        ApiType produzione = ReflectionTestUtils.invokeMethod(builder, "getRateLimitingApi", adesione, AmbienteEnum.PRODUZIONE, List.of(api), true);
+        assertEquals(1, produzione.getRow().size());
+        assertEquals("1000 / ora", produzione.getRow().get(0).getValore());
+
+        assertNotNull(builder.getSchedaAdesione(adesione));
+    }
 
     private ApiEntity apiEntity(String name, Integer version, String role) {
         ApiEntity a = new ApiEntity();

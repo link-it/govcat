@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.DominiController;
+import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
 import org.govway.catalogo.core.dao.repositories.ServizioRepository;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA;
@@ -45,6 +46,9 @@ import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSuppor
 
 public class DominioDettaglioAssembler extends RepresentationModelAssemblerSupport<DominioEntity, Dominio> {
 
+	/** Parametro dell'errore che indica il campo della richiesta coinvolto */
+	private static final String CAMPO = "campo";
+
 	@Autowired
 	private SoggettoItemAssembler soggettoItemAssmbler;
 	
@@ -62,6 +66,9 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 
 	@Autowired
 	private ServizioRepository servizioRepository;
+
+	@Autowired
+	private AdesioneRepository adesioneRepository;
 
 	@Autowired
 	private Configurazione configurazione;
@@ -92,12 +99,15 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 	public DominioEntity toEntity(DominioUpdate src, DominioEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 
-		entity.setDeprecato(src.isDeprecato());
+		// deprecato e` facoltativo nel contratto: se non indicato resta invariato
+		if(src.isDeprecato() != null) {
+			entity.setDeprecato(src.isDeprecato());
+		}
 
 		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", src.getIdSoggettoReferente().toString())));
 
 		if(!soggetto.isReferente()) {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.SOG_400_NOT_REFERENTE, Map.of("nomeSoggetto", soggetto.getNome(), CAMPO, "id_soggetto_referente"));
 		}
 
 		entity.setSoggettoReferente(soggetto);
@@ -105,14 +115,14 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
+					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 				}
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
 		}
 		
 		if(entity.isSkipCollaudo() && !entity.getSoggettoReferente().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of(CAMPO, "skip_collaudo"));
 		}
 
 		entity.setVisibilita(this.engine.toVisibilita(src.getVisibilita()));
@@ -159,18 +169,25 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 				Boolean.TRUE.equals(this.configurazione.getServizio().isConsentiNonSottoscrivibile());
 	}
 
+	/**
+	 * Lo skip collaudo del dominio non e` disattivabile se lo usano servizi del dominio o adesioni
+	 * (non archiviate) ai suoi servizi: entrambi lo ricevono dal dominio (Issue 478).
+	 */
 	private boolean isVincolaSkipCollaudo(DominioEntity entity) {
 		// Esistenza via query invece di entity.getServizi().stream().anyMatch(...): quest'ultimo
 		// materializzava tutti i servizi del dominio ad ogni assemblaggio (collo nelle liste, dove
 		// i domini grossi hanno centinaia di servizi e il dominio viene assemblato per ogni elemento).
-		return this.servizioRepository.existsSkipCollaudoByDominioId(entity.getId());
+		return entity.isSkipCollaudo() &&
+				(this.servizioRepository.existsSkipCollaudoByDominioId(entity.getId()) ||
+				this.adesioneRepository.existsSkipCollaudoByDominioIdNonArchiviate(entity.getId(),
+						this.configurazione.getAdesione().getWorkflow().getStatoArchiviato()));
 	}
 
 	private void setSkipCollaudo(Boolean skipCollaudo, DominioEntity entity) {
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getSoggettoReferente().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
+			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 		}
 	}
 	
@@ -181,12 +198,13 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		DominioEntity entity = new DominioEntity();
 		BeanUtils.copyProperties(src, entity);
 		
-		entity.setDeprecato(src.isDeprecato());
+		// deprecato e` facoltativo nel contratto: se non indicato vale false
+		entity.setDeprecato(Boolean.TRUE.equals(src.isDeprecato()));
 		entity.setIdDominio(UUID.randomUUID().toString());
 		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", src.getIdSoggettoReferente().toString())));
 
 		if(!soggetto.isReferente()) {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.SOG_400_NOT_REFERENTE, Map.of("nomeSoggetto", soggetto.getNome(), CAMPO, "id_soggetto_referente"));
 		}
 
 		entity.setSoggettoReferente(soggetto);

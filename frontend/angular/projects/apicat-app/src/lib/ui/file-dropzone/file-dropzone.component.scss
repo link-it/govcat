@@ -37,6 +37,11 @@
             background: oklch(97% 0.02 var(--accent-h) / 0.4);
         }
 
+        // L'input file e` nascosto: il fuoco si mostra sull'area
+        &:has(input[type="file"]:focus-visible) {
+            box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--focus-ring-color, #428fdc);
+        }
+
         &.dragging {
             border-color: #0d6efd;
             background-color: #e6f1fb;

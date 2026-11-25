@@ -300,6 +300,39 @@ describe('AdesioneViewComponent', () => {
     expect(_ref.ruoliAggiuntivi).toEqual(['Referente Servizio', 'Referente Dominio (Arti)']);
   });
 
+  it('loadReferents should keep the adhesion referents and hide the service link when the service is not visible', () => {
+    (Tools as any).Configurazione = { adesione: { mostra_referenti: 'enabled' } };
+    component.adesione = createMockAdesione();
+    const _utente = { id_utente: 'u1', nome: 'Mario', cognome: 'Rossi', email_aziendale: 'mario@test.it' };
+
+    mockApiService.getDetails
+      .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }))
+      .mockReturnValueOnce(throwError(() => ({ message: 'Not Found', error: { status: 404, detail: 'DOM.404' } })))
+      .mockReturnValueOnce(throwError(() => ({ message: 'Not Found', error: { status: 404, detail: 'SRV.404' } })));
+
+    (component as any).loadReferents();
+
+    expect(component.referents.length).toBe(1);
+    expect(component._servizioAccessibile).toBe(false);
+    expect(Tools.OnError).not.toHaveBeenCalled();
+    expect(component.referentiLoading).toBe(false);
+  });
+
+  it('loadReferents should keep the service link when only the domain referents fail', () => {
+    (Tools as any).Configurazione = { adesione: { mostra_referenti: 'enabled' } };
+    component.adesione = createMockAdesione();
+
+    mockApiService.getDetails
+      .mockReturnValueOnce(of({ content: [] }))
+      .mockReturnValueOnce(throwError(() => ({ status: 404 })))
+      .mockReturnValueOnce(of({ content: [] }));
+
+    (component as any).loadReferents();
+
+    expect(component._servizioAccessibile).toBe(true);
+    expect(Tools.OnError).not.toHaveBeenCalled();
+  });
+
   it('loadReferents should handle error and set referentiLoading false', () => {
     (Tools as any).Configurazione = { adesione: { mostra_referenti: 'enabled' } };
     component.adesione = createMockAdesione();

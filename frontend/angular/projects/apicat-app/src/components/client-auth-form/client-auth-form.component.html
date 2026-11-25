@@ -19,7 +19,7 @@
   i `formControlName` dei figli.
 -->
 <div [formGroup]="input.formGroup" class="client-auth-form gl-show-field-errors" [class.layout-horizontal]="layout === 'horizontal'">
-  <fieldset>
+  <div>
 
     <!-- auth_type (contesto pagina): dropdown visibile solo quando editable. -->
     @if (input.formConfig.fields.auth_type.visible) {
@@ -957,7 +957,7 @@
 
     }
 
-  </fieldset>
+  </div>
 
   @if (input.error) {
     <div class="gl-alert gl-alert-danger col-md-12 mb-5">

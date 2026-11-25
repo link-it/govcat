@@ -46,6 +46,7 @@ import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
+import org.govway.catalogo.core.orm.entity.StatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.TagEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -211,6 +212,26 @@ public class ServizioService extends AbstractService {
 	public Page<MessaggioServizioEntity> findAllMessaggiServizio(Specification<MessaggioServizioEntity> spec, Pageable p) {
 		return this.messaggioServizioRepo.findAll(spec, p);
 	}
+
+	/**
+	 * Cambi di stato registrati per il servizio, dal piu` recente (a parita` di data, dall'ultimo inserito).
+	 * Restituisce al massimo {@code max} righe a partire dalla posizione {@code offset}: l'utente
+	 * che ha eseguito il cambio e` caricato nella stessa query.
+	 */
+	public List<StatoServizioEntity> findStatiServizio(ServizioEntity servizio, long offset, long max) {
+		return this.entityManager.createQuery(
+				"SELECT s FROM StatoServizioEntity s LEFT JOIN FETCH s.utente WHERE s.servizio = :servizio ORDER BY s.data DESC, s.id DESC", StatoServizioEntity.class)
+			.setParameter("servizio", servizio)
+			.setFirstResult((int) Math.min(offset, Integer.MAX_VALUE))
+			.setMaxResults((int) Math.min(max, Integer.MAX_VALUE))
+			.getResultList();
+	}
+
+	public long countStatiServizio(ServizioEntity servizio) {
+		return this.entityManager.createQuery("SELECT COUNT(s) FROM StatoServizioEntity s WHERE s.servizio = :servizio", Long.class)
+			.setParameter("servizio", servizio)
+			.getSingleResult();
+	}
 	
 	public Optional<MessaggioServizioEntity> findMessaggioServizio(UUID idServizio, UUID idMessaggio) {
 		MessaggioServizioSpecification spec = new MessaggioServizioSpecification();
@@ -266,17 +287,44 @@ public class ServizioService extends AbstractService {
 		return this.servizioRepo.getServiziByRichiedente(u.getId());
 	}
 
+	/**
+	 * Motivo per cui un servizio non puo` essere eliminato.
+	 */
+	public enum MotivoNonEliminabile {
+		/** Il servizio ha adesioni, anche archiviate: vanno conservate e il servizio con loro. */
+		ADESIONI,
+		/** Il servizio ha api: vanno eliminate prima del servizio. */
+		API,
+		/** Il package contiene servizi: vanno rimossi prima del package. */
+		PACKAGE
+	}
+
 	public boolean isEliminabile(ServizioEntity servizio) {
+		return getMotivoNonEliminabile(servizio).isEmpty();
+	}
+
+	/**
+	 * Primo motivo per cui il servizio non e` eliminabile, vuoto se e` eliminabile.
+	 *
+	 * Le adesioni hanno la precedenza perche` non si possono rimuovere: indicare per prime le api
+	 * spingerebbe a eliminarle senza poter poi eliminare il servizio.
+	 */
+	public Optional<MotivoNonEliminabile> getMotivoNonEliminabile(ServizioEntity servizio) {
 	    // Verifiche di esistenza via query (SELECT ... LIMIT-like) invece di servizio.getXxx().isEmpty():
 	    // .isEmpty() su collezioni lazy materializza l'intera collezione, e per i servizi con molte adesioni
 	    // questo dominava il tempo di assemblaggio delle liste (~320 ms/elemento per il gestore).
 	    // Nota: isEliminabile e` usato solo dalle viste di lista (ServizioItemAssembler), non da servizi_gruppi,
 	    // e su una pagina (max ~size servizi) le query exists restano poche e veloci.
-	    boolean haAdesioni = this.adesioneRepo.existsByServizioId(servizio.getId());
-	    boolean haApi = this.apiRepo.existsByServizioId(servizio.getId());
-	    boolean haPackageSubServizi = servizio.is_package() && this.packageServizioRepo.existsByPackageId(servizio.getId());
-
-	    return !(haAdesioni || haApi || haPackageSubServizi);
+	    if(this.adesioneRepo.existsByServizioId(servizio.getId())) {
+	        return Optional.of(MotivoNonEliminabile.ADESIONI);
+	    }
+	    if(this.apiRepo.existsByServizioId(servizio.getId())) {
+	        return Optional.of(MotivoNonEliminabile.API);
+	    }
+	    if(servizio.is_package() && this.packageServizioRepo.existsByPackageId(servizio.getId())) {
+	        return Optional.of(MotivoNonEliminabile.PACKAGE);
+	    }
+	    return Optional.empty();
 	}
 
 	public List<ReferenteDominioEntity> findReferentiDominioByUtente(UtenteEntity utente) {

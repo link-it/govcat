@@ -20,6 +20,7 @@
 package testsuite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -260,6 +261,20 @@ class ScenarioOauthCCTokenPolicyTest {
 		JsonObject body = primoBody();
 		assertEquals(NOME_CLIENT, body.get("applicativo").getAsString());
 		assertEquals("Aderente", body.get("soggetto").getAsString());
+	}
+
+	@Test
+	@DisplayName("fruizione: il binding non dichiara il soggetto, che il contratto di govway non prevede")
+	void applicativoAssociatoAllaFruizioneSenzaSoggetto() throws Exception {
+		scenario().configureAPI(client(), gruppoServizio(TOKEN_POLICY, true));
+
+		String binding = this.richieste.get(this.richieste.size() - 1);
+		assertTrue(binding.startsWith("POST /govwayAPIConfig/fruizioni/"), binding);
+		assertTrue(binding.contains("/autorizzazione/token/applicativi"), binding);
+
+		JsonObject body = primoBody();
+		assertEquals(NOME_CLIENT, body.get("applicativo").getAsString());
+		assertFalse(body.has("soggetto"), "il modello delle fruizioni ammette solo applicativo: " + body);
 	}
 
 	@Test

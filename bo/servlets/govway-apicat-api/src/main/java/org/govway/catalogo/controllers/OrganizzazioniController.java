@@ -20,12 +20,14 @@
 package org.govway.catalogo.controllers;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.govway.catalogo.core.dao.specifications.UtenteOrganizzazioneSpecification;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.ApiV1Controller;
@@ -37,8 +39,11 @@ import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.OrganizzazioneAuthorization;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
@@ -52,6 +57,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.OrganizzazioniApi;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ItemOrganizzazione;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
@@ -69,6 +75,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
@@ -112,7 +120,13 @@ public class OrganizzazioniController implements OrganizzazioniApi {
     @Autowired
     private PagedResourcesAssembler<UtenteEntity> utentePagedResourceAssembler;
 
+    @Autowired
+    private Configurazione configurazione;
+
 	private Logger logger = LoggerFactory.getLogger(OrganizzazioniController.class);
+
+	/** Numero massimo di servizi, domini e adesioni elencati per tipo nell'errore ORG.409.UTENTE.REFERENTE */
+	private static final int MAX_RIFERIMENTI_ELENCATI = 10;
 
 	@Override
 	public ResponseEntity<Organizzazione> createOrganizzazione(OrganizzazioneCreate organizzazioneCreate) {
@@ -480,7 +494,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 
 	@Override
 	public ResponseEntity<UtenteOrganizzazione> updateRuoloUtenteOrganizzazione(UUID idOrganizzazione,
-			UUID idUtente, UtenteOrganizzazioneUpdate body) {
+			UUID idUtente, Boolean force, UtenteOrganizzazioneUpdate body) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");
@@ -506,7 +520,12 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 								Map.of("idUtente", idUtente.toString(),
 										"idOrganizzazione", idOrganizzazione.toString())));
 
-				assoc.setRuoloOrganizzazione(this.utenteDettaglioAssembler.toRuoloOrganizzazione(body.getRuoloOrganizzazione()));
+				RuoloOrganizzazione nuovoRuolo = this.utenteDettaglioAssembler.toRuoloOrganizzazione(body.getRuoloOrganizzazione());
+				if (!CoreAuthorization.isRuoloReferente(nuovoRuolo)) {
+					checkUtenteReferente(assoc, force);
+				}
+
+				assoc.setRuoloOrganizzazione(nuovoRuolo);
 				UtenteOrganizzazioneEntity saved = this.service.save(assoc);
 
 				this.logger.info("Invocazione completata con successo");
@@ -524,7 +543,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Void> removeUtenteOrganizzazione(UUID idOrganizzazione, UUID idUtente) {
+	public ResponseEntity<Void> removeUtenteOrganizzazione(UUID idOrganizzazione, UUID idUtente, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");
@@ -544,6 +563,8 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 								Map.of("idUtente", idUtente.toString(),
 										"idOrganizzazione", idOrganizzazione.toString())));
 
+				checkUtenteReferente(assoc, force);
+
 				this.service.delete(assoc);
 				this.logger.info("Invocazione completata con successo");
 
@@ -558,6 +579,51 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	/**
+	 * L'utente perde il ruolo che gli consente di essere referente nell'organizzazione (ruolo tolto
+	 * o associazione rimossa): se e` referente di servizi, domini o adesioni dell'organizzazione,
+	 * l'operazione va confermata con force, perche' quei referenti non sarebbero piu` validi
+	 * (Issue 473). Nessun controllo se il ruolo attuale gia` non consente di essere referente
+	 * (l'operazione non cambia nulla per i referenti) o se l'utente e` gestore, sempre valido.
+	 */
+	private void checkUtenteReferente(UtenteOrganizzazioneEntity assoc, Boolean force) {
+		UtenteEntity utente = assoc.getUtente();
+		OrganizzazioneEntity org = assoc.getOrganizzazione();
+		if (Boolean.TRUE.equals(force) || !CoreAuthorization.isRuoloReferente(assoc.getRuoloOrganizzazione())
+				|| this.coreAuthorization.isAdmin(utente)) {
+			return;
+		}
+
+		PageRequest pagina = PageRequest.of(0, MAX_RIFERIMENTI_ELENCATI);
+		Page<ServizioEntity> servizi = this.service.findServiziConReferente(utente, org,
+				this.configurazione.getServizio().getWorkflow().getStatoArchiviato(), pagina.withSort(Sort.by("nome", "versione")));
+		Page<DominioEntity> domini = this.service.findDominiConReferente(utente, org, pagina.withSort(Sort.by("nome")));
+		Page<AdesioneEntity> adesioni = this.service.findAdesioniConReferente(utente, org,
+				this.configurazione.getAdesione().getWorkflow().getStatoArchiviato(), pagina.withSort(Sort.by("servizio.nome", "servizio.versione")));
+
+		if (servizi.getTotalElements() + domini.getTotalElements() + adesioni.getTotalElements() == 0) {
+			return;
+		}
+
+		Map<String, String> params = new HashMap<>();
+		params.put("nomeUtente", utente.getNome());
+		params.put("cognomeUtente", utente.getCognome());
+		params.put("nomeOrganizzazione", org.getNome());
+		params.put("numeroServizi", String.valueOf(servizi.getTotalElements()));
+		params.put("numeroDomini", String.valueOf(domini.getTotalElements()));
+		params.put("numeroAdesioni", String.valueOf(adesioni.getTotalElements()));
+		params.put("servizi", elenca(servizi, s -> s.getNome() + " v" + s.getVersione()));
+		params.put("domini", elenca(domini, DominioEntity::getNome));
+		params.put("adesioni", elenca(adesioni, a -> a.getServizio().getNome() + " v" + a.getServizio().getVersione() + " - " + a.getSoggetto().getNome()));
+		throw new ConflictException(ErrorCode.ORG_409_UTENTE_REFERENTE, params);
+	}
+
+	/** Elenco separato da virgole della pagina, con i puntini se ci sono altri elementi oltre a quelli elencati. */
+	private static <T> String elenca(Page<T> pagina, Function<T, String> etichetta) {
+		String elenco = pagina.getContent().stream().map(etichetta).collect(Collectors.joining(", "));
+		return pagina.hasNext() ? elenco + ", ..." : elenco;
 	}
 
 	@Override

@@ -45,6 +45,11 @@ public class DTOApi {
     //  le estensioni nelle api sono le estensioni specifiche per questa api
     private Map<String, String> estensioni;
 
+    private List<DTOQuotaRateLimiting> rateLimiting = List.of();
+
+    private boolean finalitaConfigurata;
+    private String finalita;
+
     public DTOApi(String nomeApi, Integer versioneApi, RUOLO ruolo, PROTOCOLLO protocollo, Map<String, String> estensioni,List<DTOAdesioneAPI> adesioneApi) {
         this.nomeApi = nomeApi;
         this.versioneApi = versioneApi;
@@ -76,6 +81,33 @@ public class DTOApi {
 
     public Map<String, String> getEstensioni() {
         return estensioni;
+    }
+
+    /** Quote dell'aderente per l'API nell'ambiente di configurazione, una per periodo; vuota se non indicate. */
+    public List<DTOQuotaRateLimiting> getRateLimiting() {
+        return rateLimiting;
+    }
+
+    public void setRateLimiting(List<DTOQuotaRateLimiting> rateLimiting) {
+        this.rateLimiting = rateLimiting != null ? rateLimiting : List.of();
+    }
+
+    /**
+     * La configurazione indica, per l'ambiente, la proprietà custom delle adesioni con la finalità
+     * PDND (adesione.rate_limiting.finalita): in tal caso {@link #getFinalita()} è il suo valore.
+     */
+    public boolean isFinalitaConfigurata() {
+        return finalitaConfigurata;
+    }
+
+    /** Finalità PDND dell'aderente per l'API, nulla se non indicata. */
+    public String getFinalita() {
+        return finalita;
+    }
+
+    public void setFinalita(boolean configurata, String finalita) {
+        this.finalitaConfigurata = configurata;
+        this.finalita = finalita;
     }
 
 }

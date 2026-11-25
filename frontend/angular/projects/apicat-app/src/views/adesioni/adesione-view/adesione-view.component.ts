@@ -42,7 +42,9 @@ import { NavigationService } from '@app/services/navigation.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { servizioNonAccessibile } from '@app/views/servizi/servizio-accessibile';
 import { ComponentAuthTypeEnum } from '@app/model/componentAuthTypeEnum';
 import { Grant } from '@app/model/grant';
 
@@ -77,6 +79,7 @@ export interface User {
 export interface Referent {
   utente: User;
   tipo: 'referente' | 'referente_servizio' | 'utente_organizzazione' | 'referente_tecnico' | 'referente_dominio';
+  ruolo_non_valido?: boolean;
 }
 
 export interface Domain {
@@ -193,6 +196,8 @@ export interface ReferentView {
   name: string;
   email: string;
   types: string[];
+  /** Ruolo non piu' valido nell'organizzazione per almeno uno dei ruoli. */
+  nonValido?: boolean;
 }
 
 export interface AuthModeView {
@@ -286,6 +291,8 @@ export class AdesioneViewComponent implements OnInit {
   public adesione: Adesione | null = null;
   public _downloading = false;
   public referents: ReferentView[] = [];
+  /** Falso se il servizio dell'adesione non e` visibile all'utente (i suoi referenti rispondono 404/403). */
+  public _servizioAccessibile: boolean = true;
   public referentiLoading: boolean = true;
   public maxReferenti: number = 3;
   public environment: string = 'collaudo';
@@ -557,8 +564,15 @@ export class AdesioneViewComponent implements OnInit {
     this.referentiLoading = true;
     forkJoin({
       referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
-      referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti'),
-      referentiServizio: this.apiService.getDetails('servizi', this.adesione?.servizio.id_servizio, 'referenti')
+      referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti').pipe(
+        catchError(() => of({ content: [] }))
+      ),
+      referentiServizio: this.apiService.getDetails('servizi', this.adesione?.servizio.id_servizio, 'referenti').pipe(
+        catchError((error: any) => {
+          this._servizioAccessibile = !servizioNonAccessibile(error);
+          return of({ content: [] });
+        })
+      )
     }).subscribe({
       next: (response: any) => {
         const referents: Referent[] = response.referenti.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_adesione` }));
@@ -572,10 +586,12 @@ export class AdesioneViewComponent implements OnInit {
               id: cur.utente.id_utente,
               email: cur.utente.email_aziendale,
               name: `${cur.utente.nome} ${cur.utente.cognome}`,
-              types: [cur.tipo != 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
+              types: [cur.tipo != 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo],
+              nonValido: !!cur.ruolo_non_valido
             });
           } else {
             acc[index].types.push(cur.tipo);
+            acc[index].nonValido = acc[index].nonValido || !!cur.ruolo_non_valido;
           }
           return acc;
         };
@@ -749,6 +765,7 @@ export class AdesioneViewComponent implements OnInit {
         ruolo: this._ruoloLabel(primary),
         tag: tagForRuolo(primary),
         ruoliAggiuntivi: (r.types || []).slice(1).map((t: string) => this._ruoloLabel(t, true)),
+        nonValido: !!r.nonValido,
       };
     });
   }

@@ -28,6 +28,7 @@ import java.util.Properties;
 import org.govway.catalogo.core.configurazione.ConfigurazioneException;
 import org.govway.catalogo.core.dto.DTOAdesione.AmbienteEnum;
 import org.govway.catalogo.core.dto.DTOClient;
+import org.govway.catalogo.core.dto.DTOQuotaRateLimiting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +83,9 @@ public class ScenarioMtlsFruizioniPdnd implements ConfigurazioneScenario {
 	 * Chiave "gruppo.proprieta" dell'estensione dell'adesione da cui leggere il dato, dichiarata
 	 * nelle properties del configuratore per ambiente, es.
 	 * {@code configuratore.ScenarioMtlsFruizioniPdnd.collaudo.purposeId=PDNDCollaudo.finalita}.
+	 * Dalla Issue 446 le property sono deprecate: la finalità si legge dalla proprietà indicata in
+	 * adesione.rate_limiting.finalita del configurazione.json e le quote dal rate limiting
+	 * dell'adesione; le property valgono solo in mancanza di questi.
 	 *
 	 * @return chiave configurata, nulla se il deployment non abilita il dato
 	 */
@@ -120,20 +124,34 @@ public class ScenarioMtlsFruizioniPdnd implements ConfigurazioneScenario {
 			return "L'API deve essere una fruizione: la finalità PDND e la quota per adesore si configurano sulla fruizione";
 		}
 
-		// La finalità è obbligatoria solo per i deployment che la dichiarano nelle properties
-		if (getChiaveEstensione(api.getAmbienteConfigurazione(), SUFFISSO_PURPOSE_ID) != null
-				&& getValoreEstensione(api, SUFFISSO_PURPOSE_ID) == null) {
-			return "finalità PDND non valorizzata sull'adesione: attesa nell'estensione "
-					+ getChiaveEstensione(api.getAmbienteConfigurazione(), SUFFISSO_PURPOSE_ID);
+		// La finalità è obbligatoria solo per i deployment che la dichiarano
+		if (isFinalitaRichiesta(api) && getFinalita(api) == null) {
+			return "finalità PDND non valorizzata sull'adesione: attesa nella proprietà " + getRiferimentoFinalita(api);
 		}
 
-		String quota = getValoreEstensione(api, SUFFISSO_RATE_LIMITING);
+		// La quota legacy si usa solo se l'adesione non ha quote di rate limiting
+		String quota = api.getRateLimiting().isEmpty() ? getValoreEstensione(api, SUFFISSO_RATE_LIMITING) : null;
 		if (quota != null && !quota.matches("[1-9][0-9]*")) {
 			return "quota di rate limiting non numerica (" + quota + ") nell'estensione "
 					+ getChiaveEstensione(api.getAmbienteConfigurazione(), SUFFISSO_RATE_LIMITING);
 		}
 
 		return null;
+	}
+
+	/** La finalità è richiesta dal configurazione.json o, in sua assenza, dalle properties (deprecate). */
+	private boolean isFinalitaRichiesta(GruppoServizio api) {
+		return api.isFinalitaConfigurata() || getChiaveEstensione(api.getAmbienteConfigurazione(), SUFFISSO_PURPOSE_ID) != null;
+	}
+
+	private String getFinalita(GruppoServizio api) {
+		return api.isFinalitaConfigurata() ? api.getFinalita() : getValoreEstensione(api, SUFFISSO_PURPOSE_ID);
+	}
+
+	private String getRiferimentoFinalita(GruppoServizio api) {
+		return api.isFinalitaConfigurata()
+				? "indicata in adesione.rate_limiting.finalita"
+				: getChiaveEstensione(api.getAmbienteConfigurazione(), SUFFISSO_PURPOSE_ID);
 	}
 
 	@Override
@@ -155,10 +173,24 @@ public class ScenarioMtlsFruizioniPdnd implements ConfigurazioneScenario {
 	}
 
 	/**
-	 * Quota del singolo adesore: policy sulla fruizione filtrata sull'applicativo dell'adesore.
-	 * Senza quota sull'adesione non viene configurata alcuna policy.
+	 * Quote del singolo adesore: una policy sulla fruizione filtrata sull'applicativo dell'adesore
+	 * per ciascun periodo del rate limiting dell'adesione (Issue 446). Se l'adesione non ha quote
+	 * vale la quota giornaliera dell'estensione legacy delle properties; senza nessuna delle due non
+	 * viene configurata alcuna policy.
 	 */
 	private void configuraRateLimiting(DTOClient client, GruppoServizio gruppoServizio) throws ConfigurazioneException {
+		List<DTOQuotaRateLimiting> quote = gruppoServizio.getRateLimiting();
+		if (!quote.isEmpty()) {
+			for (DTOQuotaRateLimiting q : quote) {
+				postRateLimitingPolicy(gruppoServizio, new RateLimitingPolicy()
+						.setNome(getNomePolicy(client, q.getPeriodo()))
+						.setSogliaValore(String.valueOf(q.getQuota()))
+						.setIntervallo(getIntervallo(q.getPeriodo()))
+						.setApplicativoFruitore(client.getNome()));
+			}
+			return;
+		}
+
 		String quota = getValoreEstensione(gruppoServizio, SUFFISSO_RATE_LIMITING);
 
 		if (quota == null) {
@@ -170,11 +202,31 @@ public class ScenarioMtlsFruizioniPdnd implements ConfigurazioneScenario {
 			throw new ConfigurazioneException("quota di rate limiting non numerica: " + quota);
 		}
 
-		RateLimitingPolicy policy = new RateLimitingPolicy()
+		postRateLimitingPolicy(gruppoServizio, new RateLimitingPolicy()
 				.setNome(client.getNome())
 				.setSogliaValore(quota)
-				.setApplicativoFruitore(client.getNome());
+				.setApplicativoFruitore(client.getNome()));
+	}
 
+	/**
+	 * Nome della policy dell'applicativo per il periodo: quella giornaliera mantiene il nome
+	 * dell'applicativo, come la policy configurata dalla quota legacy, le altre lo estendono con il
+	 * periodo per restare distinte.
+	 */
+	static String getNomePolicy(DTOClient client, DTOQuotaRateLimiting.PERIODO periodo) {
+		return DTOQuotaRateLimiting.PERIODO.GIORNO.equals(periodo) ? client.getNome() : client.getNome() + "_" + periodo.name().toLowerCase();
+	}
+
+	/** Intervallo della policy GovWay corrispondente al periodo della quota. */
+	static String getIntervallo(DTOQuotaRateLimiting.PERIODO periodo) {
+		switch (periodo) {
+		case MINUTO: return "minuti";
+		case ORA: return "orario";
+		default: return "giornaliero";
+		}
+	}
+
+	private void postRateLimitingPolicy(GruppoServizio gruppoServizio, RateLimitingPolicy policy) throws ConfigurazioneException {
 		try (Response response = this.invokers.getConfigInvoker().postRateLimitingPolicy(gruppoServizio, policy)) {
 			this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 		} catch (IOException | TemplateException e) {
@@ -187,7 +239,7 @@ public class ScenarioMtlsFruizioniPdnd implements ConfigurazioneScenario {
 	 * proprietà: il caso è già segnalato da getError nei deployment che la dichiarano.
 	 */
 	private void configuraPurposeId(GruppoServizio gruppoServizio) throws ConfigurazioneException {
-		String finalita = getValoreEstensione(gruppoServizio, SUFFISSO_PURPOSE_ID);
+		String finalita = getFinalita(gruppoServizio);
 
 		if (finalita == null) {
 			this.logger.info("finalità PDND non valorizzata per il servizio {}, nessuna proprietà configurata", gruppoServizio);

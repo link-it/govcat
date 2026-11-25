@@ -190,6 +190,47 @@ public class AbstractService {
 		}
 	}
 
+	/**
+	 * Esegue il supplier come verifica, senza rendere persistenti le modifiche (es. cambio stato in check_only).
+	 * Durante l'esecuzione le query non forzano il flush delle entita` modificate; al termine la transazione,
+	 * se aperta qui, viene annullata. Se il metodo partecipa a una transazione gia` aperta, quella non viene
+	 * annullata: il supplier deve staccare dal contesto di persistenza le entita` che ha modificato.
+	 */
+	public <T> T runTransactionSenzaModifiche(Supplier<T> supplier) {
+
+		TransactionStatus transaction = null;
+		FlushModeType flushModeOriginale = null;
+		try {
+			TransactionTemplate template = new TransactionTemplate(this.txManager);
+			transaction = this.txManager.getTransaction(template);
+			flushModeOriginale = this.entityManager.getFlushMode();
+			this.entityManager.setFlushMode(FlushModeType.COMMIT);
+
+			T ret = supplier.get();
+
+			this.entityManager.setFlushMode(flushModeOriginale);
+			flushModeOriginale = null;
+			if (transaction.isNewTransaction()) {
+				this.logger.info("Verifica completata, eseguo il rollback...");
+				this.txManager.rollback(transaction);
+			} else {
+				this.txManager.commit(transaction);
+			}
+			return ret;
+
+		} catch (Throwable e) {
+			if (flushModeOriginale != null) {
+				this.entityManager.setFlushMode(flushModeOriginale);
+			}
+			if (transaction != null && !transaction.isCompleted()) {
+				this.logger.info("Eseguo il rollback...");
+				this.txManager.rollback(transaction);
+				this.logger.info("Rollback eseguito");
+			}
+			throw e;
+		}
+	}
+
 	public void runTransaction(Runnable runnable) {
 
 		TransactionStatus transaction = null;

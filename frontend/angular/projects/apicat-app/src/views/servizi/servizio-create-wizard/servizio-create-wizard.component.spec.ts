@@ -74,6 +74,26 @@ describe('ServizioCreateWizardComponent - configurazione caricata dopo il costru
     expect(mockEvents.off).toHaveBeenCalledWith(EventType.PROFILE_UPDATE, listeners[EventType.PROFILE_UPDATE]);
   });
 
+  it('should map the selected organization option to fruizione and its validators', () => {
+    const component = build();
+    component._formGroup = new FormGroup({
+      fruizione: new FormControl(false),
+      id_organizzazione_interna: new FormControl('org'),
+      id_soggetto_erogatore: new FormControl('sog')
+    });
+    expect(component._opzioneIntermediazione().help).toBe('fruizione_interna');
+
+    component._formGroup.get('fruizione')?.setValue(true);
+    component._onChangeFruizione(true);
+    expect(component._isFruizione).toBe(true);
+    expect(component._opzioneIntermediazione().help).toBe('fruizione_esterna');
+    expect(component._formGroup.get('id_organizzazione_interna')?.hasError('required')).toBe(false);
+
+    component._onChangeFruizione(false);
+    expect(component._formGroup.get('id_organizzazione_interna')?.value).toBeNull();
+    expect(component._formGroup.get('id_soggetto_erogatore')?.valid).toBe(true);
+  });
+
   it('should page the domains and load the next page on scroll to end', () => {
     vi.useFakeTimers();
     mockApiService.getList = vi.fn((_m: string, opts: any) => of({
@@ -84,12 +104,63 @@ describe('ServizioCreateWizardComponent - configurazione caricata dopo il costru
     let _items: any[] = [];
     component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
     vi.advanceTimersByTime(300);
-    expect(mockApiService.getList).toHaveBeenCalledWith('domini', { params: { page: 0 } });
+    expect(mockApiService.getList).toHaveBeenCalledWith('domini', { params: { page: 0, deprecato: false } });
     component.dominiTypeahead.loadMore();
     expect(_items.map((d: any) => d.id_dominio)).toEqual(['d0', 'd1']);
     component.dominiTypeahead.input$.next('regione');
     vi.advanceTimersByTime(300);
-    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, q: 'regione' } });
+    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, q: 'regione', deprecato: false } });
     vi.useRealTimers();
+  });
+
+  it('should remove the deprecated filter when deprecated domains are included, keeping the selected one', () => {
+    vi.useFakeTimers();
+    mockApiService.getList = vi.fn().mockReturnValue(of({ content: [{ id_dominio: 'd0' }], page: { totalPages: 1 } }));
+    const component = build();
+    component.selectedDominio = { id_dominio: 'scelto' };
+    component._onIncludiDominiDeprecati(true);
+    let _items: any[] = [];
+    component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+    vi.advanceTimersByTime(300);
+    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0 } });
+    expect(_items.map((d: any) => d.id_dominio)).toEqual(['scelto', 'd0']);
+
+    component._onIncludiDominiDeprecati(false);
+    component.dominiTypeahead.items$.subscribe();
+    vi.advanceTimersByTime(300);
+    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, deprecato: false } });
+    vi.useRealTimers();
+  });
+
+  it('should use the logged user as contact of the service while the self flag is checked', () => {
+    const component = build();
+    const auth = (component as any).authenticationService;
+    auth.getUser = vi.fn().mockReturnValue({ id_utente: 'me' });
+    auth._getWorkflowCambiStato = vi.fn().mockReturnValue({ dati_obbligatori: ['referenti'] });
+    component._formGroup = new FormGroup({ referente: new FormControl(null) });
+
+    expect(component._isSelfReferente).toBe(true);
+    const body = component._prepareBodySaveServizio({ id_dominio: 'd1', referente: null, referente_tecnico: 't1' });
+    expect(body.referenti).toEqual([
+      { id_utente: 'me', tipo: 'referente' },
+      { id_utente: 't1', tipo: 'referente_tecnico' }
+    ]);
+  });
+
+  it('should require the selected contact only when the self flag is unchecked', () => {
+    const component = build();
+    const auth = (component as any).authenticationService;
+    auth.getUser = vi.fn().mockReturnValue({ id_utente: 'me' });
+    auth._getWorkflowCambiStato = vi.fn().mockReturnValue({ dati_obbligatori: ['referenti'] });
+    component._formGroup = new FormGroup({ referente: new FormControl(null) });
+
+    component._onChangeSelfReferente(false);
+    expect(component._formGroup.get('referente')?.hasError('required')).toBe(true);
+    component._formGroup.get('referente')?.setValue('u2');
+    expect(component._prepareBodySaveServizio({ id_dominio: 'd1', referente: 'u2' }).referenti).toEqual([{ id_utente: 'u2', tipo: 'referente' }]);
+
+    component._onChangeSelfReferente(true);
+    expect(component._formGroup.get('referente')?.value).toBeNull();
+    expect(component._formGroup.get('referente')?.valid).toBe(true);
   });
 });

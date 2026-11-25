@@ -20,6 +20,7 @@
 package org.govway.catalogo.monitoraggioutils;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -40,6 +41,7 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.ApiService;
+import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -52,6 +54,7 @@ import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroApiSoggetti;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroEsito;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroRicercaRuoloTransazioneEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroMittenteErogazioneSoggettoImpl;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroMittenteFruizioneApplicativo;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroTemporale;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FormatoReportEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoInformazioneReportNumeroTransazioni;
@@ -133,6 +136,14 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 
 	private Logger logger = LoggerFactory.getLogger(GovwayMonitorStatisticheClient.class);
 
+	// Intestazioni delle colonne del CSV dei report di distribuzione di GovWay (etichette della console di monitoraggio)
+	private static final String CSV_APPLICATIVO = "Applicativo";
+	private static final String CSV_SOGGETTO = "Soggetto";
+	private static final String CSV_PRINCIPAL = "Principal";
+	private static final String CSV_AUTENTICAZIONE = "Autenticazione";
+	private static final String CSV_TOKEN_CLIENT_ID = "Token Client ID";
+	private static final String CSV_TOKEN_ISSUER = "Token Issuer";
+
 	@Autowired
 	private Tika tika;
 
@@ -162,6 +173,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			} else {
 				throw new NotFoundException(ErrorCode.GEN_400_REPORT_TYPE, Map.of("tipo", "report"));
 			}
+		} catch(ConflictException e) {
+			throw e;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
@@ -175,8 +188,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		reportRequest.setApi(filtroapiSoggetti);
 		reportRequest.setAzione(request.getOperazione());
 		
-		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
-		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		// Wrap the mittente filter into the appropriate wrapper class
+		Object mittente = getMittente(request);
 		if (mittente != null) {
 			reportRequest.setMittente(new RicercaStatisticaAndamentoTemporaleAllOfMittente(mittente));
 		}
@@ -201,8 +214,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		reportRequest.setApi(filtroapiSoggetti);
 		reportRequest.setAzione(request.getOperazione());
 		
-		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
-		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		// Wrap the mittente filter into the appropriate wrapper class
+		Object mittente = getMittente(request);
 		if (mittente != null) {
 			reportRequest.setMittente(new RicercaStatisticaDistribuzioneEsitiAllOfMittente(mittente));
 		}
@@ -229,8 +242,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		reportRequest.setEsito(getEsito(request.getEsito(), request.getListaCodici()));
 		reportRequest.setAzione(request.getOperazione());
 		
-		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
-		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		// Wrap the mittente filter into the appropriate wrapper class
+		Object mittente = getMittente(request);
 		if (mittente != null) {
 			reportRequest.setMittente(new RicercaStatisticaDistribuzioneErroriAllOfMittente(mittente));
 		}
@@ -251,8 +264,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 
 		reportRequest.setEsito(getEsito(request.getEsito(), request.getListaCodici()));
 		
-		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
-		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		// Wrap the mittente filter into the appropriate wrapper class
+		Object mittente = getMittente(request);
 		if (mittente != null) {
 			reportRequest.setMittente(new RicercaStatisticaDistribuzioneApiAllOfMittente(mittente));
 		}
@@ -334,8 +347,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		FiltroApiSoggetti filtroapiSoggetti = getFiltroApiSoggetti(request);
 		reportRequest.setApi(filtroapiSoggetti);
 		
-		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
-		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		// Wrap the mittente filter into the appropriate wrapper class
+		Object mittente = getMittente(request);
 		if (mittente != null) {
 			reportRequest.setMittente(new RicercaStatisticaDistribuzioneAzioneAllOfMittente(mittente));
 		}
@@ -405,8 +418,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		FiltroApiSoggetti filtroapiSoggetti = getFiltroApiSoggetti(request);
 		reportRequest.setApi(filtroapiSoggetti);
 		
-		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
-		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		// Wrap the mittente filter into the appropriate wrapper class
+		Object mittente = getMittente(request);
 		if (mittente != null) {
 			reportRequest.setMittente(new RicercaStatisticaDistribuzioneSoggettoRemotoAllOfMittente(mittente));
 		}
@@ -427,16 +440,28 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 	}
 
 
-	private FiltroMittenteErogazioneSoggettoImpl getMittenteImpl(GetReportRequest request) {
-		
+	Object getMittente(GetReportRequest request) {
+
 		if(request.getSoggettoErogatore()!= null && !request.getSoggettoErogatore().equals(request.getSoggettoReferente()) && request.getErogazioneFruizioneEnum().equals(ErogazioneFruizioneEnum.EROGAZIONE)) {
 			FiltroMittenteErogazioneSoggettoImpl m = new FiltroMittenteErogazioneSoggettoImpl();
 			m.setIdentificazione(TipoFiltroMittenteEnum.EROGAZIONE_SOGGETTO);
 			m.setSoggetto(request.getSoggettoErogatore());
 			return m;
 		}
-		
+
+		// Fruizione filtrata per adesione: il fruitore è sempre il referente del dominio, l'adesione si distingue per l'applicativo
+		if(request.getApplicativoFruitore() != null && request.getErogazioneFruizioneEnum().equals(ErogazioneFruizioneEnum.FRUIZIONE)) {
+			return getFiltroMittenteFruizioneApplicativo(request.getApplicativoFruitore());
+		}
+
 		return null;
+	}
+
+	private static FiltroMittenteFruizioneApplicativo getFiltroMittenteFruizioneApplicativo(String applicativo) {
+		FiltroMittenteFruizioneApplicativo m = new FiltroMittenteFruizioneApplicativo();
+		m.setIdentificazione(TipoFiltroMittenteEnum.FRUIZIONE_APPLICATIVO);
+		m.setApplicativo(applicativo);
+		return m;
 	}
 
 	private FiltroTemporale getFiltroTemporale(GetReportRequest request) {
@@ -614,204 +639,228 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		try {
 			File result = getResult(request);
 
-			MappingIterator<Map<String, String>> values = null;
-			if(result != null) {
-				byte[] src = Files.readAllBytes(result.toPath());
-				values = getObjectReader().readValues(new String(src));
-			} else {
-				values = MappingIterator.emptyIterator();
-			}
-
-			PostReportResponse response = new PostReportResponse();
-			
-			final String valoreString = getValoreString(request);
-
-			if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.ANDAMENTO_TEMPORALE)) {
-				ReportStatisticoIntervalloTemporale report = new ReportStatisticoIntervalloTemporale();
-
-				List<ReportStatisticoIntervalloTemporaleItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoIntervalloTemporaleItem valore = new ReportStatisticoIntervalloTemporaleItem();
-
-					valore.setData(record.get("Data"));
-					String v = record.get("Numero Transazioni");
-					if(v == null) {
-						v = record.get(valoreString);
-					}
-					valore.setValore(Long.parseLong(v));
-//					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoIntervalloTemporale(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_ESITI)) {
-				ReportStatisticoDistribuzioneEsiti report = new ReportStatisticoDistribuzioneEsiti();
-
-				List<ReportStatisticoDistribuzioneEsitiItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneEsitiItem valore = new ReportStatisticoDistribuzioneEsitiItem();
-
-					valore.setData(record.get("Data"));
-					valore.setValoreFallite(Long.parseLong(record.get("Fallite")));
-					valore.setValoreFault(Long.parseLong(record.get("Fault Applicativo")));
-					valore.setValoreOk(Long.parseLong(record.get("Ok")));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneEsiti(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_ERRORI)) {
-				ReportStatisticoDistribuzioneErrori report = new ReportStatisticoDistribuzioneErrori();
-
-				List<ReportStatisticoDistribuzioneErroriItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneErroriItem valore = new ReportStatisticoDistribuzioneErroriItem();
-
-					valore.setDescrizione(record.get("Descrizione"));
-					valore.setEsito(record.get("Esito"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneErrori(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_API)) {
-				ReportStatisticoDistribuzioneAPI report = new ReportStatisticoDistribuzioneAPI();
-
-				List<ReportStatisticoDistribuzioneAPIItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneAPIItem valore = new ReportStatisticoDistribuzioneAPIItem();
-
-					valore.setErogatore(record.get("Erogatore"));
-					valore.setNome(record.get("Nome"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneAPI(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO)) {
-				ReportStatisticoDistribuzioneApplicativo report = new ReportStatisticoDistribuzioneApplicativo();
-
-				List<ReportStatisticoDistribuzioneApplicativoItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneApplicativoItem valore = new ReportStatisticoDistribuzioneApplicativoItem();
-
-					valore.setSoggetto(record.get("Soggetto"));
-					valore.setNome(record.get("Nome"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneApplicativo(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_IP)) {
-				ReportStatisticoDistribuzioneIndirizzoIP report = new ReportStatisticoDistribuzioneIndirizzoIP();
-
-				List<ReportStatisticoDistribuzioneIndirizzoIPItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneIndirizzoIPItem valore = new ReportStatisticoDistribuzioneIndirizzoIPItem();
-
-					valore.setIndirizzo(record.get("Indirizzo IP"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneIndirizzoIP(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_PRINCIPAL)) {
-				ReportStatisticoDistribuzionePrincipal report = new ReportStatisticoDistribuzionePrincipal();
-
-				List<ReportStatisticoDistribuzionePrincipalItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzionePrincipalItem valore = new ReportStatisticoDistribuzionePrincipalItem();
-
-					valore.setIndirizzo(record.get("Indirizzo"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzionePrincipal(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE)) {
-				ReportStatisticoDistribuzioneOperazione report = new ReportStatisticoDistribuzioneOperazione();
-
-				List<ReportStatisticoDistribuzioneOperazioneItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneOperazioneItem valore = new ReportStatisticoDistribuzioneOperazioneItem();
-
-					valore.setErogatore(record.get("Erogatore"));
-					valore.setNome(record.get("API"));
-					valore.setOperazione(record.get("Azione"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneOperazione(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO)) {
-				ReportStatisticoDistribuzioneSoggettoRemoto report = new ReportStatisticoDistribuzioneSoggettoRemoto();
-
-				List<ReportStatisticoDistribuzioneSoggettoRemotoItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneSoggettoRemotoItem valore = new ReportStatisticoDistribuzioneSoggettoRemotoItem();
-
-					valore.setNome(record.get("Soggetto"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneSoggettoRemoto(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_TOKEN_CLIENT_ID)) {
-				ReportStatisticoDistribuzioneTokenClientId report = new ReportStatisticoDistribuzioneTokenClientId();
-
-				List<ReportStatisticoDistribuzioneTokenClientIdItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneTokenClientIdItem valore = new ReportStatisticoDistribuzioneTokenClientIdItem();
-
-					valore.setApplicativo(record.get("Applicativo"));
-					valore.setClientId(record.get("Client ID"));
-					valore.setSoggetto(record.get("Soggetto"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneTokenClientId(report);
-			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_TOKEN_ISSUER)) {
-				ReportStatisticoDistribuzioneTokenIssuer report = new ReportStatisticoDistribuzioneTokenIssuer();
-
-				List<ReportStatisticoDistribuzioneTokenIssuerItem> valori = new ArrayList<>();
-				values.forEachRemaining(record -> {
-
-					ReportStatisticoDistribuzioneTokenIssuerItem valore = new ReportStatisticoDistribuzioneTokenIssuerItem();
-
-					valore.setIssuer(record.get("Issuer"));
-					valore.setValore(Long.parseLong(record.get(valoreString)));
-					valori.add(valore);
-				});
-
-				report.setValori(valori);
-				response.setReportStatisticoDistribuzioneTokenIssuer(report);
-			}
-
-			return response;
+			String csv = result != null ? new String(Files.readAllBytes(result.toPath())) : null;
+			return toPostReportResponse(request, csv);
+		} catch(ConflictException e) {
+			throw e;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
+	}
+
+	/**
+	 * Converte il CSV restituito dal report di GovWay nella risposta del report. Le colonne si leggono per
+	 * intestazione: quelle delle distribuzioni sono le etichette della console di monitoraggio di GovWay
+	 * (es. {@code Applicativo,Soggetto,Numero Transazioni}).
+	 */
+	PostReportResponse toPostReportResponse(GetReportRequest request, String csv) throws IOException {
+		MappingIterator<Map<String, String>> values = csv != null
+				? getObjectReader().readValues(csv)
+				: MappingIterator.emptyIterator();
+
+		PostReportResponse response = new PostReportResponse();
+
+		final String valoreString = getValoreString(request);
+
+		if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.ANDAMENTO_TEMPORALE)) {
+			ReportStatisticoIntervalloTemporale report = new ReportStatisticoIntervalloTemporale();
+
+			List<ReportStatisticoIntervalloTemporaleItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoIntervalloTemporaleItem valore = new ReportStatisticoIntervalloTemporaleItem();
+
+				valore.setData(record.get("Data"));
+				String v = record.get("Numero Transazioni");
+				if(v == null) {
+					v = record.get(valoreString);
+				}
+				valore.setValore(Long.parseLong(v));
+//					valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoIntervalloTemporale(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_ESITI)) {
+			ReportStatisticoDistribuzioneEsiti report = new ReportStatisticoDistribuzioneEsiti();
+
+			List<ReportStatisticoDistribuzioneEsitiItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneEsitiItem valore = new ReportStatisticoDistribuzioneEsitiItem();
+
+				valore.setData(record.get("Data"));
+				valore.setValoreFallite(Long.parseLong(record.get("Fallite")));
+				valore.setValoreFault(Long.parseLong(record.get("Fault Applicativo")));
+				valore.setValoreOk(Long.parseLong(record.get("Ok")));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneEsiti(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_ERRORI)) {
+			ReportStatisticoDistribuzioneErrori report = new ReportStatisticoDistribuzioneErrori();
+
+			List<ReportStatisticoDistribuzioneErroriItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneErroriItem valore = new ReportStatisticoDistribuzioneErroriItem();
+
+				valore.setDescrizione(record.get("Descrizione"));
+				valore.setEsito(record.get("Esito"));
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneErrori(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_API)) {
+			ReportStatisticoDistribuzioneAPI report = new ReportStatisticoDistribuzioneAPI();
+
+			List<ReportStatisticoDistribuzioneAPIItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneAPIItem valore = new ReportStatisticoDistribuzioneAPIItem();
+
+				valore.setErogatore(record.get("Erogatore"));
+				valore.setNome(record.get("Nome"));
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneAPI(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO)) {
+			ReportStatisticoDistribuzioneApplicativo report = new ReportStatisticoDistribuzioneApplicativo();
+
+			List<ReportStatisticoDistribuzioneApplicativoItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneApplicativoItem valore = new ReportStatisticoDistribuzioneApplicativoItem();
+
+				valore.setNome(getColonna(record, CSV_APPLICATIVO, "Nome"));
+				valore.setSoggetto(record.get(CSV_SOGGETTO));
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneApplicativo(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_IP)) {
+			ReportStatisticoDistribuzioneIndirizzoIP report = new ReportStatisticoDistribuzioneIndirizzoIP();
+
+			List<ReportStatisticoDistribuzioneIndirizzoIPItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneIndirizzoIPItem valore = new ReportStatisticoDistribuzioneIndirizzoIPItem();
+
+				valore.setIndirizzo(record.get("Indirizzo IP"));
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneIndirizzoIP(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_PRINCIPAL)) {
+			ReportStatisticoDistribuzionePrincipal report = new ReportStatisticoDistribuzionePrincipal();
+
+			List<ReportStatisticoDistribuzionePrincipalItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzionePrincipalItem valore = new ReportStatisticoDistribuzionePrincipalItem();
+
+				String principal = getColonna(record, CSV_PRINCIPAL, "Indirizzo");
+				valore.setPrincipal(principal);
+				valore.setAutenticazione(record.get(CSV_AUTENTICAZIONE));
+				valore.setIndirizzo(principal); // deprecato, mantenuto finché il frontend non legge principal
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzionePrincipal(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE)) {
+			ReportStatisticoDistribuzioneOperazione report = new ReportStatisticoDistribuzioneOperazione();
+
+			List<ReportStatisticoDistribuzioneOperazioneItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneOperazioneItem valore = new ReportStatisticoDistribuzioneOperazioneItem();
+
+				valore.setErogatore(record.get("Erogatore"));
+				valore.setNome(record.get("API"));
+				valore.setOperazione(record.get("Azione"));
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneOperazione(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO)) {
+			ReportStatisticoDistribuzioneSoggettoRemoto report = new ReportStatisticoDistribuzioneSoggettoRemoto();
+
+			List<ReportStatisticoDistribuzioneSoggettoRemotoItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneSoggettoRemotoItem valore = new ReportStatisticoDistribuzioneSoggettoRemotoItem();
+
+				valore.setNome(record.get("Soggetto"));
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneSoggettoRemoto(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_TOKEN_CLIENT_ID)) {
+			ReportStatisticoDistribuzioneTokenClientId report = new ReportStatisticoDistribuzioneTokenClientId();
+
+			List<ReportStatisticoDistribuzioneTokenClientIdItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneTokenClientIdItem valore = new ReportStatisticoDistribuzioneTokenClientIdItem();
+
+				valore.setApplicativo(record.get(CSV_APPLICATIVO));
+				valore.setClientId(getColonna(record, CSV_TOKEN_CLIENT_ID, "Client ID"));
+				valore.setSoggetto(record.get(CSV_SOGGETTO));
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneTokenClientId(report);
+		} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_TOKEN_ISSUER)) {
+			ReportStatisticoDistribuzioneTokenIssuer report = new ReportStatisticoDistribuzioneTokenIssuer();
+
+			List<ReportStatisticoDistribuzioneTokenIssuerItem> valori = new ArrayList<>();
+			values.forEachRemaining(record -> {
+
+				ReportStatisticoDistribuzioneTokenIssuerItem valore = new ReportStatisticoDistribuzioneTokenIssuerItem();
+
+				valore.setIssuer(getColonna(record, CSV_TOKEN_ISSUER, "Issuer"));
+				valore.setValore(Long.parseLong(record.get(valoreString)));
+				valori.add(valore);
+			});
+
+			report.setValori(valori);
+			response.setReportStatisticoDistribuzioneTokenIssuer(report);
+		}
+
+		return response;
+	}
+
+	/**
+	 * Valore della prima colonna presente fra le intestazioni indicate: la prima è quella prodotta da GovWay,
+	 * le successive sono le intestazioni lette in passato, mantenute come ripiego.
+	 */
+	private static String getColonna(Map<String, String> record, String... intestazioni) {
+		for(String intestazione: intestazioni) {
+			if(record.containsKey(intestazione)) {
+				return record.get(intestazione);
+			}
+		}
+		return null;
 	}
 
 	private String getValoreString(GetReportRequest request) {
@@ -876,6 +925,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			if(e.getCode() == 404) {
 				return null;
 			} else {
+				checkRichiestaRifiutata(e, request.getSoggettoReferente(), request.getProfilo());
 				throw e;
 			}
 		}

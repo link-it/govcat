@@ -229,10 +229,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     roleTab: string = 'tutti';
     // Issue 229 evolutiva 2 — allineamento al nuovo enum
-    // `RuoloReferente` BE. Includiamo i nuovi ruoli per-org
-    // `amministratore_organizzazione` / `operatore_api` (BE li
-    // ignora silenziosamente sul filtro `ruolo_referente` ma sono
-    // ammessi dall'enum). NB: `utente_organizzazione` NON deve
+    // `RuoloReferente` BE. Con `amministratore_organizzazione` il BE
+    // restituisce i servizi di cui l'organizzazione di sessione e`
+    // titolare (in ogni stato); `operatore_api` e` ammesso dall'enum
+    // ma ignorato dal filtro. NB: `utente_organizzazione` NON deve
     // comparire qui — appartiene a `RuoloUtenteEnum` (ruolo
     // globale) e Spring restituisce 400 se inviato come
     // `ruolo_referente`.
@@ -371,11 +371,12 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
         const _isAnonymous = this._isAnonymous();
         this._settings = this.localStorageService.getItem('SERVIZI', null);
-        if (!this._settings || _isAnonymous) {
+        if (!this._settings) {
             this._saveSettings();
         } else {
-            this._groupsView = this._settings.groupsView;
-            this._isMyServices = this._settings.isMyServices;
+            // Con il profilo non ancora caricato le impostazioni non vengono sovrascritte
+            this._groupsView = _isAnonymous ? true : this._settings.groupsView;
+            this._isMyServices = this._mieiServizi(this._settings);
             if (this._isMyServices) {
                 this._groupsView = false;
             }
@@ -396,6 +397,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             // setTimeout(() => {
                 this._updateMapper = new Date().getTime().toString();
                 this.hasMultiSelection = this.authenticationService.isGestore();
+                this._isMyServices = this._mieiServizi(this.localStorageService.getItem('SERVIZI', null));
+                if (this._isMyServices) {
+                    this._groupsView = false;
+                }
                 this._getUserSettings();
                 this._initProfili();
                 this._saveSettings();
@@ -409,13 +414,20 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         });
     }
 
+    /** "I miei servizi" vale solo per l'utente che l'ha scelto e se l'opzione e` disponibile. */
+    _mieiServizi(settings: any): boolean {
+        const _utente = this.authenticationService.getUser()?.id_utente;
+        return !!settings?.isMyServices && !!_utente && settings.utente === _utente && this._hasMyServiceMapper();
+    }
+
     _saveSettings() {
         const _isAnonymous = this._isAnonymous();
         this._groupsView = _isAnonymous ? true : this._groupsView;
         this._isMyServices = _isAnonymous ? false : this._isMyServices;
         const _settings = {
             groupsView: this._groupsView,
-            isMyServices: this._isMyServices
+            isMyServices: this._isMyServices,
+            utente: this.authenticationService.getUser()?.id_utente || null
         };
         this._settings = this.localStorageService.setItem('SERVIZI', _settings);
     }
@@ -586,7 +598,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     refresh(hideLoader: boolean = false) {
         this._hideLoader = hideLoader;
         if (this._groupsView) {
-            this.searchBarForm._clearSearch(null);
+            // Il filtro sugli archiviati vale anche per la vista a gruppi: resta impostato navigando.
+            this.searchBarForm._clearSearch(null, ['archiviati']);
             this._filterData = null;
         } else {
             this._resetGroupsBreadcrumbs();

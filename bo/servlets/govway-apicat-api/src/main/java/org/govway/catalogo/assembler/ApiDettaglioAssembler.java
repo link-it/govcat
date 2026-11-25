@@ -38,6 +38,7 @@ import org.govway.catalogo.core.business.utils.OpenapiUtils;
 import org.govway.catalogo.core.business.utils.SwaggerUtils;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
 import org.govway.catalogo.core.dao.repositories.ApiConfigUrlInvocazioneRepository;
+import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiConfigUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
@@ -54,6 +55,7 @@ import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.services.ProfiloGovwayService;
+import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbiente;
@@ -84,6 +86,7 @@ import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
+import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -119,6 +122,12 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	@Autowired
 	private ProfiloGovwayService profiloGovwayService;
 
+	@Autowired
+	private RateLimitingService rateLimitingService;
+
+	@Autowired
+	private RateLimitingAssembler rateLimitingAssembler;
+
 	/**
 	 * Se abilitata, consente le specifiche REST in formato Swagger 2.0 (deprecato). Default: false.
 	 * Il controllo si applica solo quando il contenuto della specifica cambia: le API gia` salvate
@@ -128,6 +137,11 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	private boolean supportaSwagger2;
 
 	public static final String SEPARATOR = ",";
+
+	// Parametri degli errori di validazione: il campo della richiesta coinvolto e il profilo non ammesso
+	private static final String PARAM_CAMPO = "campo";
+	private static final String PARAM_PROFILO = "profilo";
+	private static final String GRUPPI_AUTH_TYPE_PROFILO = "gruppi_auth_type.profilo";
 
 	public ApiDettaglioAssembler() {
 		super(APIController.class, API.class);
@@ -184,9 +198,9 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	}
 
 	/**
-	 * Dati della specifica di un ambiente, con le URL di invocazione associate. La selezione e`
-	 * esposta solo nel dettaglio e non negli elenchi, per non inizializzare la collezione su
-	 * ogni riga: lista omessa quando vuota, cioe` quando vale la sola URL predefinita.
+	 * Dati della specifica di un ambiente, con le URL di invocazione associate e le quote di rate
+	 * limiting. Sono esposte solo nel dettaglio e non negli elenchi, per non inizializzare le
+	 * collezioni su ogni riga: liste omesse quando vuote (sola URL predefinita, nessun rate limiting).
 	 */
 	private APIDatiAmbiente toConfigurazione(ApiConfigEntity config, boolean collaudo) {
 		APIDatiAmbiente datiAmbiente = this.apiEngineAssembler.toConfigurazione(config);
@@ -194,6 +208,11 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		List<String> urlInvocazione = getUrlInvocazione(config, collaudo);
 		if(!urlInvocazione.isEmpty()) {
 			datiAmbiente.setUrlInvocazione(urlInvocazione);
+		}
+
+		List<RateLimitingApi> rateLimiting = this.rateLimitingAssembler.toModel(config);
+		if(!rateLimiting.isEmpty()) {
+			datiAmbiente.setRateLimiting(rateLimiting);
 		}
 
 		return datiAmbiente;
@@ -401,27 +420,37 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			setUrlInvocazione(src.getUrlInvocazione(), entity, collaudo);
 		}
 
+		// Quote assenti: restano invariate; lista vuota: nessun rate limiting
+		this.rateLimitingService.setRateLimiting(src.getRateLimiting(), entity, api, toAmbiente(collaudo));
+
+		// Dati di erogazione assenti: restano invariati (per svuotarli si invia l'oggetto con i campi a null)
 		if(src.getDatiErogazione()!=null) {
 			entity.setNomeGateway(src.getDatiErogazione().getNomeGateway());
 			entity.setVersioneGateway(src.getDatiErogazione().getVersioneGateway());
-			
+
 			entity.setUrl(src.getDatiErogazione().getUrl());
 			entity.setUrlPrefix(src.getDatiErogazione().getUrlPrefix());
-		} else {
-			entity.setNomeGateway(null);
-			entity.setVersioneGateway(null);
-			
-			entity.setUrl(null);
-//			entity.setUrlPrefix(src.getDatiErogazione().getUrlPrefix());
 		}
-		
+
 		DocumentoEntity specificaPrecedente = entity.getSpecifica();
 
 		if(src.getSpecifica()!=null) {
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), entity.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
 		}
-		
-		entity.setProtocollo(toProtocollo(src.getProtocollo(), entity.getSpecifica(), isContenutoModificato(specificaPrecedente, entity.getSpecifica())));
+
+		boolean specificaModificata = isContenutoModificato(specificaPrecedente, entity.getSpecifica());
+
+		// Protocollo assente: resta quello dell'ambiente, ricalcolato solo se cambia la specifica.
+		// Obbligatorio solo quando l'ambiente non ha ancora un protocollo.
+		ProtocolloEnum protocollo = src.getProtocollo() != null ? src.getProtocollo() : this.apiEngineAssembler.toProtocollo(entity.getProtocollo());
+		if(protocollo == null) {
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED,
+					Map.of(PARAM_CAMPO, (collaudo ? "configurazione_collaudo" : "configurazione_produzione") + ".protocollo"));
+		}
+
+		if(src.getProtocollo() != null || specificaModificata) {
+			entity.setProtocollo(toProtocollo(protocollo, entity.getSpecifica(), specificaModificata));
+		}
 
 		this.servizioDettaglioAssembler.setUltimaModifica(api.getServizio());
 		this.servizioService.save(api.getServizio());
@@ -456,6 +485,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		}
 
 		this.profiloGovwayService.checkProfili(entity);
+		this.rateLimitingService.checkRateLimiting(entity);
 
 		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 		this.servizioService.save(entity.getServizio());
@@ -514,9 +544,11 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	private ApiConfigEntity getApiConfig(APIDatiAmbienteCreate src, ApiEntity api, boolean collaudo) {
 		ApiConfigEntity entity = new ApiConfigEntity();
 
-		checkSpecifica(src.getSpecifica());
+		checkSpecifica(src.getSpecifica(), collaudo);
 
 		setUrlInvocazione(src.getUrlInvocazione(), entity, collaudo);
+
+		this.rateLimitingService.setRateLimiting(src.getRateLimiting(), entity, api, toAmbiente(collaudo));
 
 		if(src.getSpecifica()!=null) {
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
@@ -539,10 +571,11 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		return entity;
 	}
 
-	private void checkSpecifica(DocumentoCreate specifica) {
+	private void checkSpecifica(DocumentoCreate specifica, boolean collaudo) {
 		if(this.configurazione.getServizio().getApi().isSpecificaObbligatorio()) {
 			if(specifica == null || specifica.getContent() == null) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+				String blocco = collaudo ? "configurazione_collaudo" : "configurazione_produzione";
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(PARAM_CAMPO, blocco + ".specifica"));
 			}
 		}
 	}
@@ -599,6 +632,10 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				throw new BadRequestException(ErrorCode.API_400_URL_DUPLICATE, Map.of("identificativo", identificativo));
 			}
 		}
+	}
+
+	private AmbienteEnum toAmbiente(boolean collaudo) {
+		return collaudo ? AmbienteEnum.COLLAUDO : AmbienteEnum.PRODUZIONE;
 	}
 
 	/** URL censite in configurazione per l'ambiente indicato, lista vuota se la sezione manca. */
@@ -709,19 +746,22 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					ConfigurazioneTipoDominioEnum cd = entity.getServizio().isFruizione() ? ConfigurazioneTipoDominioEnum.ESTERNO : ConfigurazioneTipoDominioEnum.INTERNO;
 					
 					if(!p.getTipoDominio().equals(cd)) {
-							throw new BadRequestException(ErrorCode.VAL_422);
+						throw new BadRequestException(ErrorCode.VAL_400_PROFILO_TIPO_DOMINIO,
+								Map.of(PARAM_PROFILO, gruppo.getProfilo(), "tipoDominio", p.getTipoDominio().toString(), PARAM_CAMPO, GRUPPI_AUTH_TYPE_PROFILO));
 					}
 				}
 					
 				if(p.getDomini()!= null && !p.getDomini().isEmpty()) {
 					if(!p.getDomini().stream().anyMatch(dNome -> dNome.equals(d.getNome()))) {
-						throw new BadRequestException(ErrorCode.VAL_422);
+						throw new BadRequestException(ErrorCode.VAL_400_PROFILO_DOMINIO,
+								Map.of(PARAM_PROFILO, gruppo.getProfilo(), "dominio", d.getNome(), PARAM_CAMPO, GRUPPI_AUTH_TYPE_PROFILO));
 					}
 				}
 					
 				if(p.getSoggetti()!= null && !p.getSoggetti().isEmpty()) {
 					if(!p.getSoggetti().stream().anyMatch(dNome -> dNome.equals(d.getSoggettoReferente().getNome()))) {
-						throw new BadRequestException(ErrorCode.VAL_422);
+						throw new BadRequestException(ErrorCode.VAL_400_PROFILO_SOGGETTO,
+								Map.of(PARAM_PROFILO, gruppo.getProfilo(), "soggetto", d.getSoggettoReferente().getNome(), "dominio", d.getNome(), PARAM_CAMPO, GRUPPI_AUTH_TYPE_PROFILO));
 					}
 				}
 					
@@ -730,7 +770,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				// Il collaudo puo` mancare (es. API in bozza con la sola produzione): si usa la configurazione disponibile (Issue 412)
 				ApiConfigEntity config = entity.getCollaudo() != null ? entity.getCollaudo() : entity.getProduzione();
 				if(config == null) {
-					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of("campo", "configurazione_collaudo"));
+					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(PARAM_CAMPO, "configurazione_collaudo"));
 				}
 
 				switch(config.getProtocollo()) { //TODO
@@ -742,7 +782,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					break;}
 
 				if(p.getCompatibilita() != null && !p.getCompatibilita().equals(comp)) {
-					throw new BadRequestException(ErrorCode.VAL_422);
+					throw new BadRequestException(ErrorCode.VAL_400_PROFILO_COMPATIBILITA,
+							Map.of(PARAM_PROFILO, gruppo.getProfilo(), "compatibilita", p.getCompatibilita().toString(), PARAM_CAMPO, GRUPPI_AUTH_TYPE_PROFILO));
 				}
 
 				AuthTypeEntity authType = new AuthTypeEntity();
@@ -754,7 +795,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				authTypeSet.add(authType);
 			}
 		} else {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(PARAM_CAMPO, "gruppi_auth_type"));
 		}
 		return authTypeSet;
 	}

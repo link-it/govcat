@@ -467,6 +467,17 @@ describe('UtilService', () => {
       service.__confirmCambioStatoServizio(status, {}, vi.fn());
       expect(mockTranslate.instant).toHaveBeenCalledWith('APP.WORKFLOW.STATUS.bozza');
     });
+
+    it('should warn that the APIs become reusable only when a service is archived', () => {
+      mockModalService.show.mockReturnValue({ content: { onClose: new Subject() } });
+      const archivia = { status: { nome: 'archiviato' } };
+      service.__confirmCambioStatoServizio(archivia, {}, vi.fn(), true);
+      expect(mockModalService.show.mock.calls.at(-1)[1].initialState.messages.length).toBe(2);
+      service.__confirmCambioStatoServizio(archivia, {}, vi.fn());
+      expect(mockModalService.show.mock.calls.at(-1)[1].initialState.messages.length).toBe(1);
+      service.__confirmCambioStatoServizio({ status: { nome: 'pubblicato_produzione' } }, {}, vi.fn(), true);
+      expect(mockModalService.show.mock.calls.at(-1)[1].initialState.messages.length).toBe(1);
+    });
   });
 
   // scrollTo

@@ -29,6 +29,9 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { ConfigService, EventsManagerService, MenuAction, EventType, Tools, COMPONENTS_IMPORTS, YesnoDialogBsComponent } from '@linkit/components';
 import { apiHasPdndProfile, isApiPdndConfigured, isSoggettoInPdndConfig, getPdndProducerIds } from '../pdnd-menu.util';
 import { PdndMenuDialogComponent } from '../pdnd-menu-dialog/pdnd-menu-dialog.component';
+import { ServizioRateLimitingDialogComponent } from '../servizio-rate-limiting/servizio-rate-limiting-dialog.component';
+import { puoGestireRateLimiting } from '../rate-limiting';
+import { rateLimitingMockAttivo } from '../rate-limiting.mock';
 import { contaAzioniPdndInAttesa } from '../pdnd-pending';
 import { PdndService } from '@app/views/pdnd/pdnd.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
@@ -56,6 +59,7 @@ import { ErogatoreLabelPipe } from '@app/pipes/erogatore-label.pipe';
 import { SwaggerComponent } from '@app/components/swagger/swagger.component';
 import { WsdlComponent } from '@app/components/wsdl/wsdl.component';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { ServizioNotaVetrinaComponent } from '../components/servizio-nota-vetrina/servizio-nota-vetrina.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
@@ -83,6 +87,9 @@ import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDef
 import { UrlInvocazioneAggiuntivaRisolta } from '../servizio-api-details/servizio-api-interfaces';
 import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '../servizio-api-url-invocazione';
 import { ambienteClasseDato } from '../servizio-proprieta-custom';
+import { QUERY_PARAM_AMBIENTE, ambienteServizio, collaudoSaltato } from '../ambiente-servizio';
+import { servizioNonAccessibile } from '../servizio-accessibile';
+import { RuoloOrganizzazioneEnum } from '@app/model/ruoloOrganizzazioneEnum';
 
 export interface Organization {
     id_organizzazione: string;
@@ -112,6 +119,7 @@ export interface User {
 export interface Referent {
     utente: User;
     tipo: 'referente' | 'referente_servizio' | 'utente_organizzazione' | 'referente_tecnico' | 'referente_dominio';
+    ruolo_non_valido?: boolean;
 }
 
 export interface ReferentView {
@@ -119,6 +127,8 @@ export interface ReferentView {
     name: string;
     email: string;
     types: string[];
+    /** Ruolo non piu' valido nell'organizzazione per almeno uno dei ruoli. */
+    nonValido?: boolean;
 }
 
 export enum ApiMode {
@@ -142,6 +152,7 @@ export enum ApiMode {
         SwaggerComponent,
         WsdlComponent,
         MonitorDropdwnComponent,
+        ServizioNotaVetrinaComponent,
         MarkdownModule,
         MapperPipe,
         HttpImgSrcPipe,
@@ -209,6 +220,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _fromAdesioneMode: 'wizard' | 'view' | '' = '';
 
     _error: boolean = false;
+    /** Servizio inesistente o non visibile all'utente: si mostra un messaggio invece dell'errore. */
+    _servizioNonDisponibile: boolean = false;
     _errorMsg: string = '';
 
     minLengthTerm = 1;
@@ -265,6 +278,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _maxReferenti: number = 3;
     _showReferents: boolean = true;
+    _canManageReferentiDominio: boolean = false;
 
     _grant: Grant | null = null;
     _ammissibili: string[] = [];
@@ -272,6 +286,11 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _hasJoined: boolean = false;
     _adesioni: any[] = [];
+    /** Adesioni dell'organizzazione corrente: gestore e referenti ricevono anche quelle delle altre organizzazioni. */
+    _adesioniOrganizzazione: any[] = [];
+    _hasJoinedOrganizzazione: boolean = false;
+    /** L'organizzazione corrente ha un'adesione non archiviata. */
+    _hasAdesioneAttivaOrganizzazione: boolean = false;
     _adesioneDataReady: boolean = false;
 
     _modalInfoRef!: BsModalRef;
@@ -476,13 +495,14 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         if (this.id) {
         this._spin = spin;
         if (spin) { this.data = null; }
+        this._servizioNonDisponibile = false;
         this.apiService.getDetails('servizi', this.id, 'grant').subscribe({
             next: (grant: any) => {
                 this._grant = grant;
                 this.apiService.getDetails(this.model, this.id).subscribe({
                     next: (response: any) => {
                         this.data = response;
-                        if (this._collaudoSaltato) { this._environmentId = 'produzione'; }
+                        this._environmentId = ambienteServizio(this.data, this.route.snapshot?.queryParams?.[QUERY_PARAM_AMBIENTE]);
                         this._spin = false;
                         this._initBreadcrumb();
                         this.loadCurrentData();
@@ -494,18 +514,21 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                             this._loadAdesioneData();
                         }
                     },
-                    error: (error: any) => {
-                        Tools.OnError(error);
-                        this._spin = false;
-                    }
+                    error: (error: any) => this._onErroreCaricamento(error)
                 });
             },
-            error: (error: any) => {
-                Tools.OnError(error);
-                this._spin = false;
-            }
+            error: (error: any) => this._onErroreCaricamento(error)
         });
         }
+    }
+
+    private _onErroreCaricamento(error: any) {
+        this._spin = false;
+        if (servizioNonAccessibile(error)) {
+            this._servizioNonDisponibile = true;
+            return;
+        }
+        Tools.OnError(error);
     }
 
     _loadAdesioneData() {
@@ -519,6 +542,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             next: (response: any) => {
                 this._adesioni = response.joined.content || [];
                 this._hasJoined = this._adesioni.length > 0;
+                this._initAdesioniOrganizzazione();
                 this._ammissibili = response.ammissibili.content;
                 this._adesioneDataReady = true;
                 this._updateData = Date.now().toString();
@@ -530,11 +554,22 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         });
     }
 
+    _initAdesioniOrganizzazione() {
+        const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+        this._adesioniOrganizzazione = currentOrgId
+            ? this._adesioni.filter((a: any) => a.soggetto?.organizzazione?.id_organizzazione === currentOrgId)
+            : [];
+        this._hasJoinedOrganizzazione = this._adesioniOrganizzazione.length > 0;
+        const statoArchiviato = Tools.Configurazione?.adesione?.workflow?.stato_archiviato || 'archiviato';
+        this._hasAdesioneAttivaOrganizzazione = this._adesioniOrganizzazione.some((a: any) => a.stato !== statoArchiviato);
+    }
+
     loadCurrentData() {
         this.richiedente = this.data.utente_richiedente;
 
         this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.loadReferenti();
+        this._checkReferentiDominio();
         this._loadGruppi();
         this._loadAllegati();
         this._loadServiceApi();
@@ -733,10 +768,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                             id: cur.utente.id_utente,
                             email: cur.utente.email_aziendale,
                             name: `${cur.utente.nome} ${cur.utente.cognome}`,
-                            types: [cur.tipo !== 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
+                            types: [cur.tipo !== 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo],
+                            nonValido: !!cur.ruolo_non_valido
                         });
                     } else {
                         acc[index].types.push(cur.tipo);
+                        acc[index].nonValido = acc[index].nonValido || !!cur.ruolo_non_valido;
                     }
                     return acc;
                 };
@@ -968,7 +1005,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
      *  dettaglio (view se gia` pubblicata in produzione, altrimenti la
      *  scheda modificabile); con piu` adesioni ricade sulla lista. */
     _gotoAdesione(event?: MouseEvent) {
-        const adesione = this._adesioni.length === 1 ? this._adesioni[0] : null;
+        const adesione = this._adesioniOrganizzazione.length === 1 ? this._adesioniOrganizzazione[0] : null;
         if (adesione?.id_adesione) {
             const viewMode = (adesione.stato || '').includes('pubblicato_produzione');
             const route = viewMode
@@ -1217,6 +1254,52 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         });
     }
 
+    /** Accesso alla gestione dei referenti del dominio del servizio. Per
+     *  l'operatore API dell'organizzazione del dominio serve l'elenco dei
+     *  referenti (deve esserne il referente). */
+    _checkReferentiDominio() {
+        this._canManageReferentiDominio = false;
+        const dominio: any = this.data?.dominio;
+        if (!dominio?.id_dominio || this.authenticationService.isAnonymous()) { return; }
+        if (this.authenticationService.canManageReferentiDominio(dominio, [])) {
+            this._canManageReferentiDominio = true;
+            return;
+        }
+        const idOrgSessione = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+        if (!idOrgSessione || idOrgSessione !== dominio.soggetto_referente?.organizzazione?.id_organizzazione) { return; }
+        if (this.authenticationService.getCurrentOrganizationRole() !== RuoloOrganizzazioneEnum.OperatoreApi) { return; }
+        this.apiService.getDetails('domini', dominio.id_dominio, 'referenti').subscribe({
+            next: (response: any) => {
+                this._canManageReferentiDominio = this.authenticationService.canManageReferentiDominio(dominio, response?.content || []);
+            },
+            error: () => { this._canManageReferentiDominio = false; }
+        });
+    }
+
+    _gotoReferentiDominio() {
+        this.router.navigate(['/miei-domini', this.data?.dominio?.id_dominio, 'referenti'], { queryParams: { returnUrl: this.router.url } });
+    }
+
+    /** Rate limiting del servizio: solo per chi lo gestisce e con API erogate dal soggetto del dominio. */
+    _canShowRateLimiting(): boolean {
+        return puoGestireRateLimiting(this._grant?.ruoli) && (this.serviceApiDominio || []).length > 0;
+    }
+
+    _openRateLimitingDialog() {
+        this.modalService.show(ServizioRateLimitingDialogComponent, {
+            class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down',
+            ignoreBackdropClick: false,
+            initialState: {
+                idServizio: this.id != null ? `${this.id}` : null,
+                nomeServizio: this.data ? `${this.data.nome} v. ${this.data.versione}` : '',
+                ambiente: this._environmentId,
+                collaudoDisabled: this._collaudoSaltato,
+                ruoli: this._grant?.ruoli || null,
+                mock: rateLimitingMockAttivo(this.appConfig)
+            }
+        });
+    }
+
     _openPdndDialog(mode: 'informations' | 'subscribers') {
         const _apis = this._enabledPdndApis();
         if (!_apis.length) {
@@ -1319,8 +1402,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _canManagement = this.authenticationService.canManagement('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
         const _isPackage = this.data?.package || false;
         const _isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
-        const _canMonitoraggio = this.authenticationService.canMonitoraggio(this._grant?.ruoli);
         return _isPackage ? _isGestore : _canManagement;
+    }
+
+    /** Nota del servizio in vetrina: abilitata dalla configurazione per i ruoli dell'utente e valorizzata. */
+    get _mostraNotaVetrina(): boolean {
+        return !!this.data?.note?.trim() && this.authenticationService.canVedereNoteVetrina(this._grant?.ruoli || []);
     }
 
     _canMonitoraggioMapper = (): boolean => {
@@ -1375,7 +1462,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             default: {
                 localStorage.setItem('SERVIZI_VIEW', 'TRUE');
                 const route = ['servizi', this.id, event.action];
-                this.navigationService.navigateWithEvent(mouseEvent, route);
+                // Il monitoraggio si apre sull'ambiente scelto in vetrina
+                if (['transazioni', 'statistiche', 'audit'].includes(event.action)) {
+                    this.navigationService.navigateWithEvent(mouseEvent, route, { [QUERY_PARAM_AMBIENTE]: this._environmentId });
+                } else {
+                    this.navigationService.navigateWithEvent(mouseEvent, route);
+                }
                 break;
             }
         }
@@ -1451,6 +1543,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 ruolo: this._ruoloLabel(primary),
                 tag: tagForRuolo(primary),
                 ruoliAggiuntivi: (r.types || []).slice(1).map((t: string) => this._ruoloLabel(t, true)),
+                nonValido: !!r.nonValido,
             };
         });
     }
@@ -1468,12 +1561,13 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
      *  ricarica le API. Mantiene la stessa logica dei vecchi 2 bottoni. */
     /** Collaudo saltato: in vetrina e` disponibile solo la produzione. */
     get _collaudoSaltato(): boolean {
-        return !!this.data?.skip_collaudo;
+        return collaudoSaltato(this.data);
     }
 
     public onEnvToggle(env: EnvValue): void {
         if (env === 'collaudo' && this._collaudoSaltato) { return; }
         this._environmentId = env;
+        this.router.navigate([], { relativeTo: this.route, queryParams: { [QUERY_PARAM_AMBIENTE]: env }, queryParamsHandling: 'merge', replaceUrl: true });
         this._loadApis();
     }
 

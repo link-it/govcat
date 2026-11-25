@@ -117,6 +117,9 @@ public class DominioService extends AbstractService {
 	}
 
 	public void save(ReferenteDominioEntity referenteEntity) {
+		// Simmetrico a deleteReferenteDominio: mantiene allineata la collezione del dominio
+		// già caricata nella sessione, usata dai controlli di duplicazione e di autorizzazione.
+		referenteEntity.getDominio().getReferenti().add(referenteEntity);
 		this.referenteDominioRepo.save(referenteEntity);
 	}
 

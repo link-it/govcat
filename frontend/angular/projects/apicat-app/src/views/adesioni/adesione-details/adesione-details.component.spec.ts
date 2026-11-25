@@ -282,7 +282,8 @@ describe('AdesioneDetailsComponent', () => {
       const data = { ...new AdesioneCreate(), id_logico: 'logico-1' };
       component._initForm(data);
       const ctrl = component._formGroup.get('id_logico')!;
-      expect(ctrl.hasValidator(Validators.required)).toBe(true);
+      ctrl.setValue('   ');
+      expect(ctrl.hasError('required')).toBe(true);
     });
 
     it('should handle data_creazione and data_ultimo_aggiornamento as disabled', () => {
@@ -1051,7 +1052,8 @@ describe('AdesioneDetailsComponent', () => {
     it('should set required on id_logico when servizio has multi_adesione', () => {
       component._servizio = { multi_adesione: true };
       component.updateIdLogico(component._servizio);
-      expect(component._formGroup.get('id_logico')!.hasValidator(Validators.required)).toBe(true);
+      component._formGroup.get('id_logico')!.setValue('');
+      expect(component._formGroup.get('id_logico')!.hasError('required')).toBe(true);
     });
 
     it('should clear required on id_logico when servizio does not have multi_adesione', () => {
@@ -1308,7 +1310,8 @@ describe('AdesioneDetailsComponent', () => {
       mockApiService.getDetails.mockReturnValue(of({ id_servizio: 'srv-1', nome: 'S1', versione: '1', multi_adesione: true }));
       component._initForm({ ...new AdesioneCreate() });
       component._loadServizio('srv-1');
-      expect(component._formGroup.get('id_logico')!.hasValidator(Validators.required)).toBe(true);
+      component._formGroup.get('id_logico')!.setValue('');
+      expect(component._formGroup.get('id_logico')!.hasError('required')).toBe(true);
     });
 
     it('should clear id_logico validators when servizio does not have multi_adesione', () => {

@@ -81,6 +81,14 @@
     "consenti_non_sottoscrivibile": true,
     "adesioni_multiple": true,
     "tassonomie_abilitate": false,
+    "note_vetrina": {
+      "abilitato": false,
+      "ruoli_abilitati": [
+        "gestore",
+        "referente_superiore",
+        "referente"
+      ]
+    },
     "api": {
       "abilitato": true,
       "etichetta": "API",
@@ -2354,6 +2362,19 @@
     "transazioni_abilitate": true,
     "statistiche_abilitate": true,
     "verifiche_abilitate": true,
+    "audit_abilitato": true,
+    "proprieta_audit": [
+      {
+        "nome_gruppo": "PDNDCollaudo",
+        "nome_proprieta": "audit",
+        "ambiente": "collaudo"
+      },
+      {
+        "nome_gruppo": "PDNDProduzione",
+        "nome_proprieta": "audit",
+        "ambiente": "produzione"
+      }
+    ],
     "ruoli_abilitati": [],
     "profilo_govway_default": "ModI",
     "soggetto_modi": {

@@ -1,0 +1,69 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+package org.govway.catalogo.core.orm.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Quote di rate limiting dichiarate dal servizio per la specifica di un ambiente di un'API, al piu`
+ * una riga per periodo: quota totale, massimo per la somma dei fruitori, e quota fruitore, massimo
+ * per ciascun fruitore. Almeno una delle due e` valorizzata.
+ */
+@Getter
+@Setter
+@Entity
+@Table(name = "api_config_rate_limiting", uniqueConstraints = @UniqueConstraint(name = "uk_api_config_rate_limiting", columnNames = {"id_api_config", "periodo"}))
+public class ApiConfigRateLimitingEntity {
+
+	@Id
+	@Column(name = "id")
+	@GeneratedValue(generator = "seq_api_config_rate_limiting", strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(name = "seq_api_config_rate_limiting", sequenceName = "seq_api_config_rate_limiting", allocationSize = 1)
+	private Long id;
+
+	@Column(name = "periodo", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private RateLimitingPeriodo periodo;
+
+	@Column(name = "quota", nullable = true)
+	private Integer quota;
+
+	@Column(name = "quota_fruitore", nullable = true)
+	private Integer quotaFruitore;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_api_config", referencedColumnName = "id", nullable = false)
+	private ApiConfigEntity apiConfig;
+}

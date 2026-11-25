@@ -20,6 +20,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { LnkRuoloNonValidoComponent } from '@app/components/lnk-ui/ruolo-non-valido/ruolo-non-valido.component';
 
 /**
  * Item generico di un referente per il rendering nella pagina
@@ -36,6 +37,8 @@ export interface LnkRefItem {
   email?: string;
   /** Altri ruoli dello stesso utente, gia` tradotti: mostrati nel tooltip del `+N`. */
   ruoliAggiuntivi?: string[];
+  /** Referente senza piu' un ruolo valido nell'organizzazione. */
+  nonValido?: boolean;
 }
 
 /** Modificatore CSS (`r-<tag>`) del ruolo: dom/tec/serv/ades. */
@@ -89,7 +92,7 @@ export function initialsOf(name: string): string {
 @Component({
   selector: 'lnk-refs',
   standalone: true,
-  imports: [CommonModule, TranslateModule, TooltipModule],
+  imports: [CommonModule, TranslateModule, TooltipModule, LnkRuoloNonValidoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (variant === 'overlap') {
@@ -142,6 +145,9 @@ export function initialsOf(name: string): string {
                       <div>{{ 'APP.LABEL.AncheRuolo' | translate: { ruolo: lowerFirst(ruolo) } }}</div>
                     }
                   </ng-template>
+                }
+                @if (r.nonValido) {
+                  <lnk-ruolo-non-valido></lnk-ruolo-non-valido>
                 }
               </div>
             </div>

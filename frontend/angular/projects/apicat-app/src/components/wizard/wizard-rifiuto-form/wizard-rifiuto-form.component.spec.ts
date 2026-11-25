@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { WizardRifiutoFormComponent } from './wizard-rifiuto-form.component';
+import { chiavePrefissoRifiuto, WizardRifiutoFormComponent } from './wizard-rifiuto-form.component';
 
 describe('WizardRifiutoFormComponent', () => {
   let component: WizardRifiutoFormComponent;
@@ -35,5 +35,34 @@ describe('WizardRifiutoFormComponent', () => {
     component._formGroup.get('testo')?.setValue('Motivo');
     component.onSubmit();
     expect(_conferma).not.toHaveBeenCalled();
+  });
+
+  describe('motivo con il prefisso dell\'ambiente', () => {
+    const prefisso = 'Autorizzazione in collaudo rifiutata per il seguente motivo: ';
+
+    beforeEach(() => {
+      component = new WizardRifiutoFormComponent();
+      component.oggetto = 'Oggetto';
+      component.testo = prefisso;
+      component.ngOnInit();
+    });
+
+    it('should prefill the reason with the prefix and require to complete it', () => {
+      const _conferma = vi.fn();
+      component.conferma.subscribe(_conferma);
+      expect(component._formGroup.get('testo')?.value).toBe(prefisso);
+      component.onSubmit();
+      expect(_conferma).not.toHaveBeenCalled();
+      expect(component._hasError('testo', 'required')).toBe(true);
+      component._formGroup.get('testo')?.setValue(prefisso + 'manca la specifica');
+      component.onSubmit();
+      expect(_conferma).toHaveBeenCalledWith({ oggetto: 'Oggetto', testo: prefisso + 'manca la specifica' });
+    });
+
+    it('should choose the prefix of the environment of the requested status', () => {
+      expect(chiavePrefissoRifiuto('richiesto_collaudo')).toBe('APP.WORKFLOW.RIFIUTO.PrefissoCollaudo');
+      expect(chiavePrefissoRifiuto('richiesto_produzione')).toBe('APP.WORKFLOW.RIFIUTO.PrefissoProduzione');
+      expect(chiavePrefissoRifiuto('richiesto_produzione_senza_collaudo')).toBe('APP.WORKFLOW.RIFIUTO.PrefissoProduzione');
+    });
   });
 });

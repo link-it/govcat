@@ -35,6 +35,15 @@ describe('LnkButtonComponent', () => {
     expect(spy).toHaveBeenCalledWith({});
   });
 
+  it('should not emit onAction when aria-disabled', () => {
+    component.ariaDisabled = true;
+    const spy = vi.spyOn(component.onAction, 'emit');
+    const event = new Event('click', { cancelable: true });
+    component._onClick(event);
+    expect(spy).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(true);
+  });
+
   it('should accept custom inputs', () => {
     component.label = 'Test';
     component.icon = 'bi bi-check';

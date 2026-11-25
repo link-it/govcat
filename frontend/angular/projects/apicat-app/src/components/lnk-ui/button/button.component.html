@@ -27,8 +27,10 @@
   [class.gl-tertiary]="tertiary"
   [class.btn-icon]="onlyIcon"
   [attr.aria-label]="ariaLabel | translate"
+  [attr.aria-disabled]="ariaDisabled || null"
+  [class.lnk-btn-aria-disabled]="ariaDisabled"
   [disabled]="disabled || spinner"
-  (click)="_onClick()">
+  (click)="_onClick($event)">
   <div class="d-flex gap-2">
     @if (spinner) {
       <span class="spinner-border spinner-border-sm" [style.border-width.px]="2" [class.me-2]="!onlySpinner"></span>
