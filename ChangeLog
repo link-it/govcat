@@ -1,6 +1,9 @@
 2026-11-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dipendenze: hono 4.13.22 e @hono/node-server 2.1.11 negli overrides (vulnerabilità segnalate da
+	  Dependabot nella catena @angular/cli > @modelcontextprotocol/sdk).
+	Issue 484: pulsante della nota del servizio con tooltip "Nota del servizio", senza il pallino.
 	Issue 484: nota del servizio in vetrina, in un pannello aperto dal pulsante accanto alle azioni
 	  della pagina; mostrata solo se servizio.note_vetrina la abilita per i ruoli dell'utente sul
 	  servizio (ruoli tecnici come i non tecnici, gestore solo se elencato) e se valorizzata. Testo di

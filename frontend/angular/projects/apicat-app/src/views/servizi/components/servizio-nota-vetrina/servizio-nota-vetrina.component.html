@@ -18,9 +18,9 @@
 -->
 <button #pulsante type="button" class="btn btn-default btn-md gl-button snv-btn" (click)="toggle()" (keydown.escape)="chiudi()"
         [attr.aria-expanded]="aperta()" [attr.aria-controls]="aperta() ? idPannello : null"
-        [attr.aria-label]="'APP.SERVICES.NOTA_VETRINA.Mostra' | translate" [title]="'APP.SERVICES.NOTA_VETRINA.Titolo' | translate">
+        [attr.aria-label]="'APP.SERVICES.NOTA_VETRINA.Mostra' | translate"
+        [tooltip]="'APP.SERVICES.NOTA_VETRINA.Titolo' | translate" placement="bottom" container="body">
   <i class="bi bi-chat-left-text" aria-hidden="true"></i>
-  <span class="snv-dot" aria-hidden="true"></span>
 </button>
 
 @if (aperta()) {

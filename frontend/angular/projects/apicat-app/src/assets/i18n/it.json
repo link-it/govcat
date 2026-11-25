@@ -2714,8 +2714,8 @@
 		},
 		"SERVICES": {
 			"NOTA_VETRINA": {
-				"Titolo": "Nota sul servizio",
-				"Mostra": "Mostra la nota sul servizio"
+				"Titolo": "Nota del servizio",
+				"Mostra": "Mostra la nota del servizio"
 			},
 			"PDND_PENDING": "Azioni PDND in attesa: {{count}}",
 			"PDND_PENDING_LOADING": "Conteggio delle azioni PDND in attesa in corso",
