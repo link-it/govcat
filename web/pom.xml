@@ -40,6 +40,13 @@
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-starter-jackson</artifactId>
 				</exclusion>
+				<!-- Gia' esclusa nel dependencyManagement del pom root (il container fornisce
+				     Tomcat): ripetuta qui perche' le exclusions locali fanno ignorare quella
+				     gestita agli scanner OSV, che segnalerebbero tomcat-embed-core. -->
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 

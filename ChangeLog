@@ -20,6 +20,10 @@
 	  valgono come i corrispondenti non tecnici, il gestore solo se elencato). La chiave è esposta dalla
 	  GET /configurazione; se assente le note non sono mostrate in vetrina. Il dettaglio del servizio
 	  restituisce le note come prima; i ruoli dell'utente sono quelli della GET /servizi/{id}/grant.
+	Fix segnalazione vulnerabilità dipendenze (OSV) su tomcat-embed-core 11.0.24 in govcat-web
+	  (GHSA-9xv2-5v5q-p794, GHSA-f525-44xv-f2qj, GHSA-gcx9-497g-6cp6, GHSA-h3x4-894j-xpx5): falso
+	  positivo, Tomcat embedded non è incluso nel WAR; esclusione di spring-boot-starter-tomcat
+	  resa esplicita in web/pom.xml perché lo scanner la riconosca.
 
 2026-11-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
