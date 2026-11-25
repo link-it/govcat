@@ -59,6 +59,7 @@ import { ErogatoreLabelPipe } from '@app/pipes/erogatore-label.pipe';
 import { SwaggerComponent } from '@app/components/swagger/swagger.component';
 import { WsdlComponent } from '@app/components/wsdl/wsdl.component';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { ServizioNotaVetrinaComponent } from '../components/servizio-nota-vetrina/servizio-nota-vetrina.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
@@ -151,6 +152,7 @@ export enum ApiMode {
         SwaggerComponent,
         WsdlComponent,
         MonitorDropdwnComponent,
+        ServizioNotaVetrinaComponent,
         MarkdownModule,
         MapperPipe,
         HttpImgSrcPipe,
@@ -1401,6 +1403,11 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _isPackage = this.data?.package || false;
         const _isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
         return _isPackage ? _isGestore : _canManagement;
+    }
+
+    /** Nota del servizio in vetrina: abilitata dalla configurazione per i ruoli dell'utente e valorizzata. */
+    get _mostraNotaVetrina(): boolean {
+        return !!this.data?.note?.trim() && this.authenticationService.canVedereNoteVetrina(this._grant?.ruoli || []);
     }
 
     _canMonitoraggioMapper = (): boolean => {

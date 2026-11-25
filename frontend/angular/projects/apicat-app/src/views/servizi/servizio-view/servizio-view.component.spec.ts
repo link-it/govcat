@@ -75,6 +75,7 @@ describe('ServizioViewComponent', () => {
     canEdit: vi.fn().mockReturnValue(true),
     canJoin: vi.fn().mockReturnValue(true),
     canMonitoraggio: vi.fn().mockReturnValue(false),
+    canVedereNoteVetrina: vi.fn().mockReturnValue(false),
     canManagementComunicazioni: vi.fn().mockReturnValue(false),
     getUser: vi.fn().mockReturnValue({ organizzazione: { id_organizzazione: 'org1' } }),
     getCurrentOrganization: vi.fn().mockReturnValue({ id_organizzazione: 'org1' }),
@@ -2650,6 +2651,27 @@ describe('ServizioViewComponent', () => {
       expect(component._pdndInAttesaLoading).toBe(false);
       rispondi([]);
       expect(component._pdndInAttesa).toBe(0);
+    });
+  });
+
+  describe('nota del servizio in vetrina (Issue 484)', () => {
+    it('should show the note only when allowed for the user roles and not empty', () => {
+      component._grant = { ruoli: ['referente'] } as any;
+      component.data = { note: 'Servizio erogato tramite Integration Manager' } as any;
+      mockAuthenticationService.canVedereNoteVetrina.mockReturnValue(true);
+      expect(component._mostraNotaVetrina).toBe(true);
+      expect(mockAuthenticationService.canVedereNoteVetrina).toHaveBeenLastCalledWith(['referente']);
+      mockAuthenticationService.canVedereNoteVetrina.mockReturnValue(false);
+      expect(component._mostraNotaVetrina).toBe(false);
+    });
+
+    it('should not show an empty note, even when allowed', () => {
+      mockAuthenticationService.canVedereNoteVetrina.mockReturnValue(true);
+      for (const note of [null, undefined, '', '   \n ']) {
+        component.data = { note } as any;
+        expect(component._mostraNotaVetrina).toBe(false);
+      }
+      mockAuthenticationService.canVedereNoteVetrina.mockReturnValue(false);
     });
   });
 });

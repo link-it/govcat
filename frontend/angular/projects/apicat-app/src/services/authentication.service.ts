@@ -1006,6 +1006,18 @@ export class AuthenticationService {
     return monitoraggio.abilitato && !!_intersection.length;
   }
 
+  /**
+   * Note del servizio nella vetrina (`servizio.note_vetrina`): solo se abilitate e ai ruoli elencati,
+   * con i ruoli tecnici equiparati ai non tecnici. Il gestore e` ammesso solo se elencato.
+   */
+  canVedereNoteVetrina(grant: string[] = [], servizio: any = this._getConfigModule('servizio')): boolean {
+    const _conf = servizio?.note_vetrina;
+    if (!_conf?.abilitato) {
+      return false;
+    }
+    return _.intersection(expandTecnicoGrants(grant || []), _conf.ruoli_abilitati || []).length > 0;
+  }
+
   // Verifica permessi menu amministrazione
 
   verificacanPermessiMenuAmministrazione(menu: string, configurazione: any = Tools.Configurazione): { canRead: boolean; canWrite: boolean } {

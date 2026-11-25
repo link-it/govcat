@@ -1,0 +1,66 @@
+:host { display: inline-block; }
+
+.snv-btn {
+  position: relative;
+}
+
+// Segnala che il servizio ha una nota
+.snv-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--err, #d92d20);
+  box-shadow: 0 0 0 2px var(--surface, #fff);
+}
+
+.snv-pannello {
+  position: fixed;
+  z-index: 1060;
+  width: min(30rem, calc(100vw - 32px));
+  padding: 14px 16px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
+  text-align: left;
+}
+
+.snv-freccia {
+  position: absolute;
+  top: -7px;
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  border-top: 1px solid var(--line, #dee8ef);
+  border-left: 1px solid var(--line, #dee8ef);
+  transform: rotate(45deg);
+}
+
+.snv-hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.snv-titolo {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.snv-chiudi {
+  font-size: 0.75rem;
+}
+
+// Testo libero: si mantengono gli a capo, senza interpretare HTML
+.snv-testo {
+  margin: 0;
+  font-size: 0.875rem;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

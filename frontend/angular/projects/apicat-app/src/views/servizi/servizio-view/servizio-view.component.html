@@ -40,6 +40,9 @@
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (!_spin) {
       <div class="nav-controls">
+        @if (_mostraNotaVetrina) {
+          <app-servizio-nota-vetrina class="me-2" [nota]="data.note"></app-servizio-nota-vetrina>
+        }
         @if (_updateData | mapper:_canManagementComunicazioniMapper) {
           <app-monitor-dropdown
             [service_id]="data?.id_servizio"

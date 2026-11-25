@@ -716,3 +716,10 @@ word-break: break-word;
     border-width: 2px;
   }
 }
+
+// Nota del servizio e menu delle azioni sulla stessa riga anche su mobile
+.breadcrumbs-area .nav-controls {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}

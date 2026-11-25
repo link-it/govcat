@@ -1365,6 +1365,47 @@ describe('AuthenticationService', () => {
     });
   });
 
+  // --- canVedereNoteVetrina (Issue 484) ---
+
+  describe('canVedereNoteVetrina', () => {
+    const conf = (note_vetrina: any) => { Tools.Configurazione = { servizio: { note_vetrina } }; };
+
+    it('should hide the notes without the configuration key', () => {
+      Tools.Configurazione = { servizio: {} };
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+      Tools.Configurazione = null;
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+    });
+
+    it('should hide the notes when disabled, even with a matching role', () => {
+      conf({ abilitato: false, ruoli_abilitati: ['referente'] });
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+    });
+
+    it('should treat the technical roles as the non technical ones', () => {
+      conf({ abilitato: true, ruoli_abilitati: ['referente'] });
+      expect(service.canVedereNoteVetrina(['referente_tecnico'])).toBe(true);
+      conf({ abilitato: true, ruoli_abilitati: ['referente_superiore'] });
+      expect(service.canVedereNoteVetrina(['referente_tecnico_superiore'])).toBe(true);
+    });
+
+    it('should admit the manager only when listed', () => {
+      conf({ abilitato: true, ruoli_abilitati: ['referente'] });
+      expect(service.canVedereNoteVetrina(['gestore'])).toBe(false);
+      conf({ abilitato: true, ruoli_abilitati: ['gestore'] });
+      expect(service.canVedereNoteVetrina(['gestore'])).toBe(true);
+    });
+
+    it('should hide the notes with no enabled roles or to the anonymous user', () => {
+      conf({ abilitato: true, ruoli_abilitati: [] });
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+      conf({ abilitato: true });
+      expect(service.canVedereNoteVetrina(['referente'])).toBe(false);
+      conf({ abilitato: true, ruoli_abilitati: ['referente'] });
+      expect(service.canVedereNoteVetrina([])).toBe(false);
+    });
+  });
+
   // --- canMonitoraggio ---
 
   describe('canMonitoraggio', () => {

@@ -1455,7 +1455,7 @@
 				"skip_collaudo": "Il servizio passa direttamente in produzione: la fase di collaudo viene saltata.",
 				"adesione_disabilitata": "Il servizio resta consultabile nel catalogo ma non è possibile richiederne l'adesione.",
 				"multi_adesione": "Consente allo stesso soggetto aderente di avere più adesioni al servizio.",
-				"note": "Note interne sul servizio, visibili ai referenti; non compaiono nella scheda pubblica del catalogo."
+				"note": "Note interne sul servizio, visibili ai referenti. Nella scheda del catalogo possono essere mostrate agli utenti con i ruoli abilitati dalla configurazione."
 			},
 			"SETTINGS": {
 				"servizi_view": "Scegli la modalità di visualizzazione di default della lista dei servizi."
@@ -2713,6 +2713,10 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"NOTA_VETRINA": {
+				"Titolo": "Nota sul servizio",
+				"Mostra": "Mostra la nota sul servizio"
+			},
 			"PDND_PENDING": "Azioni PDND in attesa: {{count}}",
 			"PDND_PENDING_LOADING": "Conteggio delle azioni PDND in attesa in corso",
 			"RATE_LIMITING": {

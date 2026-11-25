@@ -1455,7 +1455,7 @@
 				"skip_collaudo": "The service goes straight to production: the testing phase is skipped.",
 				"adesione_disabilitata": "The service remains visible in the catalog but subscriptions cannot be requested.",
 				"multi_adesione": "Allows the same subscribing subject to have more than one subscription to the service.",
-				"note": "Internal notes about the service, visible to the referents; they do not appear on the public catalog page."
+				"note": "Internal notes about the service, visible to the referents. On the catalog page they can be shown to the users with the roles enabled by the configuration."
 			},
 			"SETTINGS": {
 				"servizi_view": "Choose the default display mode of the list of services."
@@ -2713,6 +2713,10 @@
 			"View": "View"
 		},
 		"SERVICES": {
+			"NOTA_VETRINA": {
+				"Titolo": "Service note",
+				"Mostra": "Show the service note"
+			},
 			"PDND_PENDING": "Pending PDND actions: {{count}}",
 			"PDND_PENDING_LOADING": "Counting pending PDND actions",
 			"RATE_LIMITING": {
