@@ -57,4 +57,11 @@ describe('AdesioneRateLimitingVerificaDialogComponent (Issue #402)', () => {
     });
     expect(crea()._corrente).toBeNull();
   });
+
+  it('should name the API of the PDND purposes specific for an API', () => {
+    const component = crea();
+    expect(component._nomeApi('a2')).toBe('API 2 v2');
+    expect(component._nomeApi(undefined)).toBe('');
+    expect(component._nomeApi('sconosciuta')).toBe('');
+  });
 });

@@ -153,6 +153,40 @@
   }
 }
 
+// Esito del confronto con la finalita` PDND
+.rl-chip[data-tono="ok"] {
+  border-color: var(--ok-border, #a6dcb7);
+  background: var(--ok-soft, #e7f6ec);
+  color: var(--ok-ink, #1b6b3a);
+}
+
+.rl-chip[data-tono="avviso"] {
+  border-color: var(--warn-border, #f5c98a);
+  background: var(--warn-soft, #fff4e5);
+  color: var(--warn-ink, #8a4b00);
+}
+
+.rl-chip[data-tono="errore"] {
+  border-color: var(--err, #d92d20);
+  background: var(--err-soft, #fdecea);
+  color: var(--err-ink, #b81e2b);
+}
+
+.rl-finalita {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+.rl-finalita-nome {
+  font-size: 12px;
+  color: var(--ink-3, #506a80);
+  overflow-wrap: anywhere;
+}
+
 .rl-chip-corrente {
   border-color: var(--warn-border, #f5c98a);
   background: var(--surface, #fff);

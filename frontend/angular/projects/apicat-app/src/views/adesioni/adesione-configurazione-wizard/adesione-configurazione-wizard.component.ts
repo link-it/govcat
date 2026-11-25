@@ -1130,6 +1130,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return this._isSubstepNaturallyActive(section, 'in_approvazione') && this._isWorkflowActionEnabled('stato_successivo');
     }
 
+    /**
+     * Verifica del rate limiting: in approvazione e, per chi porta avanti l'adesione autorizzata, in
+     * configurazione, dove contano le finalita` PDND indicate dopo l'autorizzazione.
+     */
+    canVerificareRateLimiting(section: 'collaudo' | 'produzione'): boolean {
+        return this.canApprovare(section)
+            || (this._isSubstepNaturallyActive(section, 'in_configurazione') && this._isWorkflowActionEnabled('stato_successivo'));
+    }
+
     canRifiutare(section: 'collaudo' | 'produzione'): boolean {
         const _precedente = this.getCambioStatoEntry()?.stato_precedente?.nome;
         return this._isSubstepNaturallyActive(section, 'in_approvazione') && !!_precedente

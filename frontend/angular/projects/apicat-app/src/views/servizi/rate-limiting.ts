@@ -65,8 +65,69 @@ export interface RateLimitingServizioApi {
     produzione: RateLimitingRiepilogo[];
 }
 
+/** Motivo per cui una finalita` PDND non e` stata letta. */
+export type RateLimitingFinalitaErrore = 'non_valida' | 'non_trovata' | 'non_disponibile';
+
+/** Confronto fra la quota giornaliera dell'aderente e quella della finalita` PDND. */
+export type RateLimitingFinalitaEsito = 'conforme' | 'inferiore' | 'superiore' | 'quota_assente' | 'non_verificabile';
+
+/** Finalita` PDND usata da una o piu` adesioni autorizzate dell'ambiente. */
+export interface RateLimitingFinalita {
+    purpose_id: string;
+    /** Presente se la finalita` non e` stata letta dalla PDND: allora titolo, quota e stato mancano. */
+    errore?: RateLimitingFinalitaErrore;
+    titolo?: string;
+    /** Chiamate giornaliere della finalita`. */
+    quota?: number;
+    /** Stato sulla PDND: diverso da ACTIVE e` un'anomalia. */
+    stato?: string;
+    /** Aumento richiesto in attesa di approvazione dell'erogatore. */
+    quota_in_attesa?: number;
+    /** Somma delle quote giornaliere delle adesioni autorizzate che la usano. */
+    quota_assegnata: number;
+    numero_adesioni: number;
+    /** La quota assegnata supera la quota della finalita`. */
+    superata: boolean;
+}
+
+/** Finalita` indicata da un'adesione, con l'esito del confronto. */
+export interface RateLimitingAdesioneFinalita {
+    /** Presente se la proprieta` della finalita` e` specifica per API. */
+    id_api?: string;
+    /** Quota giornaliera dell'aderente confrontata; assente se non ne ha. */
+    quota_richiesta?: number;
+    esito: RateLimitingFinalitaEsito;
+    finalita: RateLimitingFinalita;
+}
+
+/** Finalita` per ambiente: un ambiente non configurato e` assente. */
+export interface RateLimitingServizioFinalita {
+    collaudo?: RateLimitingFinalita[];
+    produzione?: RateLimitingFinalita[];
+}
+
 export interface RateLimitingServizio {
     api: RateLimitingServizioApi[];
+    finalita?: RateLimitingServizioFinalita;
+}
+
+/** Tono di resa dell'esito: l'aderente sopra la finalita` e` un errore, sotto o senza quota un avviso. */
+export const FINALITA_ESITO_TONO: Record<RateLimitingFinalitaEsito, 'ok' | 'avviso' | 'errore' | 'neutro'> = {
+    conforme: 'ok',
+    inferiore: 'avviso',
+    superiore: 'errore',
+    quota_assente: 'avviso',
+    non_verificabile: 'neutro'
+};
+
+/** Stato della finalita` sulla PDND diverso da ACTIVE. */
+export function finalitaNonAttiva(finalita: RateLimitingFinalita | null | undefined): boolean {
+    return !!finalita?.stato && finalita.stato !== 'ACTIVE';
+}
+
+/** Almeno un aderente sopra la quota della finalita`, o una finalita` superata dalla somma delle quote. */
+export function finalitaInErrore(finalita: RateLimitingAdesioneFinalita[] | null | undefined): boolean {
+    return (finalita || []).some((f) => f.esito === 'superiore' || f.finalita?.superata);
 }
 
 export interface ItemRateLimitingFruitore {
@@ -77,6 +138,8 @@ export interface ItemRateLimitingFruitore {
     /** Adesione gia` autorizzata per l'ambiente. */
     autorizzata?: boolean;
     rate_limiting: RateLimitingAdesioneApi[];
+    /** Assente se l'ambiente non e` configurato per le finalita`; vuota se l'adesione non ne indica. */
+    finalita?: RateLimitingAdesioneFinalita[];
 }
 
 /**
@@ -109,6 +172,8 @@ export interface RateLimitingVerifica {
     /** Nessuna quota dell'adesione sfora la quota residua. */
     rientra: boolean;
     api: RateLimitingVerificaApi[];
+    /** Finalita` PDND dell'adesione: non incidono su `rientra`. */
+    finalita?: RateLimitingAdesioneFinalita[];
 }
 
 export const RUOLO_EROGATO_SOGGETTO_DOMINIO = 'erogato_soggetto_dominio';

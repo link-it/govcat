@@ -1,3 +1,12 @@
+2026-11-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 446: finalità PDND nel rate limiting. Il riepilogo del servizio mostra per ambiente le finalità
+	  delle adesioni autorizzate (quota, assegnata, adesioni, condivisa, superata, stato non attivo,
+	  aumento in attesa, finalità non letta); la lista dei fruitori l'esito del confronto per API; la
+	  verifica dell'adesione il confronto con la quota dell'aderente e un chip dedicato, ed è disponibile
+	  anche in configurazione per chi porta avanti l'adesione autorizzata. Dati di esempio aggiornati.
+
 2026-11-25  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

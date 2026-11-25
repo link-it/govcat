@@ -857,6 +857,37 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     });
   });
 
+  describe('verifica del rate limiting (Issue 446)', () => {
+    const _setup = (stato: string, canChange: boolean) => {
+      Tools.Configurazione = { adesione: { workflow: { cambi_stato: [
+        { stato_attuale: 'richiesto_collaudo', stato_successivo: { nome: 'autorizzato_collaudo', ruoli_abilitati: ['gestore'] } },
+        { stato_attuale: 'autorizzato_collaudo', stato_successivo: { nome: 'in_configurazione_collaudo', ruoli_abilitati: ['gestore'] } }
+      ] } } };
+      (component as any).stepWizardSezione = { collaudo: [
+        { code: 'in_compilazione', descrizione: '', stati: ['bozza'] },
+        { code: 'in_approvazione', descrizione: '', stati: ['richiesto_collaudo'] },
+        { code: 'in_configurazione', descrizione: '', stati: ['autorizzato_collaudo', 'in_configurazione_collaudo'] }
+      ] };
+      component.adesione = { id_adesione: '1', stato, servizio: { nome: 'PetStore', versione: 1, stato: 'pubblicato_collaudo' }, soggetto: { nome: 'Ente' } };
+      mockAuthService.canChangeStatus.mockImplementation(() => canChange);
+    };
+
+    it('should offer the check in approval and, for the PDND purposes, to who moves on the authorized subscription', () => {
+      _setup('richiesto_collaudo', true);
+      expect(component.canVerificareRateLimiting('collaudo')).toBe(true);
+      _setup('autorizzato_collaudo', true);
+      expect(component.canApprovare('collaudo')).toBe(false);
+      expect(component.canVerificareRateLimiting('collaudo')).toBe(true);
+    });
+
+    it('should not offer the check to who cannot move on the subscription, nor while it is being filled in', () => {
+      _setup('autorizzato_collaudo', false);
+      expect(component.canVerificareRateLimiting('collaudo')).toBe(false);
+      _setup('bozza', true);
+      expect(component.canVerificareRateLimiting('collaudo')).toBe(false);
+    });
+  });
+
   // -------- Fase Produzione: sblocco per servizio pubblicato in produzione --------
   describe('rifiuto della richiesta (Issue 401)', () => {
     const _setup = (canChange: (type: string) => boolean) => {

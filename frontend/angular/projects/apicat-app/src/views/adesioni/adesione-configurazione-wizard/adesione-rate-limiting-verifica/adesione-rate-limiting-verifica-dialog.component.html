@@ -35,6 +35,18 @@
   </div>
   <p class="vr-desc">{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.Descrizione' | translate }}</p>
 
+  @if (verifica?.finalita?.length) {
+    <section class="vr-finalita" aria-labelledby="vr-finalita-title">
+      <h3 class="vr-finalita-title" id="vr-finalita-title">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Titolo' | translate }}</h3>
+      <p class="vr-desc">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.SoloAvviso' | translate }}</p>
+      <div class="vr-finalita-elenco">
+        @for (fz of verifica!.finalita; track $index) {
+          <app-rate-limiting-finalita [finalita]="fz.finalita" [esito]="fz" [nomeApi]="_nomeApi(fz.id_api)"></app-rate-limiting-finalita>
+        }
+      </div>
+    </section>
+  }
+
   @if ((verifica?.api?.length || 0) > 1) {
     <lnk-pill-tabs class="vr-tabs" [items]="_tabs" [active]="_apiSelezionata?.id_api || ''" ariaLabel="APP.SERVICES.RATE_LIMITING.Api"
                    [truncate]="true" (activeChange)="seleziona($event)"></lnk-pill-tabs>

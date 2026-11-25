@@ -74,4 +74,16 @@ describe('AdesioneRateLimitingVerificaComponent (Issue #402)', () => {
       initialState: expect.objectContaining({ esito: 'APP.ADESIONI.RATE_LIMITING_VERIFICA.EsitoSfora', ambiente: 'collaudo', sottotitolo: 'Ente · Servizio v. 1', idServizio: 's1', idAdesione: 'ad1' })
     }));
   });
+
+  it('should signal apart the quotas over the PDND purpose, also without quotas of the service', () => {
+    const finalita = { purpose_id: 'p1', quota: 100, quota_assegnata: 150, numero_adesioni: 2, superata: true };
+    mockApi.getDetails.mockReturnValue(of({ rientra: true, api: [], finalita: [{ esito: 'inferiore', quota_richiesta: 50, finalita }] }));
+    avvia();
+    expect(component._verifica).not.toBeNull();
+    expect(component._icona).toContain('bi-check-circle-fill');
+    expect(component._erroreFinalita).toBe(true);
+    mockApi.getDetails.mockReturnValue(of({ ...verifica(true), finalita: [{ esito: 'conforme', quota_richiesta: 100, finalita: { ...finalita, superata: false } }] }));
+    component.carica();
+    expect(component._erroreFinalita).toBe(false);
+  });
 });

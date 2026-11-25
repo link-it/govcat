@@ -61,6 +61,25 @@
   color: var(--ink-3, #506a80);
 }
 
+.vr-finalita {
+  // il padding globale delle section non serve qui
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.vr-finalita-title {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+}
+
+.vr-finalita-elenco {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 12px;
+}
+
 .vr-tabs {
   display: block;
   margin-bottom: 16px;

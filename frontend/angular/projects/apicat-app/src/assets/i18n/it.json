@@ -2757,6 +2757,7 @@
 					"StatoNonAttivo": "Finalità non attiva sulla PDND",
 					"Nessuna": "Nessuna finalità indicata dalle adesioni autorizzate.",
 					"SoloAvviso": "Solo un avviso: nessun salvataggio viene bloccato.",
+					"ChipErrore": "Oltre la finalità PDND",
 					"ESITO": {
 						"conforme": "Conforme alla finalità",
 						"inferiore": "Inferiore alla quota della finalità",

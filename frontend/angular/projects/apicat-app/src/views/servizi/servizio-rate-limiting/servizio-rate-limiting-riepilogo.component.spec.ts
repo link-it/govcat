@@ -91,4 +91,20 @@ describe('ServizioRateLimitingRiepilogoComponent (Issue #402)', () => {
     component.seleziona('a2');
     expect(component._modifica).toBeNull();
   });
+
+  it('should show the PDND purposes of the environment only when the environment is configured for them', () => {
+    const finalita = [{ purpose_id: 'p1', titolo: 'Finalita 1', quota: 100, quota_assegnata: 120, numero_adesioni: 2, superata: true }];
+    mockApi.getDetails.mockReturnValue(of({ ...riepilogo, finalita: { collaudo: finalita } }));
+    avvia(['gestore']);
+    expect(component._finalita).toEqual(finalita);
+    mockApi.getDetails.mockReturnValue(of({ ...riepilogo, finalita: { produzione: [] } }));
+    component.carica();
+    expect(component._finalita).toBeNull();
+    component.ambiente = 'produzione';
+    component.carica();
+    expect(component._finalita).toEqual([]);
+    mockApi.getDetails.mockReturnValue(of(riepilogo));
+    component.carica();
+    expect(component._finalita).toBeNull();
+  });
 });

@@ -25,6 +25,22 @@
     } @else {
       <p class="rl-desc">{{ 'APP.SERVICES.RATE_LIMITING.Descrizione' | translate }}</p>
 
+      @if (_finalita) {
+        <section class="rl-finalita" aria-labelledby="rl-finalita-title">
+          <h3 class="rl-finalita-title" id="rl-finalita-title">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Titolo' | translate }}</h3>
+          <p class="rl-desc">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Descrizione' | translate }}. {{ 'APP.SERVICES.RATE_LIMITING.FINALITA.SoloAvviso' | translate }}</p>
+          @if (_finalita.length) {
+            <div class="rl-finalita-elenco">
+              @for (f of _finalita; track f.purpose_id) {
+                <app-rate-limiting-finalita [finalita]="f"></app-rate-limiting-finalita>
+              }
+            </div>
+          } @else {
+            <p class="rl-vuoto">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Nessuna' | translate }}</p>
+          }
+        </section>
+      }
+
       @if (_api.length > 1) {
         <lnk-pill-tabs class="rl-tabs" [items]="_tabs" [active]="_apiSelezionata?.id_api || ''" ariaLabel="APP.SERVICES.RATE_LIMITING.Api"
                        [truncate]="true" (activeChange)="seleziona($event)"></lnk-pill-tabs>

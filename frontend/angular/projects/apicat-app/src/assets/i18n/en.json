@@ -2757,6 +2757,7 @@
 					"StatoNonAttivo": "Purpose not active on PDND",
 					"Nessuna": "No purpose indicated by the authorized subscriptions.",
 					"SoloAvviso": "Warning only: no save is blocked.",
+					"ChipErrore": "Over the PDND purpose",
 					"ESITO": {
 						"conforme": "Matches the purpose",
 						"inferiore": "Below the purpose quota",

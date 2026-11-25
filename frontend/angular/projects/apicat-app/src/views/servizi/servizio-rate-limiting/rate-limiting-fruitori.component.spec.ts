@@ -189,4 +189,17 @@ describe('RateLimitingFruitoriComponent (Issue #402)', () => {
     expect(component._fruitori.map((f) => f.id_adesione)).toEqual(['ad2', 'ad3']);
     expect(component._altriFruitori).toBe(false);
   });
+
+  it('should show for each consumer the PDND purposes of the API of the columns', () => {
+    avvia();
+    const finalita = { purpose_id: 'p1', quota_assegnata: 10, numero_adesioni: 1, superata: false };
+    const fruitore = { ...fruitori.content[0], finalita: [
+      { esito: 'conforme', finalita },
+      { id_api: 'a1', esito: 'superiore', finalita },
+      { id_api: 'a2', esito: 'inferiore', finalita }
+    ] } as any;
+    expect(component._finalitaDi(fruitore).map((f) => f.esito)).toEqual(['conforme', 'superiore']);
+    expect(component._tono(fruitore.finalita[1])).toBe('errore');
+    expect(component._finalitaDi({ ...fruitore, finalita: undefined })).toEqual([]);
+  });
 });

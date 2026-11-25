@@ -27,7 +27,8 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { LocaleNumberPipe } from '@app/pipes/locale-number.pipe';
 import {
-    ItemRateLimitingFruitore, RATE_LIMITING_PERIODO_LABEL, RateLimitingAdesioneApi, RateLimitingPeriodo
+    FINALITA_ESITO_TONO, ItemRateLimitingFruitore, RATE_LIMITING_PERIODO_LABEL, RateLimitingAdesioneApi, RateLimitingAdesioneFinalita,
+    RateLimitingPeriodo
 } from '../rate-limiting';
 
 /** Colonna della tabella dei fruitori: un periodo di un'API. */
@@ -248,6 +249,16 @@ export class RateLimitingFruitoriComponent implements OnChanges, OnDestroy {
 
     _label(periodo: RateLimitingPeriodo): string {
         return RATE_LIMITING_PERIODO_LABEL[periodo] || periodo;
+    }
+
+    /** Finalita` del fruitore per l'API delle colonne: quelle senza `id_api` valgono per tutte le API. */
+    _finalitaDi(fruitore: ItemRateLimitingFruitore): RateLimitingAdesioneFinalita[] {
+        const _idApi = this.colonne[0]?.id_api;
+        return (fruitore.finalita || []).filter((f) => !f.id_api || !_idApi || f.id_api === _idApi);
+    }
+
+    _tono(finalita: RateLimitingAdesioneFinalita): string {
+        return FINALITA_ESITO_TONO[finalita.esito];
     }
 
     _quota(fruitore: ItemRateLimitingFruitore, colonna: ColonnaFruitori): number | null {

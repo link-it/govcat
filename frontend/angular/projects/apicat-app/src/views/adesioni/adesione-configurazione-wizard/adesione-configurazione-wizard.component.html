@@ -1530,7 +1530,7 @@
 
                     <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3"
                          [style.border-top]="_subStepDisclaimers?.length ? '1px solid var(--line)' : null">
-                      @if (canApprovare(section)) {
+                      @if (canVerificareRateLimiting(section)) {
                         <app-adesione-rate-limiting-verifica class="me-auto"
                           [adesione]="adesione"
                           [ambiente]="section"

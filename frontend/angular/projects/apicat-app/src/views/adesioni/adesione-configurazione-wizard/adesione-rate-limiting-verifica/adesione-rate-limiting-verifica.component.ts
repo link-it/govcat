@@ -27,7 +27,7 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from '@app/lib/interceptors/error.interceptor';
 import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
-import { ItemRateLimitingFruitore, RUOLO_EROGATO_SOGGETTO_DOMINIO, RateLimitingVerifica } from '@app/views/servizi/rate-limiting';
+import { ItemRateLimitingFruitore, RUOLO_EROGATO_SOGGETTO_DOMINIO, RateLimitingVerifica, finalitaInErrore } from '@app/views/servizi/rate-limiting';
 import { fruitoriVerificaMock, verificaMock } from '@app/views/servizi/rate-limiting.mock';
 import { AdesioneRateLimitingVerificaDialogComponent } from './adesione-rate-limiting-verifica-dialog.component';
 
@@ -39,6 +39,20 @@ import { AdesioneRateLimitingVerificaDialogComponent } from './adesione-rate-lim
 @Component({
     selector: 'app-adesione-rate-limiting-verifica',
     templateUrl: 'adesione-rate-limiting-verifica.component.html',
+    styles: [`
+        .vr-chip-finalita {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--err, #d92d20);
+            background: var(--err-soft, #fdecea);
+            color: var(--err-ink, #b81e2b);
+            font-size: 12px;
+            font-weight: 600;
+        }
+    `],
     standalone: true,
     imports: [CommonModule, TranslateModule, LnkButtonComponent]
 })
@@ -76,7 +90,7 @@ export class AdesioneRateLimitingVerificaComponent implements OnChanges {
         ).pipe(catchError(() => of(null)));
         _verifica$.subscribe((verifica: RateLimitingVerifica | null) => {
             if (_corrente !== this._caricamento) { return; }
-            this._verifica = verifica?.api?.length ? verifica : null;
+            this._verifica = (verifica?.api?.length || verifica?.finalita?.length) ? verifica : null;
         });
     }
 
@@ -102,6 +116,11 @@ export class AdesioneRateLimitingVerificaComponent implements OnChanges {
             this._fruitoriMock = [_corrente, ...fruitoriVerificaMock(api)];
             return _verifica;
         }));
+    }
+
+    /** Quote oltre la finalita` PDND: segnalate a parte, `rientra` riguarda solo la quota del servizio. */
+    get _erroreFinalita(): boolean {
+        return finalitaInErrore(this._verifica?.finalita);
     }
 
     get _icona(): string {

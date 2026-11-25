@@ -17,6 +17,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 @if (_verifica) {
+  <div class="d-inline-flex flex-wrap align-items-center gap-2">
   <lnk-button
     [label]="'APP.ADESIONI.RATE_LIMITING_VERIFICA.Pulsante' | translate"
     [icon]="_icona"
@@ -27,4 +28,10 @@
     [ariaLabel]="('APP.ADESIONI.RATE_LIMITING_VERIFICA.Pulsante' | translate) + ': ' + (_esito | translate)"
     (onAction)="apri()">
   </lnk-button>
+  @if (_erroreFinalita) {
+    <span class="vr-chip-finalita" [title]="'APP.SERVICES.RATE_LIMITING.FINALITA.Superata' | translate">
+      <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.ChipErrore' | translate }}
+    </span>
+  }
+  </div>
 }

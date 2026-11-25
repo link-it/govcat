@@ -27,11 +27,12 @@ import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from '@app/lib/interceptors/error.i
 import { LocaleNumberPipe } from '@app/pipes/locale-number.pipe';
 import { PillTab, PillTabsComponent } from '@app/components/lnk-ui/pill-tabs/pill-tabs.component';
 import {
-    ItemRateLimitingFruitore, RATE_LIMITING_PERIODI, RATE_LIMITING_PERIODO_LABEL, RateLimitingPeriodo, RateLimitingRiepilogo,
+    ItemRateLimitingFruitore, RATE_LIMITING_PERIODI, RATE_LIMITING_PERIODO_LABEL, RateLimitingFinalita, RateLimitingPeriodo, RateLimitingRiepilogo,
     RateLimitingServizio, puoGestireRateLimiting
 } from '../rate-limiting';
 import { apiRiepilogoMock, fruitoriMock, riepilogoMock } from '../rate-limiting.mock';
 import { ModificaFruitore, RateLimitingFruitoriComponent } from './rate-limiting-fruitori.component';
+import { RateLimitingFinalitaComponent } from './rate-limiting-finalita.component';
 
 /** Quote di un'API per un periodo, con i dati del riepilogo. */
 export interface ColonnaRateLimiting extends RateLimitingRiepilogo {
@@ -57,7 +58,7 @@ export interface ApiRateLimiting {
     templateUrl: 'servizio-rate-limiting-riepilogo.component.html',
     styleUrls: ['servizio-rate-limiting-riepilogo.component.scss'],
     standalone: true,
-    imports: [LocaleNumberPipe, CommonModule, TranslateModule, PillTabsComponent, RateLimitingFruitoriComponent]
+    imports: [LocaleNumberPipe, CommonModule, TranslateModule, PillTabsComponent, RateLimitingFruitoriComponent, RateLimitingFinalitaComponent]
 })
 export class ServizioRateLimitingRiepilogoComponent implements OnChanges {
 
@@ -71,6 +72,8 @@ export class ServizioRateLimitingRiepilogoComponent implements OnChanges {
 
     _api: ApiRateLimiting[] = [];
     _apiSelezionata: ApiRateLimiting | null = null;
+    /** Finalita` PDND dell'ambiente; null se l'ambiente non e` configurato per le finalita`. */
+    _finalita: RateLimitingFinalita[] | null = null;
     /** Tab delle API (riferimento stabile), con un avviso sulle API con quote superate. */
     _tabs: PillTab[] = [];
     private _caricamento: number = 0;
@@ -112,6 +115,7 @@ export class ServizioRateLimitingRiepilogoComponent implements OnChanges {
             }
             const _selezionata = this._apiSelezionata?.id_api;
             this._api = this._componi(resp as RateLimitingServizio);
+            this._finalita = (resp as RateLimitingServizio)?.finalita?.[this.ambiente] ?? null;
             this._apiSelezionata = this._api.find((a) => a.id_api === _selezionata) || this._api[0] || null;
             this._tabs = this._api.map((a) => ({
                 key: a.id_api,

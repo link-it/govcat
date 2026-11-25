@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import {
-    ItemRateLimitingFruitore, RATE_LIMITING_PERIODI, RateLimiting, RateLimitingAdesioneApi, RateLimitingRiepilogo, RateLimitingServizio,
-    RateLimitingVerifica, RateLimitingVerificaPeriodo
+    ItemRateLimitingFruitore, RATE_LIMITING_PERIODI, RateLimiting, RateLimitingAdesioneApi, RateLimitingAdesioneFinalita, RateLimitingFinalita,
+    RateLimitingFinalitaEsito, RateLimitingRiepilogo, RateLimitingServizio, RateLimitingVerifica, RateLimitingVerificaPeriodo
 } from './rate-limiting';
 
 /**
@@ -36,12 +36,23 @@ export const RATE_LIMITING_MOCK_QUOTE: RateLimiting[][] = [
     [{ periodo: 'giorno', quota: 20000, quota_fruitore: 4000 }, { periodo: 'minuto', quota_fruitore: 20 }]
 ];
 
-/** Quota di ciascun fruitore rispetto al massimo per fruitore (o a un quarto della quota totale); 0 = nessuna quota. */
-const MOCK_FRUITORI = [
-    { soggetto: 'Comune di Vallefiorita', id_logico: 'VF-01', stato: 'pubblicato_collaudo', autorizzata: true, fattore: 1 },
-    { soggetto: 'Unione dei Comuni del Monte Alto', id_logico: null, stato: 'autorizzato_collaudo', autorizzata: true, fattore: 0.8 },
+/** Finalita` PDND di esempio: una conforme, una condivisa e superata, una non trovata sulla PDND. */
+const MOCK_FINALITA: Array<{ purpose_id: string; titolo?: string; caso: 'conforme' | 'superata' | 'non_trovata' }> = [
+    { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a01', titolo: 'Consultazione anagrafe comunale', caso: 'conforme' },
+    { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a02', titolo: 'Verifica della residenza', caso: 'superata' },
+    { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a03', caso: 'non_trovata' }
+];
+
+/**
+ * Quota di ciascun fruitore rispetto al massimo per fruitore (o a un quarto della quota totale); 0 = nessuna quota.
+ * `finalita`: indice in MOCK_FINALITA (solo adesioni autorizzate).
+ */
+const MOCK_FRUITORI: Array<{ soggetto: string; id_logico: string | null; stato: string; autorizzata: boolean; fattore: number; finalita?: number }> = [
+    { soggetto: 'Comune di Vallefiorita', id_logico: 'VF-01', stato: 'pubblicato_collaudo', autorizzata: true, fattore: 1, finalita: 0 },
+    { soggetto: 'Unione dei Comuni del Monte Alto', id_logico: null, stato: 'autorizzato_collaudo', autorizzata: true, fattore: 0.8, finalita: 1 },
     { soggetto: 'Azienda Sanitaria Locale Est', id_logico: 'ASL-EST', stato: 'richiesto_collaudo', autorizzata: false, fattore: 0.6 },
-    { soggetto: 'Provincia di Montebello', id_logico: null, stato: 'pubblicato_collaudo', autorizzata: true, fattore: 1 },
+    { soggetto: 'Provincia di Montebello', id_logico: null, stato: 'pubblicato_collaudo', autorizzata: true, fattore: 1, finalita: 1 },
+    { soggetto: 'Città Metropolitana di Rivabella', id_logico: 'CMR', stato: 'autorizzato_collaudo', autorizzata: true, fattore: 0, finalita: 2 },
     { soggetto: 'Consorzio Servizi Digitali', id_logico: 'CSD', stato: 'bozza', autorizzata: false, fattore: 0.5 },
     { soggetto: 'Comune di Pratoverde', id_logico: null, stato: 'bozza', autorizzata: false, fattore: 0 }
 ];
@@ -79,7 +90,7 @@ export function fruitoriMock(api: Array<{ id_api: string; quote: RateLimiting[] 
     for (let i = _fruitori.length; i < RATE_LIMITING_MOCK_FRUITORI; i++) {
         _fruitori.push({ soggetto: `Comune di Esempio ${i + 1}`, id_logico: `CE-${i + 1}`, stato: 'bozza', autorizzata: false, fattore: 0 });
     }
-    return _fruitori.map((f, i) => ({
+    const _elenco = _fruitori.map((f, i) => ({
         id_adesione: `mock-adesione-${i + 1}`,
         id_logico: f.id_logico || undefined,
         soggetto: { nome: f.soggetto },
@@ -89,6 +100,51 @@ export function fruitoriMock(api: Array<{ id_api: string; quote: RateLimiting[] 
             id_api: a.id_api, periodo: q.periodo, quota: _quotaFruitore(q, f.fattore)
         } as RateLimitingAdesioneApi))) : []
     }));
+    assegnaFinalitaMock(_elenco);
+    return _elenco;
+}
+
+/** Quota giornaliera di un'adesione: somma delle quote giornaliere delle sue API (assente se non ne ha). */
+function _quotaGiornaliera(quote: RateLimitingAdesioneApi[]): number | undefined {
+    const _giorno = (quote || []).filter((q) => q.periodo === 'giorno');
+    return _giorno.length ? _giorno.reduce((t, q) => t + q.quota, 0) : undefined;
+}
+
+function _esitoFinalita(finalita: RateLimitingFinalita, richiesta: number | undefined): RateLimitingFinalitaEsito {
+    if (finalita.errore || finalita.quota == null) { return 'non_verificabile'; }
+    if (richiesta === undefined) { return 'quota_assente'; }
+    return richiesta > finalita.quota ? 'superiore' : (richiesta < finalita.quota ? 'inferiore' : 'conforme');
+}
+
+/**
+ * Finalita` di esempio delle adesioni autorizzate, ricalcolate dalle loro quote giornaliere (anche dopo una
+ * modifica): la conforme ha la quota del suo aderente, la condivisa una quota inferiore alla somma.
+ */
+export function assegnaFinalitaMock(fruitori: ItemRateLimitingFruitore[]): RateLimitingFinalita[] {
+    const _indice = (f: ItemRateLimitingFruitore) => MOCK_FRUITORI[Number(f.id_adesione.replace('mock-adesione-', '')) - 1]?.finalita;
+    const _elenco = MOCK_FINALITA.map((m, i) => {
+        const _aderenti = fruitori.filter((f) => f.autorizzata && _indice(f) === i);
+        const _quote = _aderenti.map((f) => _quotaGiornaliera(f.rate_limiting) || 0);
+        const _assegnata = _quote.reduce((t, q) => t + q, 0);
+        const _finalita: RateLimitingFinalita = { purpose_id: m.purpose_id, quota_assegnata: _assegnata, numero_adesioni: _aderenti.length, superata: false };
+        if (m.caso === 'non_trovata') {
+            _finalita.errore = 'non_trovata';
+        } else {
+            _finalita.titolo = m.titolo;
+            _finalita.stato = 'ACTIVE';
+            _finalita.quota = m.caso === 'conforme' ? (_quote[0] || 1000) : Math.max(Math.round(_assegnata * 0.8), 1);
+            if (m.caso === 'superata') { _finalita.quota_in_attesa = _assegnata; }
+            _finalita.superata = _assegnata > _finalita.quota;
+        }
+        return _finalita;
+    });
+    fruitori.forEach((f) => {
+        const _i = _indice(f);
+        if (!f.autorizzata || _i === undefined) { f.finalita = []; return; }
+        const _richiesta = _quotaGiornaliera(f.rate_limiting);
+        f.finalita = [{ quota_richiesta: _richiesta, esito: _esitoFinalita(_elenco[_i], _richiesta), finalita: _elenco[_i] }];
+    });
+    return _elenco.filter((f) => f.numero_adesioni > 0);
 }
 
 /** API del riepilogo con le quote di esempio dell'ambiente (quelle reali se gia` dichiarate). */
@@ -101,6 +157,7 @@ export function apiRiepilogoMock(riepilogo: RateLimitingServizio | null, ambient
 /** Riepilogo di un ambiente ricalcolato dalle quote del servizio e da quelle dei fruitori. */
 export function riepilogoMock(riepilogo: RateLimitingServizio | null, fruitori: ItemRateLimitingFruitore[], ambiente: 'collaudo' | 'produzione'): RateLimitingServizio {
     return {
+        finalita: { [ambiente]: assegnaFinalitaMock(fruitori) },
         api: apiRiepilogoMock(riepilogo, ambiente).map((a) => {
             const _voci: RateLimitingRiepilogo[] = a.quote.map((q: RateLimiting) => {
                 const _assegnate = fruitori
@@ -176,5 +233,21 @@ export function verificaMock(api: Array<{ id_api: string; nome: string; versione
         }))
     };
     _verifica.rientra = !_verifica.api.some((a) => a.rate_limiting.some((v) => v.sfora));
+    _verifica.finalita = _finalitaVerificaMock(_verifica, _fruitori);
     return _verifica;
+}
+
+/** Finalita` dell'adesione in verifica: la condivisa di esempio, con la quota giornaliera richiesta. */
+function _finalitaVerificaMock(verifica: RateLimitingVerifica, fruitori: ItemRateLimitingFruitore[]): RateLimitingAdesioneFinalita[] {
+    const _condivisa = fruitori.flatMap((f) => f.finalita || []).find((x) => x.finalita.purpose_id === MOCK_FINALITA[1].purpose_id)?.finalita;
+    if (!_condivisa) { return []; }
+    const _richiesta = _quotaGiornaliera(verifica.api.flatMap((a) => a.rate_limiting
+        .filter((v) => v.quota_richiesta)
+        .map((v) => ({ id_api: a.id_api, periodo: v.periodo, quota: v.quota_richiesta as number }))));
+    const _assegnata = _condivisa.quota_assegnata + (_richiesta || 0);
+    const _finalita: RateLimitingFinalita = {
+        ..._condivisa, quota_assegnata: _assegnata, numero_adesioni: _condivisa.numero_adesioni + 1,
+        superata: _condivisa.quota != null && _assegnata > _condivisa.quota
+    };
+    return [{ quota_richiesta: _richiesta, esito: _esitoFinalita(_finalita, _richiesta), finalita: _finalita }];
 }

@@ -94,6 +94,22 @@
                 }
               </div>
               <div class="text-muted small">{{ f.id_logico || '' }} {{ ('APP.WORKFLOW.STATUS.' + f.stato) | translate }}</div>
+              @for (fz of _finalitaDi(f); track $index) {
+                <div class="rl-finalita">
+                  <span class="rl-chip" [attr.data-tono]="_tono(fz)">{{ ('APP.SERVICES.RATE_LIMITING.FINALITA.ESITO.' + fz.esito) | translate }}</span>
+                  <span class="rl-finalita-nome" [title]="fz.finalita.purpose_id">{{ fz.finalita.titolo || fz.finalita.purpose_id }}</span>
+                  @if (fz.finalita.numero_adesioni > 1) {
+                    <span class="rl-chip" [attr.data-tono]="fz.finalita.superata ? 'errore' : null"
+                          [title]="fz.finalita.superata ? ('APP.SERVICES.RATE_LIMITING.FINALITA.Superata' | translate) : ''">
+                      @if (fz.finalita.superata) { <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> }
+                      {{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Condivisa' | translate: { numero: fz.finalita.numero_adesioni } }}
+                      @if (fz.finalita.superata) { <span class="visually-hidden">: {{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Superata' | translate }}</span> }
+                    </span>
+                  } @else if (fz.finalita.superata) {
+                    <span class="rl-chip" data-tono="errore">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Superata' | translate }}</span>
+                  }
+                </div>
+              }
             </th>
             @for (c of colonne; track c.chiave) {
               <td>

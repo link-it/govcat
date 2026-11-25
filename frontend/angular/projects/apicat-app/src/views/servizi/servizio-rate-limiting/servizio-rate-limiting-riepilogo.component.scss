@@ -118,6 +118,25 @@
   dd { margin: 0; font-weight: 600; }
 }
 
+.rl-finalita {
+  // il padding globale delle section non serve qui
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.rl-finalita-title {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+}
+
+.rl-finalita-elenco {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 12px;
+}
+
 .rl-avviso {
   margin: 8px 0 0;
   font-size: 12.5px;

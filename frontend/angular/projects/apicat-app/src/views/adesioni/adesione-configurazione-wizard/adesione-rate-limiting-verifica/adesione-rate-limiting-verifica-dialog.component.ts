@@ -27,6 +27,7 @@ import {
     ItemRateLimitingFruitore, RATE_LIMITING_PERIODO_LABEL, RateLimitingPeriodo, RateLimitingVerifica, RateLimitingVerificaApi, RateLimitingVerificaPeriodo
 } from '@app/views/servizi/rate-limiting';
 import { ColonnaFruitori, RateLimitingFruitoriComponent } from '@app/views/servizi/servizio-rate-limiting/rate-limiting-fruitori.component';
+import { RateLimitingFinalitaComponent } from '@app/views/servizi/servizio-rate-limiting/rate-limiting-finalita.component';
 
 /** Resoconto della verifica del rate limiting di un'adesione da autorizzare, per API e periodo, con i fruitori. */
 @Component({
@@ -34,7 +35,7 @@ import { ColonnaFruitori, RateLimitingFruitoriComponent } from '@app/views/servi
     templateUrl: 'adesione-rate-limiting-verifica-dialog.component.html',
     styleUrls: ['adesione-rate-limiting-verifica-dialog.component.scss'],
     standalone: true,
-    imports: [CommonModule, TranslateModule, LocaleNumberPipe, PillTabsComponent, RateLimitingFruitoriComponent]
+    imports: [CommonModule, TranslateModule, LocaleNumberPipe, PillTabsComponent, RateLimitingFruitoriComponent, RateLimitingFinalitaComponent]
 })
 export class AdesioneRateLimitingVerificaDialogComponent implements OnInit {
     // Valorizzati da `initialState` del BsModalService
@@ -95,6 +96,12 @@ export class AdesioneRateLimitingVerificaDialogComponent implements OnInit {
             periodo: v.periodo,
             quota_fruitore: v.quota_fruitore
         }));
+    }
+
+    /** API della finalita`, se la proprieta` e` specifica per API. */
+    _nomeApi(idApi: string | undefined): string {
+        const _api = idApi ? (this.verifica?.api || []).find((a) => a.id_api === idApi) : null;
+        return _api ? `${_api.nome} v${_api.versione}` : '';
     }
 
     _label(periodo: RateLimitingPeriodo): string {

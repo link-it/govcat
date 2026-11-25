@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  adeguaQuote, periodiDisponibili, puoGestireRateLimiting, quotaModificabile, quoteDaRighe, rateLimitingApplicabile, regolaRateLimiting
+  adeguaQuote, finalitaInErrore, finalitaNonAttiva, periodiDisponibili, puoGestireRateLimiting, quotaModificabile, quoteDaRighe,
+  rateLimitingApplicabile, regolaRateLimiting
 } from './rate-limiting';
 
 describe('rate-limiting', () => {
@@ -75,5 +76,19 @@ describe('rate-limiting', () => {
     expect(adeguaQuote([{ periodo: 'ora', quota_fruitore: 10 }], regola)).toEqual({ quote: [{ periodo: 'ora', quota_fruitore: 10 }], modificate: false });
     expect(adeguaQuote([{ periodo: 'minuto', quota_fruitore: 10 }, { periodo: 'giorno', quota: 300, quota_fruitore: 30 }, { periodo: 'ora', quota: 20 }], regola))
       .toEqual({ quote: [{ periodo: 'giorno', quota_fruitore: 30 }], modificate: true });
+  });
+
+  it('should report the PDND purposes exceeded by a subscriber or by the sum of the subscribers', () => {
+    const finalita = (superata: boolean) => ({ purpose_id: 'p1', quota_assegnata: 10, numero_adesioni: 1, superata });
+    expect(finalitaInErrore([{ esito: 'superiore', finalita: finalita(false) }])).toBe(true);
+    expect(finalitaInErrore([{ esito: 'inferiore', finalita: finalita(true) }])).toBe(true);
+    expect(finalitaInErrore([{ esito: 'conforme', finalita: finalita(false) }, { esito: 'non_verificabile', finalita: finalita(false) }])).toBe(false);
+    expect(finalitaInErrore(undefined)).toBe(false);
+  });
+
+  it('should consider not active a PDND purpose with a known state other than ACTIVE', () => {
+    expect(finalitaNonAttiva({ purpose_id: 'p1', stato: 'SUSPENDED', quota_assegnata: 0, numero_adesioni: 1, superata: false })).toBe(true);
+    expect(finalitaNonAttiva({ purpose_id: 'p1', stato: 'ACTIVE', quota_assegnata: 0, numero_adesioni: 1, superata: false })).toBe(false);
+    expect(finalitaNonAttiva({ purpose_id: 'p1', errore: 'non_trovata', quota_assegnata: 0, numero_adesioni: 1, superata: false })).toBe(false);
   });
 });
