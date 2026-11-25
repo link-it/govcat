@@ -18,6 +18,7 @@
  */
 import { ChangeDetectionStrategy, Component, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 let _progressivo = 0;
 
@@ -35,7 +36,7 @@ const LARGHEZZA = 480;
     templateUrl: 'servizio-nota-vetrina.component.html',
     styleUrls: ['servizio-nota-vetrina.component.scss'],
     standalone: true,
-    imports: [TranslateModule],
+    imports: [TranslateModule, TooltipModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
         '(document:click)': 'onDocumentClick($event)',
