@@ -49,6 +49,7 @@ Le versioni precedenti alla 2.5.1 non sono censite.
 
 | Chiave | Modifica | Default | Azione all'upgrade | Riferimento |
 |---|---|---|---|---|
+| `servizio.note_vetrina` (`abilitato`, `ruoli_abilitati`) | Aggiunta | assente = note non mostrate in vetrina | `Nessuna`: per mostrare le note del servizio nella pagina di vetrina impostare `abilitato` a `true` e indicare in `ruoli_abilitati` i ruoli dell'utente sul servizio che le vedono (`richiedente`, `referente`, `referente_superiore`, `gestore`; i ruoli tecnici valgono come i non tecnici, il gestore solo se elencato, lista vuota = nessuno). Regola la sola visualizzazione: l'API del dettaglio servizio restituisce le note come prima. | Issue 484 |
 | `monitoraggio.audit_abilitato` | Aggiunta | assente = disabilitato | `Valutare`: va abilitata per avere il monitoraggio di audit. | Issue 404 |
 | `monitoraggio.proprieta_audit` (`nome_gruppo`, `nome_proprieta`, `ambiente`) | Aggiunta | assente | `Valutare`: indica per ciascun ambiente le proprietà custom delle API con il pattern di audit; serve se `audit_abilitato` è `true`. | Issue 404 |
 | `servizio.api.profili[].rate_limiting` (`periodi`, `quota_totale`, `quota_fruitore`, con `required` e `ruoli_abilitati`) | Aggiunta | assente = sola quota totale con tutti i periodi; per i profili con `pdnd_type` quota totale e quota fruitore con il solo periodo `giorno` | `Valutare`: le proprietà custom di rate limiting esistenti non vengono migrate ai nuovi campi (il configuratore continua a leggerle). | Issue 402 |

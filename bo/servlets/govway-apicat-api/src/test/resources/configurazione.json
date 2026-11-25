@@ -135,6 +135,13 @@
     "consenti_non_sottoscrivibile": true,
     "adesioni_multiple": false,
     "tassonomie_abilitate": false,
+    "note_vetrina": {
+      "abilitato": true,
+      "ruoli_abilitati": [
+        "referente_superiore",
+        "referente"
+      ]
+    },
     "api": {
       "abilitato": true,
       "etichetta": "API",

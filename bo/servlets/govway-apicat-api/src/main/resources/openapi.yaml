@@ -8124,6 +8124,21 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
+        note_vetrina:
+          $ref: "#/components/schemas/ConfigurazioneNoteVetrina"
+    ConfigurazioneNoteVetrina:
+      description: "Visualizzazione del campo note del servizio nella pagina di vetrina. Se assente le note non sono mostrate in vetrina. Le note sono mostrate se abilitato e' true, l'utente ha sul servizio almeno uno dei ruoli_abilitati (i ruoli tecnici valgono come i corrispondenti non tecnici; il gestore solo se e' nella lista) e le note sono valorizzate. Con ruoli_abilitati vuoto le note non sono mostrate a nessuno. Regola la sola presentazione: il dettaglio del servizio restituisce le note come prima."
+      type: "object"
+      required:
+        - abilitato
+      properties:
+        abilitato:
+          type: "boolean"
+          default: false
+        ruoli_abilitati:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneRuolo'
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
