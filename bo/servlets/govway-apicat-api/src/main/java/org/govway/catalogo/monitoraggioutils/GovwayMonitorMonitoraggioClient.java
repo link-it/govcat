@@ -88,7 +88,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 	@Value("${monitor.audit.pool_size:10}")
 	private int auditPoolSize;
 
-	private volatile ExecutorService auditExecutor;
+	private ExecutorService auditExecutor;
 	
 	@Override
 	public GetTransazioneResponse getTransazione(GetTransazioneRequest request) {
@@ -563,24 +563,20 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 		}
 	}
 
-	private ExecutorService getAuditExecutor() {
+	private synchronized ExecutorService getAuditExecutor() {
 		if(this.auditExecutor == null) {
-			synchronized(this) {
-				if(this.auditExecutor == null) {
-					AtomicInteger contatore = new AtomicInteger();
-					this.auditExecutor = Executors.newFixedThreadPool(Math.max(1, this.auditPoolSize), r -> {
-						Thread t = new Thread(r, "govcat-monitor-audit-" + contatore.incrementAndGet());
-						t.setDaemon(true);
-						return t;
-					});
-				}
-			}
+			AtomicInteger contatore = new AtomicInteger();
+			this.auditExecutor = Executors.newFixedThreadPool(Math.max(1, this.auditPoolSize), r -> {
+				Thread t = new Thread(r, "govcat-monitor-audit-" + contatore.incrementAndGet());
+				t.setDaemon(true);
+				return t;
+			});
 		}
 		return this.auditExecutor;
 	}
 
 	@PreDestroy
-	public void shutdownAuditExecutor() {
+	public synchronized void shutdownAuditExecutor() {
 		if(this.auditExecutor != null) {
 			this.auditExecutor.shutdownNow();
 		}
