@@ -65,8 +65,14 @@ export interface RateLimitingServizioApi {
     produzione: RateLimitingRiepilogo[];
 }
 
-/** Motivo per cui una finalita` PDND non e` stata letta. */
-export type RateLimitingFinalitaErrore = 'non_valida' | 'non_trovata' | 'non_disponibile';
+/**
+ * Motivo per cui la quota della finalita` PDND non e` confrontabile: finalita` non letta (non_valida,
+ * non_trovata, non_disponibile) oppure letta ma senza una quota concessa (non_approvata, rifiutata).
+ */
+export type RateLimitingFinalitaErrore = 'non_valida' | 'non_trovata' | 'non_disponibile' | 'non_approvata' | 'rifiutata';
+
+/** Errori con la finalita` letta dalla PDND: titolo e stato presenti, quota assente. */
+export const FINALITA_ERRORI_LETTA: RateLimitingFinalitaErrore[] = ['non_approvata', 'rifiutata'];
 
 /** Confronto fra la quota giornaliera dell'aderente e quella della finalita` PDND. */
 export type RateLimitingFinalitaEsito = 'conforme' | 'inferiore' | 'superiore' | 'quota_assente' | 'non_verificabile';
@@ -74,12 +80,15 @@ export type RateLimitingFinalitaEsito = 'conforme' | 'inferiore' | 'superiore' |
 /** Finalita` PDND usata da una o piu` adesioni autorizzate dell'ambiente. */
 export interface RateLimitingFinalita {
     purpose_id: string;
-    /** Presente se la finalita` non e` stata letta dalla PDND: allora titolo, quota e stato mancano. */
+    /**
+     * Presente se la quota non e` confrontabile. Con non_approvata e rifiutata la finalita` e` stata
+     * letta (titolo e stato presenti, quota assente); con gli altri motivi titolo, quota e stato mancano.
+     */
     errore?: RateLimitingFinalitaErrore;
     titolo?: string;
     /** Chiamate giornaliere della finalita`. */
     quota?: number;
-    /** Stato sulla PDND: diverso da ACTIVE e` un'anomalia. */
+    /** Stato sulla PDND (anche DRAFT, WAITING_FOR_APPROVAL, REJECTED): diverso da ACTIVE e` un'anomalia. */
     stato?: string;
     /** Aumento richiesto in attesa di approvazione dell'erogatore. */
     quota_in_attesa?: number;
@@ -119,6 +128,11 @@ export const FINALITA_ESITO_TONO: Record<RateLimitingFinalitaEsito, 'ok' | 'avvi
     quota_assente: 'avviso',
     non_verificabile: 'neutro'
 };
+
+/** Finalita` letta dalla PDND, anche se senza una quota da confrontare. */
+export function finalitaLetta(finalita: RateLimitingFinalita | null | undefined): boolean {
+    return !!finalita && (!finalita.errore || FINALITA_ERRORI_LETTA.includes(finalita.errore));
+}
 
 /** Stato della finalita` sulla PDND diverso da ACTIVE. */
 export function finalitaNonAttiva(finalita: RateLimitingFinalita | null | undefined): boolean {

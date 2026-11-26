@@ -20,12 +20,12 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { TranslateModule } from '@ngx-translate/core';
 
 import { LocaleNumberPipe } from '@app/pipes/locale-number.pipe';
-import { FINALITA_ESITO_TONO, RateLimitingAdesioneFinalita, RateLimitingFinalita, finalitaNonAttiva } from '../rate-limiting';
+import { FINALITA_ESITO_TONO, RateLimitingAdesioneFinalita, RateLimitingFinalita, finalitaLetta, finalitaNonAttiva } from '../rate-limiting';
 
 /**
  * Finalita` PDND: quota giornaliera, quota assegnata agli aderenti autorizzati e anomalie (quota
- * superata, stato non attivo, aumento in attesa, finalita` non letta). Con `esito` mostra anche il
- * confronto con la quota dell'adesione.
+ * superata, stato non attivo, aumento in attesa, finalita` non letta o senza quota concessa). Con
+ * `esito` mostra anche il confronto con la quota dell'adesione.
  */
 @Component({
     selector: 'app-rate-limiting-finalita',
@@ -44,6 +44,8 @@ export class RateLimitingFinalitaComponent {
     readonly nomeApi = input<string>('');
 
     readonly titolo = computed<string>(() => this.finalita().titolo || this.finalita().purpose_id);
+    /** Dati della finalita` disponibili: anche non approvata o rifiutata, con la quota assente. */
+    readonly letta = computed<boolean>(() => finalitaLetta(this.finalita()));
     readonly nonAttiva = computed<boolean>(() => finalitaNonAttiva(this.finalita()));
     readonly condivisa = computed<boolean>(() => this.finalita().numero_adesioni > 1);
     readonly tono = computed<string | null>(() => {

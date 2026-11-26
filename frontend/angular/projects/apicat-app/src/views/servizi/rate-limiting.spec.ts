@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  adeguaQuote, finalitaInErrore, finalitaNonAttiva, periodiDisponibili, puoGestireRateLimiting, quotaModificabile, quoteDaRighe,
+  adeguaQuote, finalitaInErrore, finalitaLetta, finalitaNonAttiva, periodiDisponibili, puoGestireRateLimiting, quotaModificabile, quoteDaRighe,
   rateLimitingApplicabile, regolaRateLimiting
 } from './rate-limiting';
 
@@ -90,5 +90,12 @@ describe('rate-limiting', () => {
     expect(finalitaNonAttiva({ purpose_id: 'p1', stato: 'SUSPENDED', quota_assegnata: 0, numero_adesioni: 1, superata: false })).toBe(true);
     expect(finalitaNonAttiva({ purpose_id: 'p1', stato: 'ACTIVE', quota_assegnata: 0, numero_adesioni: 1, superata: false })).toBe(false);
     expect(finalitaNonAttiva({ purpose_id: 'p1', errore: 'non_trovata', quota_assegnata: 0, numero_adesioni: 1, superata: false })).toBe(false);
+  });
+
+  it('should consider read a purpose without errors, not approved or rejected, not one missing on PDND', () => {
+    const f = (errore?: any) => ({ purpose_id: 'p1', errore, quota_assegnata: 0, numero_adesioni: 1, superata: false });
+    expect([undefined, 'non_approvata', 'rifiutata', 'non_valida', 'non_trovata', 'non_disponibile'].map((e) => finalitaLetta(f(e))))
+      .toEqual([true, true, true, false, false, false]);
+    expect(finalitaLetta(null)).toBe(false);
   });
 });

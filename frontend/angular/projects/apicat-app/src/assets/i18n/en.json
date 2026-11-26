@@ -2756,6 +2756,7 @@
 					"QuotaAssegnata": "Assigned to subscribers",
 					"QuotaRichiesta": "Subscriber daily quota",
 					"QuotaInAttesa": "Increase waiting for approval",
+					"QuotaRichiestaInAttesa": "Requested quota waiting for approval",
 					"Adesioni": "Subscriptions",
 					"Condivisa": "Shared by {{numero}} subscriptions",
 					"Superata": "The subscriber quotas exceed the purpose quota",

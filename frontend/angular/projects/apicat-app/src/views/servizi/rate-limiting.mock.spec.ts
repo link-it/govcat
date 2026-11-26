@@ -63,17 +63,20 @@ describe('rate-limiting.mock', () => {
     expect(riepilogo.api[0].collaudo[0]).toMatchObject({ quota_autorizzata: 8400, numero_fruitori_autorizzati: 3, quota_residua_autorizzata: 1600 });
   });
 
-  it('should give sample PDND purposes to the authorized consumers: matching, shared and exceeded, not found', () => {
+  it('should give sample PDND purposes to the authorized consumers: matching, shared and exceeded, not found, not approved, rejected', () => {
     const base = { api: [{ id_api: 'a1', nome: 'API 1', versione: 1, collaudo: [], produzione: [] }] };
     const fruitori = fruitoriMock(apiRiepilogoMock(base, 'collaudo'));
     const finalita = riepilogoMock(base, fruitori, 'collaudo').finalita?.collaudo || [];
     expect(finalita.map((f) => [f.titolo, f.quota, f.quota_assegnata, f.numero_adesioni, f.superata, f.errore])).toEqual([
       ['Consultazione anagrafe comunale', 8250, 8250, 1, false, undefined],
       ['Verifica della residenza', 11880, 14850, 2, true, undefined],
-      [undefined, undefined, 0, 1, false, 'non_trovata']
+      [undefined, undefined, 0, 1, false, 'non_trovata'],
+      ['Accesso ai dati catastali', undefined, 0, 1, false, 'non_approvata'],
+      ['Controllo delle autocertificazioni', undefined, 0, 1, false, 'rifiutata']
     ]);
-    expect(fruitori.map((f) => (f.finalita || []).map((x) => x.esito)[0] ?? null).slice(0, 7))
-      .toEqual(['conforme', 'inferiore', null, 'inferiore', 'non_verificabile', null, null]);
+    expect(finalita.slice(3).map((f) => [f.stato, f.quota_in_attesa])).toEqual([['WAITING_FOR_APPROVAL', 5000], ['REJECTED', undefined]]);
+    expect(fruitori.map((f) => (f.finalita || []).map((x) => x.esito)[0] ?? null).slice(0, 10))
+      .toEqual(['conforme', 'inferiore', null, 'inferiore', 'non_verificabile', null, null, 'non_verificabile', 'non_verificabile', null]);
     expect(fruitori[2].finalita).toEqual([]);
   });
 

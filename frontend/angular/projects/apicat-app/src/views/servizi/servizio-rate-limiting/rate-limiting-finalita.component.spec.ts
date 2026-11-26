@@ -62,7 +62,7 @@ describe('RateLimitingFinalitaComponent', () => {
   it('should signal the shared purpose exceeded, the state not active and the increase waiting for approval', () => {
     const el = crea(finalita({ numero_adesioni: 3, quota_assegnata: 1500, superata: true, stato: 'SUSPENDED', quota_in_attesa: 1500 }));
     expect(el.querySelector('.rlf.is-errore')).not.toBeNull();
-    expect(testi(el, '.rlf-chip')).toEqual(['APP.SERVICES.RATE_LIMITING.FINALITA.Condivisa', 'APP.SERVICES.RATE_LIMITING.FINALITA.StatoNonAttivo (SUSPENDED)']);
+    expect(testi(el, '.rlf-chip')).toEqual(['APP.SERVICES.RATE_LIMITING.FINALITA.Condivisa', 'APP.SERVICES.RATE_LIMITING.FINALITA.StatoNonAttivo (APP.SUBSCRIBERS.PURPOSE_STATE.SUSPENDED)']);
     expect(el.querySelector('.rlf-avviso')!.textContent).toContain('APP.SERVICES.RATE_LIMITING.FINALITA.Superata');
     expect(el.querySelector('.rlf-nota')!.textContent).toContain('1.500');
   });
@@ -73,6 +73,28 @@ describe('RateLimitingFinalitaComponent', () => {
     expect(el.querySelector('.rlf-id')).toBeNull();
     expect(el.querySelector('.rlf-dati')).toBeNull();
     expect(el.querySelector('.rlf-nota')!.textContent).toBe('APP.SERVICES.RATE_LIMITING.FINALITA.ERRORE.non_trovata');
+  });
+
+  it('should show the data and the requested quota of a purpose waiting for the first approval, without its quota', () => {
+    const f = finalita({ errore: 'non_approvata', quota: undefined, stato: 'WAITING_FOR_APPROVAL', quota_in_attesa: 5000 });
+    const el = crea(f, { esito: 'non_verificabile', quota_richiesta: 60, finalita: f });
+    expect(el.querySelector('.rlf-titolo')!.textContent).toBe('Verifica della residenza');
+    expect(el.querySelector('.rlf-motivo')!.textContent).toBe('APP.SERVICES.RATE_LIMITING.FINALITA.ERRORE.non_approvata');
+    expect(testi(el, '.rlf-dati dd')).toEqual(['-', '60', '800', '1']);
+    expect(testi(el, '.rlf-nota')[1]).toContain('APP.SERVICES.RATE_LIMITING.FINALITA.QuotaRichiestaInAttesa: 5.000');
+    expect(testi(el, '.rlf-chip')).toEqual([
+      'APP.SERVICES.RATE_LIMITING.FINALITA.ESITO.non_verificabile',
+      'APP.SERVICES.RATE_LIMITING.FINALITA.StatoNonAttivo (APP.SUBSCRIBERS.PURPOSE_STATE.WAITING_FOR_APPROVAL)'
+    ]);
+    expect(el.querySelector('.rlf.is-errore')).toBeNull();
+  });
+
+  it('should show the data of a rejected purpose with the specific reason, not as PDND unreachable', () => {
+    const el = crea(finalita({ errore: 'rifiutata', quota: undefined, stato: 'REJECTED' }));
+    expect(el.querySelector('.rlf-motivo')!.textContent).toBe('APP.SERVICES.RATE_LIMITING.FINALITA.ERRORE.rifiutata');
+    expect(testi(el, '.rlf-dati dd')).toEqual(['-', '800', '1']);
+    expect(el.querySelectorAll('.rlf-nota')).toHaveLength(1);
+    expect(testi(el, '.rlf-chip')).toEqual(['APP.SERVICES.RATE_LIMITING.FINALITA.StatoNonAttivo (APP.SUBSCRIBERS.PURPOSE_STATE.REJECTED)']);
   });
 
   it('should compare the purpose with the subscription quota, marking the subscriber over the purpose as an error', () => {

@@ -2756,6 +2756,7 @@
 					"QuotaAssegnata": "Assegnata agli aderenti",
 					"QuotaRichiesta": "Quota giornaliera dell'aderente",
 					"QuotaInAttesa": "Aumento in attesa di approvazione",
+					"QuotaRichiestaInAttesa": "Quota richiesta in attesa di approvazione",
 					"Adesioni": "Adesioni",
 					"Condivisa": "Condivisa da {{numero}} adesioni",
 					"Superata": "Le quote degli aderenti superano la quota della finalità",

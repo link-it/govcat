@@ -3,6 +3,8 @@
 	* [Frontend]
 	Domini: testo di aiuto sul flag "Multi adesione" in creazione e modifica, da attivare solo se
 	  tutti i servizi del dominio devono essere multi adesione (nei domini misti va lasciato spento).
+	Issue 486: rate limiting, finalità PDND non approvata o rifiutata con il motivo e i dati (quota
+	  della finalità assente, quota richiesta in attesa visibile); stato della finalità tradotto.
 
 2026-11-26  Giovanni De Luca <giovanni.deluca@link.it>
 
