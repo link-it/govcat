@@ -724,7 +724,8 @@
 				"Remove": "Remove domain"
 			},
 			"MESSAGE": {
-				"RemoveConfirm": "Are you sure you want to delete the domain **{{nome}}**? This action cannot be undone."
+				"RemoveConfirm": "Are you sure you want to delete the domain **{{nome}}**? This action cannot be undone.",
+				"MultiAdesioneHelp": "Enable it only if all the services of the domain must allow multiple subscriptions: the flag enforces multiple subscriptions on every service of the domain. If the domain mixes services with multiple and single subscriptions, leave it disabled and set the option on each service."
 			},
 			"VALIDATION": {
 				"NameAlreadyExists": "A domain with this name already exists. Please choose another one."

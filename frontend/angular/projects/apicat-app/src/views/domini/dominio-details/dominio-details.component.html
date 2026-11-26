@@ -356,9 +356,10 @@
                 <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.multi_adesione' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
+                    <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" aria-describedby="multi_adesione-help">
                     <label class="custom-control-label" for="multi_adesione"><span class="visually-hidden">{{ 'APP.LABEL.multi_adesione' | translate }}</span></label>
                   </div>
+                  <p class="form-text text-muted mb-0" id="multi_adesione-help">{{ 'APP.DOMINI.MESSAGE.MultiAdesioneHelp' | translate }}</p>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="multi_adesione" [checked]="dominio.multi_adesione" disabled>

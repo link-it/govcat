@@ -724,7 +724,8 @@
 				"Remove": "Rimuovi dominio"
 			},
 			"MESSAGE": {
-				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non è reversibile."
+				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non è reversibile.",
+				"MultiAdesioneHelp": "Attivalo solo se tutti i servizi del dominio devono essere multi adesione: il flag impone la multi adesione a ogni servizio del dominio. Se nel dominio convivono servizi multi adesione e servizi ad adesione singola, lascia il flag disattivato e imposta la multi adesione sui singoli servizi."
 			},
 			"VALIDATION": {
 				"NameAlreadyExists": "Esiste già un dominio con questo nome. Scegline un altro."
