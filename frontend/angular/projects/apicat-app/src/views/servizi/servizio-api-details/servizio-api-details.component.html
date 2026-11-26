@@ -47,14 +47,14 @@
         @if (!_spin && !_isNew && _isPDND) {
           <div class="btn-group- ms-1">
             <div class="dropdown b-dropdown gl-new-dropdown btn-group me-2">
-              <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+              <button aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                 <span>{{ 'APP.SERVICES.TITLE.PDND' | translate }}</span> <i class="bi bi-chevron-down ms-2"></i>
               </button>
-              <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+              <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
                 <div class="gl-new-dropdown-inner">
-                  <div class="gl-new-dropdown-contents">
+                  <ul class="gl-new-dropdown-contents">
                     <li class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item d-flex align-items-center justify-content-between" (click)="_showGeneralInformationsPDND()">
+                      <button type="button" class="dropdown-item d-flex align-items-center justify-content-between" (click)="_showGeneralInformationsPDND()">
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDGeneralInformations' | translate }}</p>
                         </div>
@@ -64,7 +64,7 @@
                       </button>
                     </li>
                     <li class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item d-flex align-items-center justify-content-between" (click)="_showPDND()">
+                      <button type="button" class="dropdown-item d-flex align-items-center justify-content-between" (click)="_showPDND()">
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDUsers' | translate }}</p>
                         </div>
@@ -73,9 +73,9 @@
                         }
                       </button>
                     </li>
-                  </div>
+                  </ul>
                 </div>
-              </ul>
+              </div>
             </div>
           </div>
         }
@@ -110,14 +110,14 @@
         @if (!_isEdit && !_spin && _showExternalOtherActions) {
           <div class="btn-group- ms-1">
             <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-              <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+              <button aria-label="Altre azioni" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
-              <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+              <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
                 <div class="gl-new-dropdown-inner">
-                  <div class="gl-new-dropdown-contents">
+                  <ul class="gl-new-dropdown-contents">
                     <li class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item" (click)="_downloadServizioApiExport()" [disabled]="!(_updateMapper | mapper:_canJoinMapper)">
+                      <button type="button" class="dropdown-item" (click)="_downloadServizioApiExport()" [disabled]="!(_updateMapper | mapper:_canJoinMapper)">
                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                           <i class="bi bi-download"></i>
                         </div>
@@ -130,7 +130,7 @@
                       <hr aria-orientation="horizontal" class="dropdown-divider">
                     </li>
                     <li class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item" (click)="_confirmDelection()" [disabled]="!(_updateMapper | mapper:_canAddMapper)">
+                      <button type="button" class="dropdown-item" (click)="_confirmDelection()" [disabled]="!(_updateMapper | mapper:_canAddMapper)">
                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                           <i class="bi bi-trash text-danger"></i>
                         </div>
@@ -139,9 +139,9 @@
                         </div>
                       </button>
                     </li>
-                  </div>
+                  </ul>
                 </div>
-              </ul>
+              </div>
             </div>
           </div>
         }
@@ -174,7 +174,7 @@
       <div class="settings">
         <div class="settings-content">
           @if (embedded && _isNew) {
-            <h4 class="gl-mt-0 text-break">{{ 'APP.TITLE.NewApi' | translate }}</h4>
+            <h3 class="h4 gl-mt-0 text-break">{{ 'APP.TITLE.NewApi' | translate }}</h3>
           }
           @if (!_isEdit && _error) {
             <div class="gl-alert gl-alert-danger col-md-12 mb-5">

@@ -214,12 +214,15 @@
       </div>
       @if (hasAction) {
         <div class="d-flex align-items-center ms-4">
-          <div class="btn btn-default btn-md gl-button btn-icon button-collapse" [tooltip]="actionTooltip">
-            <i class="bi bi-{{ iconAction }}" (click)="__actionlick($event)"></i>
+          <button type="button" class="btn btn-default btn-md gl-button btn-icon button-collapse" [tooltip]="actionTooltip"
+            [attr.aria-label]="iconAction ? (actionTooltip || actionText) : null" (click)="__actionlick($event)">
+            @if (iconAction) {
+              <i class="bi bi-{{ iconAction }}" aria-hidden="true"></i>
+            }
             @if (!iconAction) {
               <span>{{ actionText }}</span>
             }
-          </div>
+          </button>
         </div>
       }
     </div>

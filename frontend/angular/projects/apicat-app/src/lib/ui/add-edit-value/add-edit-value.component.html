@@ -23,7 +23,7 @@
         [(ngModel)]="_value">
     </div>
     <div class="col">
-      <button type="button" class="btn btn-default btn-md gl-button btn-icon d-inline-block" (click)="_save()" [disabled]="!_value" [tooltip]="'APP.TOOLTIP.Add' | translate">
+      <button type="button" class="btn btn-default btn-md gl-button btn-icon d-inline-block" (click)="_save()" [disabled]="!_value" [tooltip]="'APP.TOOLTIP.Add' | translate" [attr.aria-label]="'APP.TOOLTIP.Add' | translate">
         <em class="bi bi-plus-lg"></em>
       </button>
     </div>

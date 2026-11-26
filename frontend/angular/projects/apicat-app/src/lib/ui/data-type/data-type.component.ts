@@ -25,6 +25,7 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
 
 import { UtilsLib } from '../../utils/utils.lib';
+import { ScrollableRegionFocusableDirective } from '../../directives/scrollable-region-focusable.directive';
 import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
 import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
 
@@ -37,7 +38,7 @@ import moment from 'moment/moment';
     './data-type.component.scss'
   ],
   standalone: true,
-  imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, StatoChipComponent]
+  imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, StatoChipComponent, ScrollableRegionFocusableDirective]
 })
 export class DataTypeComponent implements OnInit, OnChanges {
   @HostBinding('class.empty-space') get emptySpace(): boolean {

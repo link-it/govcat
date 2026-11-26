@@ -16,11 +16,11 @@
             [title]="'APP.ORGANIZATION_SWITCHER.Title' | translate">
       <i class="bi bi-buildings align-middle" aria-hidden="true"></i>
       <span class="d-none d-md-inline ms-2 align-middle organization-switcher-label">{{ currentLabel }}</span>
-      <span class="material-icons-outlined align-middle mx-1" aria-hidden="true">expand_more</span>
+      <i class="bi bi-chevron-down align-middle mx-1" aria-hidden="true"></i>
     </button>
-    <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="organization-switcher">
+    <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
       <div class="gl-new-dropdown-inner">
-        <div class="gl-new-dropdown-contents">
+        <ul class="gl-new-dropdown-contents" aria-labelledby="organization-switcher">
           @for (org of organizzazioni; track org.organizzazione.id_organizzazione) {
             <li class="gl-new-dropdown-item organization-switcher-row align-items-xl-center">
               <button type="button"
@@ -54,8 +54,8 @@
               }
             </li>
           }
-        </div>
+        </ul>
       </div>
-    </ul>
+    </div>
   </div>
 }

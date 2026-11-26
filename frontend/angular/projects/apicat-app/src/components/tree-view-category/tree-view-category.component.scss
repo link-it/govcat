@@ -50,7 +50,16 @@ button.folder-caret {
     min-height: 58px;
 
     &.not-selected {
-      opacity: 0.5;
+      // comando inattivo: attenuati icona e avatar, testo con contrasto AA
+      .item-type-icon,
+      .gl-avatar {
+        opacity: 0.5;
+      }
+
+      .no-expand,
+      .description .text-muted {
+        color: #6b7280 !important;
+      }
 
       &:hover {
         border-color: transparent;

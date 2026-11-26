@@ -55,16 +55,16 @@
                   @if (link.show) {
                     <div class="btn-group- me-2 d-inline-block">
                       <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="other_actions">
-                        <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+                        <button aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                           <span>{{ link.title | translate }}</span> <i class="bi bi-chevron-down ms-1"></i>
                         </button>
-                        <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                        <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
                           <div class="gl-new-dropdown-inner">
                             @for (menu of link.submenu; track menu) {
-                              <div class="gl-new-dropdown-contents">
+                              <ul class="gl-new-dropdown-contents">
                                 @if (menu.show) {
                                   <li class="gl-new-dropdown-item">
-                                    <button role="menuitem" type="button" class="dropdown-item"
+                                    <button type="button" class="dropdown-item"
                                       [routerLink]="_sectionRoute(menu.route)">
                                       <div class="gl-new-dropdown-item-text-wrapper">
                                         <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
@@ -72,10 +72,10 @@
                                     </button>
                                   </li>
                                 }
-                              </div>
+                              </ul>
                             }
                           </div>
-                        </ul>
+                        </div>
                       </div>
                     </div>
                   }

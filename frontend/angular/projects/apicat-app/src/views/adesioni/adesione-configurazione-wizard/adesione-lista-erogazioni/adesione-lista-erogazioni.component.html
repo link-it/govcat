@@ -31,10 +31,10 @@
         [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE"
         [hide]="updateMapper | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
       ></lnk-icon-toggle>
-      <h4 class="adesione-config-list-title"
+      <h3 class="adesione-config-list-title"
           [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE)">
         {{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}
-      </h4>
+      </h3>
     </header>
 
     <ul class="adesione-config-list-items">
@@ -71,16 +71,16 @@
                      clients (rev. 4.27). -->
                 <button type="button"
                         class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-                        [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (isModifiable ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
+                        [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (isModifiable ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate" [attr.aria-label]="(isEditing ? 'APP.BUTTON.Close' : (isModifiable ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
                         [delay]="500"
                         container="body"
                         (click)="isEditing ? closeModal() : onEdit(erogaz)">
                   @if (isEditing) {
-                    <i class="bi bi-x-lg"></i>
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
                   } @else if (isModifiable) {
-                    <i class="bi bi-pencil"></i>
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
                   } @else {
-                    <i class="bi bi-eye"></i>
+                    <i class="bi bi-eye" aria-hidden="true"></i>
                   }
                 </button>
               </div>

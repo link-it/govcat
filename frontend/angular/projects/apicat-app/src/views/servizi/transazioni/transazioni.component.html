@@ -18,7 +18,7 @@
 -->
 <div id="route-section" class="">
   <div class="top-area px-0">
-    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [mainHeading]="true" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
       <app-servizio-monitor-menu [servizio]="service" [paginaCorrente]="_audit ? 'audit' : 'transazioni'" [ambiente]="environmentId"></app-servizio-monitor-menu>
@@ -29,14 +29,14 @@
     <div class="">
       <ul class="nav gp-border-b-0 gp-tabs-nav">
         <li class="nav-item" [attr.title]="_collaudoSaltato ? ('APP.MESSAGE.CollaudoNonDisponibileServizio' | translate) : null">
-          <a role="button" [attr.tabindex]="_collaudoSaltato ? -1 : 0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" [class.disabled]="_collaudoSaltato" [attr.aria-disabled]="_collaudoSaltato || null" (click)="_showCollaudo()" [attr.aria-label]="_allElements || elements.length">
+          <a role="button" [attr.tabindex]="_collaudoSaltato ? -1 : 0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" [class.disabled]="_collaudoSaltato" [attr.aria-disabled]="_collaudoSaltato || null" (click)="_showCollaudo()">
             <span>{{ 'APP.FILTER.Testing' | translate }}</span> @if (_isCollaudo()) {
             <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || elements.length }}</span>
           }
         </a>
       </li>
       <li class="nav-item">
-        <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()" [attr.aria-label]="_allElements || elements.length">
+        <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()">
           <span>{{ 'APP.FILTER.Production' | translate }}</span> @if (!_isCollaudo()) {
           <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || elements.length }}</span>
         }
@@ -80,7 +80,7 @@
           (onSort)="_onSort($event)">
           <div form-search class="" [class.search-material-custom]="_useNewSearchUI">
             <form class="row gl-show-field-errors" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
-              <fieldset>
+              <fieldset [attr.aria-label]="'APP.SEARCH.FilterFields' | translate">
                 <div class="row">
                   <div class="col-2">
                     <label class="col-form-label col-form-label-fix" for="search_type">{{ 'APP.LABEL.SearchType' | translate }}
@@ -129,7 +129,7 @@
                               [bsConfig]="_bsDateConfig"
                               bsDatepicker>
                             <span class="input-group-append">
-                              <div class="input-post-icon cursor-pointer" (click)="ddp.toggle()"><i class="bi bi-calendar"></i></div>
+                              <button type="button" class="input-post-icon btn p-0 border-0 lh-1" [attr.aria-label]="('APP.BUTTON.OpenCalendar' | translate) + ': ' + ('APP.LABEL.From' | translate)" (click)="ddp.toggle()"><i class="bi bi-calendar" aria-hidden="true"></i></button>
                             </span>
                           </div>
                         </div>
@@ -146,7 +146,7 @@
                               [bsConfig]="_bsDateConfig"
                               bsDatepicker>
                             <span class="input-group-append">
-                              <div class="input-post-icon cursor-pointer" (click)="dap.toggle()"><i class="bi bi-calendar"></i></div>
+                              <button type="button" class="input-post-icon btn p-0 border-0 lh-1" [attr.aria-label]="('APP.BUTTON.OpenCalendar' | translate) + ': ' + ('APP.LABEL.To' | translate)" (click)="dap.toggle()"><i class="bi bi-calendar" aria-hidden="true"></i></button>
                             </span>
                           </div>
                         </div>

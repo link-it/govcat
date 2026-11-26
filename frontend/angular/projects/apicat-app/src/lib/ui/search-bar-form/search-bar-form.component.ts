@@ -141,6 +141,22 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     }
   }
 
+  /** Il pannello dei filtri si chiude anche quando il focus esce dal componente con la tastiera:
+   *  aperto, coprirebbe gli elementi che ricevono il focus (WCAG 2.4.11). */
+  @HostListener('focusout', ['$event'])
+  focusedOut(event: FocusEvent) {
+    const next = event.relatedTarget as HTMLElement | null;
+    if (!this._isOpen || this._notCloseForm || !next) {
+      return;
+    }
+    const isInside = this._elementRef.nativeElement.contains(next)
+      || next.closest('.ng-dropdown-panel, .bs-datepicker-container, bs-datepicker-container, modal-container');
+    if (!isInside) {
+      this._isOpen = false;
+      $("#form_toggle").dropdown('hide');
+    }
+  }
+
   setNotCloseForm(value: boolean) {
     this._notCloseForm = value;
   }

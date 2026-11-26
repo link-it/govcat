@@ -42,7 +42,7 @@
     <div class="">
       <ul class="nav gp-border-b-0 gp-tabs-nav">
         <li class="nav-item">
-          <a role="button" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + servizioGruppi.length || 0">
+          <a role="button" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + (servizioGruppi.length || 0)">
             <span title="Show all groups.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioGruppi.length">{{ servizioGruppi.length || 0 }}</span>
           </a>
         </li>
@@ -130,8 +130,8 @@
               [columns]="config.AppConfig?.Layout?.Details?.columns || 6">
             </ui-form-readonly>
             <div class="position-relative">
-              <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteGruppo(gruppo)" *ngIf="(_updateMapper | mapper:_canAddMapper)">
-                <i class="bi bi-trash text-danger"></i>
+              <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" [attr.aria-label]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteGruppo(gruppo)" *ngIf="(_updateMapper | mapper:_canAddMapper)">
+                <i class="bi bi-trash text-danger" aria-hidden="true"></i>
               </button>
             </div>
           </div>

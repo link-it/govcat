@@ -70,7 +70,7 @@
         <div class="group-text-container d-flex flex-fill align-items-center">
           <div class="group-text flex-grow-1 flex-shrink-1 align-items-center">
             <div class="gl-display-flex gl-align-items-center gl-flex-wrap title namespace-title gl-font-weight-bold gl-mr-3">
-              <a [title]="item.nome" class="no-expand gl-mr-3 gl-text-gray-900!" role="link" tabindex="0" (click)="onAction($event, 'link', item)" (keydown.enter)="onAction($event, 'link', item)">{{ item.nome }} {{ item.loading }}</a>
+              <a [title]="item.nome" class="no-expand gl-mr-3 gl-text-gray-900!" role="link" tabindex="0" [attr.aria-disabled]="isNotSelectable(item) || null" (click)="onAction($event, 'link', item)" (keydown.enter)="onAction($event, 'link', item)">{{ item.nome }} {{ item.loading }}</a>
             </div>
             @if (item.descrizione_sintetica || item.descrizione) {
               <div class="description">

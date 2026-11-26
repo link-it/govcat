@@ -127,6 +127,40 @@ describe('SearchBarFormComponent', () => {
         document.body.removeChild(targetEl);
     });
 
+    it('should close the filters panel when focus leaves the component', () => {
+        const dropdownHideSpy = vi.fn();
+        (window as any)['$'] = () => ({ dropdown: (action: any) => { if (action === 'hide') { dropdownHideSpy(); } } });
+        const outside = document.createElement('button');
+        document.body.appendChild(outside);
+        const inside = document.createElement('input');
+        fixture.nativeElement.appendChild(inside);
+
+        component._isOpen = true;
+        component.focusedOut(new FocusEvent('focusout', { relatedTarget: inside }));
+        expect(component._isOpen).toBe(true);
+
+        component.focusedOut(new FocusEvent('focusout', { relatedTarget: outside }));
+        expect(component._isOpen).toBe(false);
+        expect(dropdownHideSpy).toHaveBeenCalled();
+        outside.remove();
+    });
+
+    it('should keep the filters panel open when focus moves to a popup opened from it', () => {
+        (window as any)['$'] = () => ({ dropdown: vi.fn() });
+        const modal = document.createElement('modal-container');
+        const field = document.createElement('input');
+        modal.appendChild(field);
+        document.body.appendChild(modal);
+
+        component._isOpen = true;
+        component.focusedOut(new FocusEvent('focusout', { relatedTarget: field }));
+        expect(component._isOpen).toBe(true);
+
+        component.focusedOut(new FocusEvent('focusout', { relatedTarget: null }));
+        expect(component._isOpen).toBe(true);
+        modal.remove();
+    });
+
     it('should update _notCloseForm when setNotCloseForm is called', () => {
         component.setNotCloseForm(true);
         expect((component as any)._notCloseForm).toEqual(true);

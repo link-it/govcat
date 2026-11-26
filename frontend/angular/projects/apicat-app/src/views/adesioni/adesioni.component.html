@@ -129,7 +129,7 @@
               (onSort)="_onSort($event)">
               <div form-search class="" [class.search-material-custom]="_useNewSearchUI">
                 <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
-                  <fieldset>
+                  <fieldset [attr.aria-label]="'APP.SEARCH.FilterFields' | translate">
                     <div class="row mb-1">
                       <div class="col-sm-2">
                         <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
@@ -429,7 +429,7 @@
       }
       <div class="row">
         <div class="col-12">
-          <form>
+          <form [attr.aria-label]="'APP.MENU.Subscriptions' | translate">
             @for (element of adesioni; track element.id || $index) {
               <div class="px-2 border-bottom">
                 <div class="d-flex flex-column flex-md-row align-md-items-center">

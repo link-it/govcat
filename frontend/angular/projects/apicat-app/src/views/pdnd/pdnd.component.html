@@ -42,12 +42,13 @@
     </div>
     <div class="nav-control align-self-center d-flex">
       <div class="btn-group-">
-        <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleFilter();">
+        <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleFilter();"
+          [attr.aria-label]="'APP.BUTTON.ToggleFilters' | translate" [tooltip]="'APP.BUTTON.ToggleFilters' | translate" [attr.aria-expanded]="_showFilter">
           @if (_showFilter) {
-            <i class="bi bi-funnel-fill"></i>
+            <i class="bi bi-funnel-fill" aria-hidden="true"></i>
           }
           @if (!_showFilter) {
-            <i class="bi bi-funnel"></i>
+            <i class="bi bi-funnel" aria-hidden="true"></i>
           }
         </button>
       </div>
@@ -151,7 +152,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationID' | translate }}
+                              <label class="label-bold" for="organizationId">{{ 'APP.LABEL.OrganizationID' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationId"></span>
                               </label>
                               <input type="text" class="form-control" id="organizationId" formControlName="organizationId">
@@ -174,7 +175,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeID' | translate }}
+                              <label class="label-bold" for="attributeId">{{ 'APP.LABEL.AttributeID' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeId"></span>
                               </label>
                               <input type="text" class="form-control" id="attributeId" formControlName="attributeId">
@@ -197,7 +198,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.ServiceID' | translate }}
+                              <label class="label-bold" for="eserviceId">{{ 'APP.LABEL.ServiceID' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="eserviceId"></span>
                               </label>
                               <input type="text" class="form-control" id="eserviceId" formControlName="eserviceId">
@@ -220,7 +221,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.AgreementID' | translate }}
+                              <label class="label-bold" for="agreementId">{{ 'APP.LABEL.AgreementID' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="agreementId"></span>
                               </label>
                               <input type="text" class="form-control" id="agreementId" formControlName="agreementId">
@@ -243,7 +244,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.PurposeId' | translate }}
+                              <label class="label-bold" for="purposeId">{{ 'APP.LABEL.PurposeId' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="purposeId"></span>
                               </label>
                               <input type="text" class="form-control" id="purposeId" formControlName="purposeId">
@@ -268,7 +269,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationOrigin' | translate }}
+                              <label class="label-bold" for="organizationOrigin">{{ 'APP.LABEL.OrganizationOrigin' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationOrigin"></span>
                               </label>
                               <input type="text" class="form-control" id="organizationOrigin" formControlName="organizationOrigin">
@@ -291,7 +292,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationExternalID' | translate }}
+                              <label class="label-bold" for="organizationExternalId">{{ 'APP.LABEL.OrganizationExternalID' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationExternalId"></span>
                               </label>
                               <input type="text" class="form-control" id="organizationExternalId" formControlName="organizationExternalId">
@@ -314,7 +315,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeOrigin' | translate }}
+                              <label class="label-bold" for="attributeOrigin">{{ 'APP.LABEL.AttributeOrigin' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeOrigin"></span>
                               </label>
                               <input type="text" class="form-control" id="attributeOrigin" formControlName="attributeOrigin">
@@ -340,7 +341,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="form-group">
-                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeCode' | translate }}
+                              <label class="label-bold" for="attributeCode">{{ 'APP.LABEL.AttributeCode' | translate }}
                                 <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeCode"></span>
                               </label>
                               <input type="text" class="form-control" id="attributeCode" formControlName="attributeCode">

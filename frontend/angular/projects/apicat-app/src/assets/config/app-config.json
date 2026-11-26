@@ -561,7 +561,7 @@
           "--accent": "#d81f2c",
           "--accent-hover": "#b81e2b",
           "--btn-confirm-color": "#FFFFFF",
-          "--btn-confirm-hover": "#ed1527",
+          "--btn-confirm-hover": "#c01b27",
           "--btn-confirm-hover-shadow": "#e5081b",
           "--shadow-focus-color": "#428fdc",
           "--btn-secondary": "#6c757d",

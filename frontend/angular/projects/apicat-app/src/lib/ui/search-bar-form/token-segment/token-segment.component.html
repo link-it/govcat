@@ -59,8 +59,8 @@
           <ng-template #dataLoading>
             <span class="gl-token-content"><span class="spinner-border spinner-border-sm"></span></span>
           </ng-template>
-          <button type="button" class="btn gl-token-close gl-close-btn-color-inherit btn-default btn-sm gl-button btn-default-tertiary btn-icon" (click)="_removeToken($event)">
-            <em class="bi bi-x"></em>
+          <button type="button" class="btn gl-token-close gl-close-btn-color-inherit btn-default btn-sm gl-button btn-default-tertiary btn-icon" [attr.aria-label]="('APP.LABEL.RemoveFilter' | translate) + ': ' + token.label" (click)="_removeToken($event)">
+            <em class="bi bi-x" aria-hidden="true"></em>
           </button>
         </span>
       </span>
