@@ -2773,7 +2773,9 @@
 					"ERRORE": {
 						"non_valida": "Invalid purpose identifier",
 						"non_trovata": "Purpose not found on PDND",
-						"non_disponibile": "PDND not reachable: purpose not read"
+						"non_disponibile": "PDND not reachable: purpose not read",
+						"non_approvata": "Purpose not yet approved on PDND: no granted quota to compare",
+						"rifiutata": "Purpose rejected on PDND: no granted quota to compare"
 					}
 				}
 			},

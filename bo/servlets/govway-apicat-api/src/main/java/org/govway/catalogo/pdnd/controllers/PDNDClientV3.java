@@ -317,11 +317,16 @@ public class PDNDClientV3 implements IPDNDClient {
 	}
 
 	/**
-	 * Converte la finalita' restituita da un'operazione di scrittura, il cui stato deve essere
-	 * rappresentabile nel modello dati esposto: diversamente dalla lettura di un elenco, qui la
-	 * finalita' non puo' essere semplicemente omessa.
+	 * Converte la singola finalita' letta o restituita da un'operazione di scrittura, il cui stato
+	 * deve essere rappresentabile nel modello dati esposto: diversamente dalla lettura di un elenco,
+	 * qui la finalita' non puo' essere semplicemente omessa. La finalita' rifiutata si distingue con
+	 * un'eccezione dedicata, che resta un INT.500.PDND.
 	 */
 	private Purpose toPurposeEsposta(UUID purposeId, org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose) {
+		org.govway.catalogo.servlets.pdnd.v3.model.PurposeVersion version = getVersione(purpose);
+		if(version != null && org.govway.catalogo.servlets.pdnd.v3.model.PurposeVersionState.REJECTED.equals(version.getState())) {
+			throw new FinalitaRifiutataException(purposeId, purpose.getTitle(), version.getState().getValue());
+		}
 		return toPurpose(purpose).orElseThrow(() ->
 				new InternalException(ErrorCode.INT_500_PDND, Map.of("dettagli",
 						"stato della finalita' ["+purposeId+"] non rappresentabile nel modello dati esposto")));
@@ -757,12 +762,9 @@ public class PDNDClientV3 implements IPDNDClient {
 
 	@Override
 	public ResponseEntity<Purpose> getPurpose(UUID purposeId) {
+		org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose;
 		try {
-			org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose = this.gatewayApiClient.getPurpose(purposeId);
-
-			return ResponseEntity.ok(toPurpose(purpose).orElseThrow(() ->
-					new InternalException(ErrorCode.INT_500_PDND, Map.of("dettagli",
-							"stato della finalita' ["+purposeId+"] non rappresentabile nel modello dati esposto"))));
+			purpose = this.gatewayApiClient.getPurpose(purposeId);
 		} catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
 			throw e;
@@ -770,6 +772,9 @@ public class PDNDClientV3 implements IPDNDClient {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw toClientApiException(e);
 		}
+
+		// la conversione e' fuori dall'invocazione: uno stato non rappresentabile non e' un errore della PDND
+		return ResponseEntity.ok(toPurposeEsposta(purposeId, purpose));
 	}
 
 	@Override
@@ -1010,7 +1015,11 @@ public class PDNDClientV3 implements IPDNDClient {
 				"stato accordo ["+state.getValue()+"] non rappresentabile nel modello dati esposto"));
 	}
 
-	private Optional<Purpose> toPurpose(org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose) {
+	/**
+	 * Versione che da' stato e chiamate giornaliere alla finalita' esposta: la corrente; in sua
+	 * assenza quella in attesa della prima approvazione e poi quella rifiutata.
+	 */
+	private org.govway.catalogo.servlets.pdnd.v3.model.PurposeVersion getVersione(org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose) {
 		org.govway.catalogo.servlets.pdnd.v3.model.PurposeVersion version = purpose.getCurrentVersion();
 		if(version == null) {
 			version = purpose.getWaitingForApprovalVersion();
@@ -1018,6 +1027,11 @@ public class PDNDClientV3 implements IPDNDClient {
 		if(version == null) {
 			version = purpose.getRejectedVersion();
 		}
+		return version;
+	}
+
+	private Optional<Purpose> toPurpose(org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose) {
+		org.govway.catalogo.servlets.pdnd.v3.model.PurposeVersion version = getVersione(purpose);
 
 		Optional<PurposeState> state = toPurposeState(version);
 		if(state.isEmpty()) {

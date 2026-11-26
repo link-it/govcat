@@ -88,11 +88,16 @@ final class FinalitaPdndTestUtils {
 
 	/** La PDND simulata restituisce la finalita` attiva indicata. */
 	static void simulaFinalita(IPDNDClient client, String purposeId, String titolo, int quota, Integer quotaInAttesa) {
+		simulaFinalita(client, purposeId, titolo, PurposeState.ACTIVE, quota, quotaInAttesa);
+	}
+
+	/** La PDND simulata restituisce la finalita` nello stato indicato. */
+	static void simulaFinalita(IPDNDClient client, String purposeId, String titolo, PurposeState stato, int quota, Integer quotaInAttesa) {
 		Purpose purpose = new Purpose();
 		purpose.setId(UUID.fromString(purposeId));
 		purpose.setTitle(titolo);
 		purpose.setThroughput(quota);
-		purpose.setState(PurposeState.ACTIVE);
+		purpose.setState(stato);
 		if(quotaInAttesa != null) {
 			PurposeWaitingForApproval inAttesa = new PurposeWaitingForApproval();
 			inAttesa.setId(UUID.randomUUID());

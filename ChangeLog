@@ -4,6 +4,17 @@
 	Domini: testo di aiuto sul flag "Multi adesione" in creazione e modifica, da attivare solo se
 	  tutti i servizi del dominio devono essere multi adesione (nei domini misti va lasciato spento).
 
+2026-11-26  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 486: nel confronto delle quote di rate limiting con le finalità PDND, una finalità in bozza
+	  o in attesa della prima approvazione non ha più come quota quella richiesta e non ancora
+	  concessa, e una finalità rifiutata non risulta più "PDND non raggiungibile". In entrambi i casi
+	  la quota non è confrontabile (esito non verificabile) e la finalità riporta il motivo nei nuovi
+	  valori non_approvata e rifiutata dell'errore, con titolo, stato e quota in attesa; la lettura
+	  entra nella cache. Il client PDND v3 distingue la finalità rifiutata, che per l'API PDND esposta
+	  resta un errore INT.500.PDND, e non la registra più come errore '4xx' della PDND.
+
 2026-11-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

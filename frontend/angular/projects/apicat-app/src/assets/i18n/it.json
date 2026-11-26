@@ -2773,7 +2773,9 @@
 					"ERRORE": {
 						"non_valida": "Identificativo della finalità non valido",
 						"non_trovata": "Finalità non trovata sulla PDND",
-						"non_disponibile": "PDND non raggiungibile: finalità non letta"
+						"non_disponibile": "PDND non raggiungibile: finalità non letta",
+						"non_approvata": "Finalità non ancora approvata sulla PDND: nessuna quota concessa da confrontare",
+						"rifiutata": "Finalità rifiutata sulla PDND: nessuna quota concessa da confrontare"
 					}
 				}
 			},

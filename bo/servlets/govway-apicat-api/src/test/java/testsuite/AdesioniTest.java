@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,6 +60,7 @@ import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
@@ -103,7 +105,9 @@ import org.govway.catalogo.servlets.model.RateLimitingAdesioneFinalita;
 import org.govway.catalogo.servlets.model.RateLimitingFinalitaErroreEnum;
 import org.govway.catalogo.servlets.model.RateLimitingFinalitaEsitoEnum;
 import org.govway.catalogo.exception.ClientApiException;
+import org.govway.catalogo.pdnd.controllers.FinalitaRifiutataException;
 import org.govway.catalogo.pdnd.controllers.IPDNDClient;
+import org.govway.catalogo.servlets.pdnd.model.PurposeState;
 import org.govway.catalogo.services.RateLimitingFinalitaService;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
@@ -7947,6 +7951,41 @@ public class AdesioniTest {
             assertEquals(RateLimitingFinalitaEsitoEnum.NON_VERIFICABILE, finalita.getEsito());
             assertEquals(RateLimitingFinalitaErroreEnum.NON_TROVATA, finalita.getFinalita().getErrore());
             assertNull(finalita.getFinalita().getTitolo());
+
+            // Issue 486: in attesa della prima approvazione la quota richiesta non e` una quota concessa
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA, "Finalita` in attesa", PurposeState.WAITING_FOR_APPROVAL, 5000, 5000);
+            finalita = verificaFinalita(idAdesione);
+            assertEquals(RateLimitingFinalitaEsitoEnum.NON_VERIFICABILE, finalita.getEsito());
+            assertEquals(RateLimitingFinalitaErroreEnum.NON_APPROVATA, finalita.getFinalita().getErrore());
+            assertEquals("Finalita` in attesa", finalita.getFinalita().getTitolo());
+            assertEquals("WAITING_FOR_APPROVAL", finalita.getFinalita().getStato());
+            assertNull(finalita.getFinalita().getQuota());
+            assertEquals(5000, finalita.getFinalita().getQuotaInAttesa());
+            assertFalse(finalita.getFinalita().isSuperata());
+
+            // Issue 486: in bozza la quota non e` concessa e non c'e` nulla in attesa
+            FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA, "Finalita` in bozza", PurposeState.DRAFT, 10, null);
+            finalita = verificaFinalita(idAdesione);
+            assertEquals(RateLimitingFinalitaEsitoEnum.NON_VERIFICABILE, finalita.getEsito());
+            assertEquals(RateLimitingFinalitaErroreEnum.NON_APPROVATA, finalita.getFinalita().getErrore());
+            assertNull(finalita.getFinalita().getQuota());
+            assertNull(finalita.getFinalita().getQuotaInAttesa());
+            assertFalse(finalita.getFinalita().isSuperata());
+
+            // Issue 486: rifiutata sulla PDND, distinta dalla PDND non raggiungibile
+            doThrow(new FinalitaRifiutataException(UUID.fromString(FINALITA), "Finalita` rifiutata", "REJECTED"))
+                .when(pdnd).getPurpose(UUID.fromString(FINALITA));
+            finalita = verificaFinalita(idAdesione);
+            assertEquals(RateLimitingFinalitaEsitoEnum.NON_VERIFICABILE, finalita.getEsito());
+            assertEquals(RateLimitingFinalitaErroreEnum.RIFIUTATA, finalita.getFinalita().getErrore());
+            assertEquals("Finalita` rifiutata", finalita.getFinalita().getTitolo());
+            assertEquals("REJECTED", finalita.getFinalita().getStato());
+            assertNull(finalita.getFinalita().getQuota());
+
+            // Errore interno diverso dal rifiuto: resta non disponibile
+            doThrow(new InternalException(ErrorCode.INT_500_PDND, Map.of("dettagli", "test")))
+                .when(pdnd).getPurpose(UUID.fromString(FINALITA));
+            assertEquals(RateLimitingFinalitaErroreEnum.NON_DISPONIBILE, verificaFinalita(idAdesione).getFinalita().getErrore());
 
             // Senza quota giornaliera la quota manca, anche se ce n'e` una oraria
             FinalitaPdndTestUtils.simulaFinalita(pdnd, FINALITA, "Finalita` dell'aderente", 80, null);
