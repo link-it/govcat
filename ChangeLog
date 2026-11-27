@@ -6,6 +6,9 @@
 	  attiva; titolo di livello 1 nella pagina.
 	Vetrina: la nota del servizio si apre come pannello a tendina senza pulsante di chiusura (si chiude
 	  dal pulsante, con Esc o con un clic fuori); tooltip nascosto a pannello aperto.
+	Issue 487: vetrina, "Scarica descrittore eService" e "Rate limiting" in alto a destra accanto alle
+	  azioni, con la sola icona e il titolo nel tooltip (alla chiusura del rate limiting il fuoco torna
+	  sul pulsante); tolto il pulsante "Referenti del dominio".
 
 2026-11-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
