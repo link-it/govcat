@@ -4,9 +4,9 @@
     <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
     <i class="bi bi-chevron-down ms-2" aria-hidden="true"></i>
   </button>
-  <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+  <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
     <div class="gl-new-dropdown-inner">
-      <div class="gl-new-dropdown-contents">
+      <ul class="gl-new-dropdown-contents">
         @if (menuActions.length) {
           @for (menu of menuActions; track $index) {
             <ng-container>
@@ -25,7 +25,7 @@
                   @for (submenu of menu.submenus; track submenu) {
                     <ng-container>
                       <li class="gl-new-dropdown-item">
-                        <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(submenu);" [disabled]="!submenu.enabled">
+                        <button type="button" class="dropdown-item" (click)="onAction(submenu);" [disabled]="!submenu.enabled">
                           @if (submenu.icon) {
                             <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                               <i class="bi bi-{{ submenu.icon }}"></i>
@@ -55,7 +55,7 @@
                 }
                 @default {
                   <li class="gl-new-dropdown-item">
-                    <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(menu);" [disabled]="!menu.enabled">
+                    <button type="button" class="dropdown-item" (click)="onAction(menu);" [disabled]="!menu.enabled">
                       @if (menu.icon) {
                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                           <i class="bi bi-{{ menu.icon }}"></i>
@@ -85,7 +85,7 @@
         }
         @if (countSelected && uncheckAllInTheMenu) {
           <li class="gl-new-dropdown-item">
-            <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(ActionEnum.DESELECT_ALL)">
+            <button type="button" class="dropdown-item" (click)="onAction(ActionEnum.DESELECT_ALL)">
               <div class="gl-new-dropdown-item-text-wrapper me-0">
                 <p class="gl-new-dropdown-item-text-primary d-flex justify-content-start">
                   <span>{{ 'APP.MENU.DeselectAll' | translate }}</span>
@@ -94,7 +94,7 @@
             </button>
           </li>
         }
-      </div>
+      </ul>
     </div>
-  </ul>
+  </div>
 </div>

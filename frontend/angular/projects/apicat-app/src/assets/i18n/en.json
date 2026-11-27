@@ -431,6 +431,7 @@
 			"Yes": "Yes"
 		},
 		"BUTTON": {
+			"ScrollToTop": "Back to the top of the page",
 			"ChooseFile": "Choose file",
 			"RemoveFile": "Remove file",
 			"Reset": "Reset",
@@ -470,6 +471,8 @@
 			"ChooseResources": "Choose resources",
 			"Clear": "Clear",
 			"Close": "Close",
+			"OpenCalendar": "Open calendar",
+			"ToggleFilters": "Show or hide filters",
 			"CloseSidebar": "Close sidebar",
 			"Collapse": "Collapse",
 			"CollapseSidebar": "Collapse sidebar",
@@ -483,7 +486,6 @@
 			"Download": "Download",
 			"DownloadDocumentation": "Download documentation",
 			"DownloadeServiceDescriptor": "Download eService descriptor",
-			"DomainReferents": "Domain referents",
 			"DownloadeServiceExtendedDescriptor": "Download extended eService descriptor",
 			"EditGroup": "Edit group",
 			"Entra": "Enter",
@@ -724,7 +726,8 @@
 				"Remove": "Remove domain"
 			},
 			"MESSAGE": {
-				"RemoveConfirm": "Are you sure you want to delete the domain **{{nome}}**? This action cannot be undone."
+				"RemoveConfirm": "Are you sure you want to delete the domain **{{nome}}**? This action cannot be undone.",
+				"MultiAdesioneHelp": "Enable it only if all the services of the domain must allow multiple subscriptions: the flag enforces multiple subscriptions on every service of the domain. If the domain mixes services with multiple and single subscriptions, leave it disabled and set the option on each service."
 			},
 			"VALIDATION": {
 				"NameAlreadyExists": "A domain with this name already exists. Please choose another one."
@@ -1274,6 +1277,10 @@
 			"ReportTransactionDetailedOutcome": "Detailed outcome",
 			"ReportTransactionOutcome": "Transaction outcome",
 			"ReportType": "Graph type",
+			"ChartLine": "Line chart",
+			"ChartBar": "Bar chart",
+			"ChartPie": "Pie chart",
+			"ChartTable": "Table",
 			"ReportTypeInformations": "Information type",
 			"RequestModule": "Request module",
 			"Result": "Result",
@@ -1318,6 +1325,7 @@
 			"SubscriptionKey": "Subscription Key",
 			"SubscriptionRequest": "Subscription registered on {{date}} by {{name}} {{surname}}",
 			"tags": "Tags",
+			"TagNascosti": "more tags",
 			"Tassonomia": "Taxonomy",
 			"Tassonomie": "Taxonomies",
 			"Taxcode": "Taxcode",
@@ -2708,6 +2716,7 @@
 		"SEARCH": {
 			"ClearRecentSearches": "Clear recent searches",
 			"SearchFilters": "Search and filters",
+			"FilterFields": "Search filters",
 			"NoRecentSearches": "You don't have any recent searches",
 			"RecentSearches": "Recent searches",
 			"View": "View"
@@ -2755,6 +2764,7 @@
 					"QuotaAssegnata": "Assigned to subscribers",
 					"QuotaRichiesta": "Subscriber daily quota",
 					"QuotaInAttesa": "Increase waiting for approval",
+					"QuotaRichiestaInAttesa": "Requested quota waiting for approval",
 					"Adesioni": "Subscriptions",
 					"Condivisa": "Shared by {{numero}} subscriptions",
 					"Superata": "The subscriber quotas exceed the purpose quota",
@@ -2772,7 +2782,9 @@
 					"ERRORE": {
 						"non_valida": "Invalid purpose identifier",
 						"non_trovata": "Purpose not found on PDND",
-						"non_disponibile": "PDND not reachable: purpose not read"
+						"non_disponibile": "PDND not reachable: purpose not read",
+						"non_approvata": "Purpose not yet approved on PDND: no granted quota to compare",
+						"rifiutata": "Purpose rejected on PDND: no granted quota to compare"
 					}
 				}
 			},

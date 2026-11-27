@@ -43,6 +43,27 @@
         @if (_mostraNotaVetrina) {
           <app-servizio-nota-vetrina class="me-2" [nota]="data.note"></app-servizio-nota-vetrina>
         }
+        @if (_updateData | mapper:_canDownloadDescriptorMapper) {
+          <button type="button" class="btn btn-default btn-md gl-button btn-icon me-2"
+                  [disabled]="_downloading" [attr.aria-busy]="_downloading"
+                  [attr.aria-label]="'APP.BUTTON.DownloadeServiceDescriptor' | translate"
+                  [tooltip]="'APP.BUTTON.DownloadeServiceDescriptor' | translate" placement="bottom" container="body"
+                  (click)="_downloadServizioExport()">
+            @if (_downloading) {
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            } @else {
+              <i class="bi bi-download" aria-hidden="true"></i>
+            }
+          </button>
+        }
+        @if (_canShowRateLimiting()) {
+          <button type="button" class="btn btn-default btn-md gl-button btn-icon me-2"
+                  [attr.aria-label]="'APP.SERVICES.RATE_LIMITING.Titolo' | translate"
+                  [tooltip]="'APP.SERVICES.RATE_LIMITING.Titolo' | translate" placement="bottom" container="body"
+                  (click)="_openRateLimitingDialog()">
+            <i class="bi bi-speedometer2" aria-hidden="true"></i>
+          </button>
+        }
         @if (_updateData | mapper:_canManagementComunicazioniMapper) {
           <app-monitor-dropdown
             [service_id]="data?.id_servizio"
@@ -162,35 +183,12 @@
             </div>
           </div>
 
-          <div class="hero-actions">
-            <!-- Hero: solo "Scarica descrittore" (vedi screenshot
-                 mock). La CTA "Aderisci al servizio" e tutti gli
-                 altri messaggi contestuali sono migrati al banner
-                 stacking sotto il hero (`<lnk-action-banner>`). -->
-            @if (_updateData | mapper:_canDownloadDescriptorMapper) {
-              <button type="button" class="btnc btnc-default"
-                      [disabled]="_downloading"
-                      (click)="_downloadServizioExport()">
-                <i class="bi bi-download me-2"></i>
-                {{ 'APP.BUTTON.DownloadeServiceDescriptor' | translate }}
-                @if (_downloading) {
-                  <span class="spinner-border spinner-border-sm ms-2"></span>
-                }
-              </button>
-            }
-            @if (_canManageReferentiDominio) {
-              <button type="button" class="btnc btnc-default" (click)="_gotoReferentiDominio()">
-                <i class="bi bi-people me-2" aria-hidden="true"></i>{{ 'APP.BUTTON.DomainReferents' | translate }}
-              </button>
-            }
-            @if (_canShowRateLimiting()) {
-              <button type="button" class="btnc btnc-default" (click)="_openRateLimitingDialog()">
-                <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>{{ 'APP.SERVICES.RATE_LIMITING.Titolo' | translate }}
-              </button>
-            }
-            @if (_canShowPdndHeroMenu()) {
+          <!-- La CTA "Aderisci al servizio" e gli altri messaggi contestuali
+               stanno nei banner sotto il hero (`<lnk-action-banner>`). -->
+          @if (_canShowPdndHeroMenu()) {
+            <div class="hero-actions">
               <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="pdnd-hero-actions">
-                <button aria-haspopup="true" aria-expanded="false" type="button" class="btnc btnc-default dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+                <button aria-expanded="false" type="button" class="btnc btnc-default dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                   <span>{{ 'APP.SERVICES.TITLE.PDND' | translate }}</span>
                   @if (_pdndInAttesaLoading) {
                     <span class="pdnd-badge is-loading" role="status">
@@ -205,18 +203,18 @@
                   }
                   <i class="bi bi-chevron-down ms-2"></i>
                 </button>
-                <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
                   <div class="gl-new-dropdown-inner">
-                    <div class="gl-new-dropdown-contents">
+                    <ul class="gl-new-dropdown-contents">
                       <li class="gl-new-dropdown-item">
-                        <button role="menuitem" type="button" class="dropdown-item" (click)="_openPdndDialog('informations')">
+                        <button type="button" class="dropdown-item" (click)="_openPdndDialog('informations')">
                           <div class="gl-new-dropdown-item-text-wrapper">
                             <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDGeneralInformations' | translate }}</p>
                           </div>
                         </button>
                       </li>
                       <li class="gl-new-dropdown-item">
-                        <button role="menuitem" type="button" class="dropdown-item" (click)="_openPdndDialog('subscribers')">
+                        <button type="button" class="dropdown-item" (click)="_openPdndDialog('subscribers')">
                           <div class="gl-new-dropdown-item-text-wrapper">
                             <p class="gl-new-dropdown-item-text-primary">
                               {{ 'APP.SERVICES.MENU.PDNDUsers' | translate }}
@@ -230,12 +228,12 @@
                           </div>
                         </button>
                       </li>
-                    </div>
+                    </ul>
                   </div>
-                </ul>
+                </div>
               </div>
-            }
-          </div>
+            </div>
+          }
         </div>
 
         <!-- Action banners (stack verticale sotto l'hero).
@@ -631,19 +629,19 @@
       @if (_showAttachments && _apiAllegati.length) {
         <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="api-allegati-menu">
           <button type="button" class="btn btn-md btn-default gl-button dropdown-toggle dropdown-toggle-no-caret api-allegati-toggle"
-                  data-bs-toggle="dropdown" data-bs-display="static" aria-haspopup="true" aria-expanded="false">
+                  data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
             <i class="bi bi-paperclip" aria-hidden="true"></i>
             <span class="d-none d-md-inline">{{ 'APP.SERVICES.ATTACHMENTS.Title' | translate }}</span>
             <span class="api-allegati-count">{{ _apiAllegati.length }}</span>
             <i class="bi bi-chevron-down" aria-hidden="true"></i>
           </button>
-          <ul tabindex="-1" class="dropdown-menu dropdown-menu-end api-allegati-menu" [attr.aria-label]="'APP.SERVICES.ATTACHMENTS.ApiMenu' | translate">
+          <div tabindex="-1" class="dropdown-menu dropdown-menu-end api-allegati-menu">
             <div class="gl-new-dropdown-inner">
-              <div class="gl-new-dropdown-contents">
+              <ul class="gl-new-dropdown-contents" [attr.aria-label]="'APP.SERVICES.ATTACHMENTS.ApiMenu' | translate">
                 <li class="api-allegati-menu__title" aria-hidden="true">{{ 'APP.SERVICES.ATTACHMENTS.ApiMenu' | translate }}</li>
                 @for (allegato of _apiAllegati; track allegato.uuid) {
                   <li class="gl-new-dropdown-item">
-                    <button role="menuitem" type="button" class="dropdown-item api-allegato"
+                    <button type="button" class="dropdown-item api-allegato"
                             [disabled]="!!_allegatoDownloading"
                             [attr.aria-label]="'APP.SERVICES.ATTACHMENTS.Download' | translate:{ filename: allegato.filename }"
                             (click)="_downloadAllegato(allegato, _currentApi?.id_api || null)">
@@ -665,9 +663,9 @@
                     </button>
                   </li>
                 }
-              </div>
+              </ul>
             </div>
-          </ul>
+          </div>
         </div>
       }
       @if (debug && showJwtGenerator) {

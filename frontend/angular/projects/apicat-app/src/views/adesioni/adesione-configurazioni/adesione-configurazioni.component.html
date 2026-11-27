@@ -115,24 +115,24 @@
                               aria-expanded="false"
                               type="button"
                               class="btn btn-default btn-md gl-button btn-icon mr-2"
-                              [tooltip]="'APP.TOOLTIP.Dissociate' | translate" [delay]="500"
+                              [tooltip]="'APP.TOOLTIP.Dissociate' | translate" [attr.aria-label]="'APP.TOOLTIP.Dissociate' | translate" [delay]="500"
                               (click)="_showDialogDissociaClient(item)"
                               >
-                              <span class="material-icons-outlined">link_off</span>
+                              <span class="material-icons-outlined" data-icon="link_off" aria-hidden="true"></span>
                             </button>
                           }
                           <button
                             aria-expanded="false"
                             type="button"
                             class="btn btn-default btn-md gl-button btn-icon"
-                            [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                            [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [attr.aria-label]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
                             (click)="_onEditClient(item)"
                             >
                             @if ((item | mapper:_isModifiableMapper)) {
-                              <i class="bi bi-pencil"></i>
+                              <i class="bi bi-pencil" aria-hidden="true"></i>
                             }
                             @if (!(item | mapper:_isModifiableMapper)) {
-                              <i class="bi bi-eye"></i>
+                              <i class="bi bi-eye" aria-hidden="true"></i>
                             }
                           </button>
                         </div>
@@ -176,14 +176,14 @@
                             aria-expanded="false"
                             type="button"
                             class="btn btn-default btn-md gl-button btn-icon"
-                            [tooltip]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                            [tooltip]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [attr.aria-label]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
                             (click)="_onEditAdesioneErogaz(erogaz)"
                             >
                             @if (erogaz | mapper:_isModifiableMapper) {
-                              <i class="bi bi-pencil"></i>
+                              <i class="bi bi-pencil" aria-hidden="true"></i>
                             }
                             @if (!(erogaz | mapper:_isModifiableMapper)) {
-                              <i class="bi bi-eye"></i>
+                              <i class="bi bi-eye" aria-hidden="true"></i>
                             }
                           </button>
                         </div>
@@ -307,24 +307,24 @@
                         aria-expanded="false"
                         type="button"
                         class="btn btn-default btn-md gl-button btn-icon mr-2"
-                        [tooltip]="'APP.TOOLTIP.Modify' | translate" [delay]="500"
+                        [tooltip]="'APP.TOOLTIP.Modify' | translate" [attr.aria-label]="'APP.TOOLTIP.Modify' | translate" [delay]="500"
                         (click)="_showDialogDissociaClient(item)"
                         >
-                        <span class="material-icons-outlined">link_off</span>
+                        <span class="material-icons-outlined" data-icon="link_off" aria-hidden="true"></span>
                       </button>
                     }
                     <button
                       aria-expanded="false"
                       type="button"
                       class="btn btn-default btn-md gl-button btn-icon"
-                      [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                      [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [attr.aria-label]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
                       (click)="_onEditClient(item)"
                       >
                       @if ((item | mapper:_isModifiableMapper)) {
-                        <i class="bi bi-pencil"></i>
+                        <i class="bi bi-pencil" aria-hidden="true"></i>
                       }
                       @if (!(item | mapper:_isModifiableMapper)) {
-                        <i class="bi bi-eye"></i>
+                        <i class="bi bi-eye" aria-hidden="true"></i>
                       }
                     </button>
                   </div>
@@ -356,14 +356,14 @@
                       aria-expanded="false"
                       type="button"
                       class="btn btn-default btn-md gl-button btn-icon"
-                      [tooltip]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                      [tooltip]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [attr.aria-label]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
                       (click)="_onEditAdesioneErogaz(erogaz)"
                       >
                       @if (erogaz | mapper:_isModifiableMapper) {
-                        <i class="bi bi-pencil"></i>
+                        <i class="bi bi-pencil" aria-hidden="true"></i>
                       }
                       @if (!(erogaz | mapper:_isModifiableMapper)) {
-                        <i class="bi bi-eye"></i>
+                        <i class="bi bi-eye" aria-hidden="true"></i>
                       }
                     </button>
                   </div>

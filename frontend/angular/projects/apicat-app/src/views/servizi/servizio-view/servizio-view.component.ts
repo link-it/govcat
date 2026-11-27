@@ -21,7 +21,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 
 import { forkJoin, Observable, of, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, take } from 'rxjs/operators';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -89,7 +89,6 @@ import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '../servizio-ap
 import { ambienteClasseDato } from '../servizio-proprieta-custom';
 import { QUERY_PARAM_AMBIENTE, ambienteServizio, collaudoSaltato } from '../ambiente-servizio';
 import { servizioNonAccessibile } from '../servizio-accessibile';
-import { RuoloOrganizzazioneEnum } from '@app/model/ruoloOrganizzazioneEnum';
 
 export interface Organization {
     id_organizzazione: string;
@@ -278,7 +277,6 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _maxReferenti: number = 3;
     _showReferents: boolean = true;
-    _canManageReferentiDominio: boolean = false;
 
     _grant: Grant | null = null;
     _ammissibili: string[] = [];
@@ -569,7 +567,6 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
         this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.loadReferenti();
-        this._checkReferentiDominio();
         this._loadGruppi();
         this._loadAllegati();
         this._loadServiceApi();
@@ -1254,39 +1251,14 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         });
     }
 
-    /** Accesso alla gestione dei referenti del dominio del servizio. Per
-     *  l'operatore API dell'organizzazione del dominio serve l'elenco dei
-     *  referenti (deve esserne il referente). */
-    _checkReferentiDominio() {
-        this._canManageReferentiDominio = false;
-        const dominio: any = this.data?.dominio;
-        if (!dominio?.id_dominio || this.authenticationService.isAnonymous()) { return; }
-        if (this.authenticationService.canManageReferentiDominio(dominio, [])) {
-            this._canManageReferentiDominio = true;
-            return;
-        }
-        const idOrgSessione = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
-        if (!idOrgSessione || idOrgSessione !== dominio.soggetto_referente?.organizzazione?.id_organizzazione) { return; }
-        if (this.authenticationService.getCurrentOrganizationRole() !== RuoloOrganizzazioneEnum.OperatoreApi) { return; }
-        this.apiService.getDetails('domini', dominio.id_dominio, 'referenti').subscribe({
-            next: (response: any) => {
-                this._canManageReferentiDominio = this.authenticationService.canManageReferentiDominio(dominio, response?.content || []);
-            },
-            error: () => { this._canManageReferentiDominio = false; }
-        });
-    }
-
-    _gotoReferentiDominio() {
-        this.router.navigate(['/miei-domini', this.data?.dominio?.id_dominio, 'referenti'], { queryParams: { returnUrl: this.router.url } });
-    }
-
     /** Rate limiting del servizio: solo per chi lo gestisce e con API erogate dal soggetto del dominio. */
     _canShowRateLimiting(): boolean {
         return puoGestireRateLimiting(this._grant?.ruoli) && (this.serviceApiDominio || []).length > 0;
     }
 
     _openRateLimitingDialog() {
-        this.modalService.show(ServizioRateLimitingDialogComponent, {
+        const _origine = document.activeElement as HTMLElement | null;
+        const _modal = this.modalService.show(ServizioRateLimitingDialogComponent, {
             class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down',
             ignoreBackdropClick: false,
             initialState: {
@@ -1298,6 +1270,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 mock: rateLimitingMockAttivo(this.appConfig)
             }
         });
+        // alla chiusura il fuoco torna sul pulsante che ha aperto il dialog
+        _modal?.onHidden?.pipe(take(1)).subscribe(() => _origine?.focus());
     }
 
     _openPdndDialog(mode: 'informations' | 'subscribers') {

@@ -431,6 +431,7 @@
 			"Yes": "Sì"
 		},
 		"BUTTON": {
+			"ScrollToTop": "Torna all'inizio della pagina",
 			"ChooseFile": "Scegli file",
 			"RemoveFile": "Rimuovi file",
 			"Reset": "Reimposta",
@@ -470,6 +471,8 @@
 			"ChooseResources": "Scegli risorse",
 			"Clear": "Pulisci",
 			"Close": "Chiudi",
+			"OpenCalendar": "Apri il calendario",
+			"ToggleFilters": "Mostra o nascondi i filtri",
 			"CloseSidebar": "Chiudi la barra laterale",
 			"Collapse": "Contrai",
 			"CollapseSidebar": "Comprimi la barra laterale",
@@ -483,7 +486,6 @@
 			"Download": "Scarica",
 			"DownloadDocumentation": "Scarica documentazione",
 			"DownloadeServiceDescriptor": "Scarica descrittore eService",
-			"DomainReferents": "Referenti del dominio",
 			"DownloadeServiceExtendedDescriptor": "Scarica descrittore eService esteso",
 			"EditGroup": "Modifica gruppo",
 			"Entra": "Entra",
@@ -724,7 +726,8 @@
 				"Remove": "Rimuovi dominio"
 			},
 			"MESSAGE": {
-				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non è reversibile."
+				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non è reversibile.",
+				"MultiAdesioneHelp": "Attivalo solo se tutti i servizi del dominio devono essere multi adesione: il flag impone la multi adesione a ogni servizio del dominio. Se nel dominio convivono servizi multi adesione e servizi ad adesione singola, lascia il flag disattivato e imposta la multi adesione sui singoli servizi."
 			},
 			"VALIDATION": {
 				"NameAlreadyExists": "Esiste già un dominio con questo nome. Scegline un altro."
@@ -1274,6 +1277,10 @@
 			"ReportTransactionDetailedOutcome": "Dettaglio Esito",
 			"ReportTransactionOutcome": "Esito",
 			"ReportType": "Tipo di grafico",
+			"ChartLine": "Grafico a linee",
+			"ChartBar": "Grafico a barre",
+			"ChartPie": "Grafico a torta",
+			"ChartTable": "Tabella",
 			"ReportTypeInformations": "Visualizza per",
 			"RequestModule": "Modulo di richiesta",
 			"Result": "Risultato",
@@ -1318,6 +1325,7 @@
 			"SubscriptionKey": "Subscription Key",
 			"SubscriptionRequest": "Adesione registrata il {{date}} da {{name}} {{surname}}",
 			"tags": "Tags",
+			"TagNascosti": "altri tag",
 			"Tassonomia": "Tassonomia",
 			"Tassonomie": "Tassonomie",
 			"Taxcode": "Codice fiscale",
@@ -2708,6 +2716,7 @@
 		"SEARCH": {
 			"ClearRecentSearches": "Cancella le ricerche recenti",
 			"SearchFilters": "Ricerca e filtri",
+			"FilterFields": "Filtri di ricerca",
 			"NoRecentSearches": "Non hai ricerche recenti",
 			"RecentSearches": "Ricerche recenti",
 			"View": "Vista"
@@ -2755,6 +2764,7 @@
 					"QuotaAssegnata": "Assegnata agli aderenti",
 					"QuotaRichiesta": "Quota giornaliera dell'aderente",
 					"QuotaInAttesa": "Aumento in attesa di approvazione",
+					"QuotaRichiestaInAttesa": "Quota richiesta in attesa di approvazione",
 					"Adesioni": "Adesioni",
 					"Condivisa": "Condivisa da {{numero}} adesioni",
 					"Superata": "Le quote degli aderenti superano la quota della finalità",
@@ -2772,7 +2782,9 @@
 					"ERRORE": {
 						"non_valida": "Identificativo della finalità non valido",
 						"non_trovata": "Finalità non trovata sulla PDND",
-						"non_disponibile": "PDND non raggiungibile: finalità non letta"
+						"non_disponibile": "PDND non raggiungibile: finalità non letta",
+						"non_approvata": "Finalità non ancora approvata sulla PDND: nessuna quota concessa da confrontare",
+						"rifiutata": "Finalità rifiutata sulla PDND: nessuna quota concessa da confrontare"
 					}
 				}
 			},

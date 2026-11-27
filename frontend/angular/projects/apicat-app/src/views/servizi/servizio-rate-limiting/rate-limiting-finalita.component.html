@@ -32,14 +32,15 @@
         <span class="rlf-chip">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Condivisa' | translate: { numero: f.numero_adesioni } }}</span>
       }
       @if (nonAttiva()) {
-        <span class="rlf-chip" data-tono="avviso">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.StatoNonAttivo' | translate }} ({{ f.stato }})</span>
+        <span class="rlf-chip" data-tono="avviso">{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.StatoNonAttivo' | translate }} ({{ ('APP.SUBSCRIBERS.PURPOSE_STATE.' + f.stato) | translate }})</span>
       }
     </div>
   </div>
 
   @if (f.errore) {
-    <p class="rlf-nota">{{ ('APP.SERVICES.RATE_LIMITING.FINALITA.ERRORE.' + f.errore) | translate }}</p>
-  } @else {
+    <p class="rlf-nota rlf-motivo">{{ ('APP.SERVICES.RATE_LIMITING.FINALITA.ERRORE.' + f.errore) | translate }}</p>
+  }
+  @if (letta()) {
     <dl class="rlf-dati">
       <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.QuotaFinalita' | translate }}</dt><dd>{{ f.quota != null ? (f.quota | localeNumber) : '-' }}</dd></div>
       @if (esito(); as e) {
@@ -52,7 +53,7 @@
       <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Adesioni' | translate }}</dt><dd>{{ f.numero_adesioni }}</dd></div>
     </dl>
     @if (f.quota_in_attesa != null) {
-      <p class="rlf-nota"><i class="bi bi-hourglass-split" aria-hidden="true"></i> {{ 'APP.SERVICES.RATE_LIMITING.FINALITA.QuotaInAttesa' | translate }}: {{ f.quota_in_attesa | localeNumber }}</p>
+      <p class="rlf-nota"><i class="bi bi-hourglass-split" aria-hidden="true"></i> {{ (f.errore === 'non_approvata' ? 'APP.SERVICES.RATE_LIMITING.FINALITA.QuotaRichiestaInAttesa' : 'APP.SERVICES.RATE_LIMITING.FINALITA.QuotaInAttesa') | translate }}: {{ f.quota_in_attesa | localeNumber }}</p>
     }
     @if (f.superata) {
       <p class="rlf-avviso" role="status"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ 'APP.SERVICES.RATE_LIMITING.FINALITA.Superata' | translate }}</p>

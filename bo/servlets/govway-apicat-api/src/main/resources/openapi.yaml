@@ -6467,17 +6467,17 @@ components:
         errore:
           $ref: "#/components/schemas/RateLimitingFinalitaErroreEnum"
         titolo:
-          description: "Titolo della finalita` sulla PDND, assente se la finalita` non e` stata letta"
+          description: "Titolo della finalita` sulla PDND, assente se la finalita` non e` stata letta (errore non_valida, non_trovata o non_disponibile)"
           type: "string"
         quota:
-          description: "Numero massimo di richieste giornaliere della finalita` (versione corrente sulla PDND), assente se la finalita` non e` stata letta"
+          description: "Numero massimo di richieste giornaliere concesso dall'erogatore (versione corrente sulla PDND), assente se la quota non e` confrontabile (vedi errore): finalita` non letta, non ancora approvata o rifiutata"
           type: "integer"
           format: "int32"
         stato:
-          description: "Stato della finalita` sulla PDND (ACTIVE, SUSPENDED, WAITING_FOR_APPROVAL, ARCHIVED, DRAFT), assente se la finalita` non e` stata letta. Uno stato diverso da ACTIVE e` un'anomalia da evidenziare, non incide su superata."
+          description: "Stato della finalita` sulla PDND (ACTIVE, SUSPENDED, WAITING_FOR_APPROVAL, ARCHIVED, DRAFT, REJECTED), assente se la finalita` non e` stata letta. Uno stato diverso da ACTIVE e` un'anomalia da evidenziare, non incide su superata."
           type: "string"
         quota_in_attesa:
-          description: "Numero di richieste giornaliere della versione della finalita` in attesa di approvazione dell'erogatore, assente se non c'e` una richiesta di aumento in attesa"
+          description: "Numero di richieste giornaliere della versione della finalita` in attesa di approvazione dell'erogatore (richiesta di aumento o prima approvazione), assente se non c'e` una versione in attesa"
           type: "integer"
           format: "int32"
         quota_assegnata:
@@ -6489,19 +6489,23 @@ components:
           type: "integer"
           format: "int32"
         superata:
-          description: "La quota assegnata supera la quota della finalita` (sempre false se la finalita` non e` stata letta)"
+          description: "La quota assegnata supera la quota della finalita` (sempre false se la quota della finalita` non e` confrontabile)"
           type: "boolean"
     RateLimitingFinalitaErroreEnum:
-      description: "Motivo per cui la finalita` non e` stata letta dalla PDND: identificativo non valido, finalita` non trovata, PDND non raggiungibile o risposta non utilizzabile"
+      description: "Motivo per cui la quota della finalita` non e` confrontabile. Finalita` non letta dalla PDND: non_valida (identificativo non valido), non_trovata (finalita` inesistente sulla PDND), non_disponibile (PDND non raggiungibile o risposta non utilizzabile). Finalita` letta ma senza quota concessa dall'erogatore: non_approvata (in bozza o in attesa della prima approvazione; l'eventuale quota richiesta e` in quota_in_attesa), rifiutata (finalita` rifiutata dall'erogatore sulla PDND)"
       type: "string"
       enum:
         - non_valida
         - non_trovata
         - non_disponibile
+        - non_approvata
+        - rifiutata
       x-enum-varnames:
         - NON_VALIDA
         - NON_TROVATA
         - NON_DISPONIBILE
+        - NON_APPROVATA
+        - RIFIUTATA
     RateLimitingAdesioneFinalita:
       description: "Finalita` PDND indicata dall'adesione autorizzata per l'ambiente, con la quota giornaliera dell'adesione confrontata con la quota della finalita`"
       type: "object"
@@ -6522,7 +6526,7 @@ components:
           description: "La finalita` con la situazione complessiva delle adesioni che la usano, compresa questa"
           $ref: "#/components/schemas/RateLimitingFinalita"
     RateLimitingFinalitaEsitoEnum:
-      description: "Esito del confronto fra la quota giornaliera dell'adesione e quella della finalita`: conforme se uguale; inferiore se minore, da evidenziare; superiore se maggiore, errore; quota_assente se l'adesione non ha quote giornaliere, da evidenziare; non_verificabile se la finalita` non e` stata letta (vedi errore della finalita`)"
+      description: "Esito del confronto fra la quota giornaliera dell'adesione e quella della finalita`: conforme se uguale; inferiore se minore, da evidenziare; superiore se maggiore, errore; quota_assente se l'adesione non ha quote giornaliere, da evidenziare; non_verificabile se la quota della finalita` non e` confrontabile (vedi errore della finalita`)"
       type: "string"
       enum:
         - conforme

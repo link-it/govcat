@@ -41,11 +41,13 @@ import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.RateLimitingPeriodo;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.exception.ClientApiException;
+import org.govway.catalogo.pdnd.controllers.FinalitaRifiutataException;
 import org.govway.catalogo.pdnd.controllers.IPDNDClient;
 import org.govway.catalogo.pdnd.controllers.PDNDClientFactory;
 import org.govway.catalogo.servlets.model.ConfigurazioneRiferimentoProprietaCustom;
 import org.govway.catalogo.servlets.model.RateLimitingFinalitaErroreEnum;
 import org.govway.catalogo.servlets.pdnd.model.Purpose;
+import org.govway.catalogo.servlets.pdnd.model.PurposeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +69,9 @@ import jakarta.annotation.PostConstruct;
  * I dati del DB si leggono nella transazione della richiesta, le finalita` dalla PDND dopo: le
  * chiamate esterne non tengono occupata la connessione al DB. Ogni finalita` e` letta una sola volta
  * per richiesta, con una cache delle letture riuscite; una finalita` che non si riesce a leggere non
- * fa fallire la richiesta ma riporta il motivo.
+ * fa fallire la richiesta ma riporta il motivo. Una finalita` senza quota concessa (in bozza, in
+ * attesa della prima approvazione o rifiutata) e` una lettura riuscita, con un motivo dedicato e
+ * senza quota (Issue 486).
  */
 @Service
 public class RateLimitingFinalitaService {
@@ -83,7 +87,11 @@ public class RateLimitingFinalitaService {
 	 */
 	public record FinalitaAdesione(String idApi, String purposeId, Long quotaRichiesta) {}
 
-	/** Finalita` letta dalla PDND: errore valorizzato se non e` stata letta, gli altri dati se e` stata letta. */
+	/**
+	 * Finalita` letta dalla PDND: errore valorizzato se la quota non e` confrontabile. Se la finalita`
+	 * non e` stata letta mancano gli altri dati; se e` stata letta ma non e` approvata o e` rifiutata
+	 * manca solo la quota.
+	 */
 	public record FinalitaPdnd(RateLimitingFinalitaErroreEnum errore, String titolo, Integer quota, String stato, Integer quotaInAttesa) {
 		static FinalitaPdnd errore(RateLimitingFinalitaErroreEnum errore) {
 			return new FinalitaPdnd(errore, null, null, null, null);
@@ -252,10 +260,11 @@ public class RateLimitingFinalitaService {
 
 		try {
 			IPDNDClient client = AmbienteEnum.PRODUZIONE.equals(ambiente) ? this.pdndClientFactory.getClientProduzione() : this.pdndClientFactory.getClientCollaudo();
-			Purpose purpose = client.getPurpose(id).getBody();
-			return this.cache.cache(chiave, new FinalitaPdnd(null, purpose.getTitle(), purpose.getThroughput(),
-					purpose.getState() != null ? purpose.getState().getValue() : null,
-					purpose.getWaitingForApproval() != null ? purpose.getWaitingForApproval().getThroughput() : null));
+			return this.cache.cache(chiave, toFinalitaPdnd(client.getPurpose(id).getBody()));
+		} catch(FinalitaRifiutataException e) {
+			// risposta valida della PDND: la finalita` esiste ma non ha una quota concessa
+			this.logger.debug("Finalita` [{}] rifiutata sulla PDND di {}", id, ambiente);
+			return this.cache.cache(chiave, new FinalitaPdnd(RateLimitingFinalitaErroreEnum.RIFIUTATA, e.getTitolo(), null, e.getStato(), null));
 		} catch(ClientApiException e) {
 			if(e.getE() != null && e.getE().getCode() == 404) {
 				this.logger.warn("Finalita` [{}] non trovata sulla PDND di {}", id, ambiente);
@@ -267,5 +276,25 @@ public class RateLimitingFinalitaService {
 			this.logger.warn("Lettura della finalita` [{}] dalla PDND di {} non riuscita: {}", id, ambiente, e.getMessage());
 			return FinalitaPdnd.errore(RateLimitingFinalitaErroreEnum.NON_DISPONIBILE);
 		}
+	}
+
+	/**
+	 * Dati della finalita` letta. In bozza o in attesa della prima approvazione la finalita` non ha
+	 * una quota concessa dall'erogatore: la quota resta assente, cosi` non entra nel confronto, e la
+	 * quota richiesta in attesa di approvazione resta visibile. Con la v1 la quota di una finalita` in
+	 * attesa e` quella della versione in attesa, anche se la PDND non la riporta a parte.
+	 */
+	private static FinalitaPdnd toFinalitaPdnd(Purpose purpose) {
+		PurposeState stato = purpose.getState();
+		Integer quotaInAttesa = purpose.getWaitingForApproval() != null ? purpose.getWaitingForApproval().getThroughput() : null;
+		String valoreStato = stato != null ? stato.getValue() : null;
+
+		if(PurposeState.DRAFT.equals(stato) || PurposeState.WAITING_FOR_APPROVAL.equals(stato)) {
+			if(quotaInAttesa == null && PurposeState.WAITING_FOR_APPROVAL.equals(stato)) {
+				quotaInAttesa = purpose.getThroughput();
+			}
+			return new FinalitaPdnd(RateLimitingFinalitaErroreEnum.NON_APPROVATA, purpose.getTitle(), null, valoreStato, quotaInAttesa);
+		}
+		return new FinalitaPdnd(null, purpose.getTitle(), purpose.getThroughput(), valoreStato, quotaInAttesa);
 	}
 }

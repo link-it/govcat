@@ -40,8 +40,8 @@
       @if (!_isEdit && !_spin ) {
         <div class="position-relative">
           <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon"
-            [tooltip]="'APP.TOOLTIP.EditConfiguration' | translate" (click)="_isEdit = !_isEdit" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
-            <i class="bi bi-pencil"></i>
+            [tooltip]="'APP.TOOLTIP.EditConfiguration' | translate" [attr.aria-label]="'APP.TOOLTIP.EditConfiguration' | translate" (click)="_isEdit = !_isEdit" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
+            <i class="bi bi-pencil" aria-hidden="true"></i>
           </button>
         </div>
       }

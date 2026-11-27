@@ -31,10 +31,10 @@
         [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.CLIENT"
         [hide]="updateMapper | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
       ></lnk-icon-toggle>
-      <h4 class="adesione-config-list-title"
+      <h3 class="adesione-config-list-title"
           [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">
         {{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}
-      </h4>
+      </h3>
     </header>
 
     <ul class="adesione-config-list-items">
@@ -87,12 +87,12 @@
                 @let clientNametooltip = 'APP.TOOLTIP.GoToClient' | translate;
                 <button type="button"
                         class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-                        [tooltip]="`${clientNametooltip} '${item.source?.nome || item.id_client}'`"
+                        [tooltip]="`${clientNametooltip} '${item.source?.nome || item.id_client}'`" [attr.aria-label]="`${clientNametooltip} '${item.source?.nome || item.id_client}'`"
                         [delay]="500"
                         container="body"
                         (click)="goToClient($event, item)"
                         (auxclick)="goToClient($event, item)">
-                  <span class="material-icons-outlined">open_in_new</span>
+                  <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
                 </button>
               }
               <!-- DISSOCIA: azione di gestione (canManage), disponibile
@@ -102,11 +102,11 @@
               @if (item.id_client && canManage && !isEditing) {
                 <button type="button"
                         class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-                        [tooltip]="'APP.TOOLTIP.Dissociate' | translate"
+                        [tooltip]="'APP.TOOLTIP.Dissociate' | translate" [attr.aria-label]="'APP.TOOLTIP.Dissociate' | translate"
                         [delay]="500"
                         container="body"
                         (click)="confirmDissociaClient(item)">
-                  <span class="material-icons-outlined">link_off</span>
+                  <span class="material-icons-outlined" data-icon="link_off" aria-hidden="true"></span>
                 </button>
               }
               <!-- EDIT / VIEW / CLOSE: sempre visibile. In view-only
@@ -116,7 +116,7 @@
               @let _isLoadingThis = _loadingEditClientItem === item;
               <button type="button"
                       class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-                      [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (canModify ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
+                      [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (canModify ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate" [attr.aria-label]="(isEditing ? 'APP.BUTTON.Close' : (canModify ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
                       [delay]="500"
                       container="body"
                       [disabled]="_isLoadingThis"
@@ -124,11 +124,11 @@
                 @if (_isLoadingThis) {
                   <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 } @else if (isEditing) {
-                  <i class="bi bi-x-lg"></i>
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
                 } @else if (canModify) {
-                  <i class="bi bi-pencil"></i>
+                  <i class="bi bi-pencil" aria-hidden="true"></i>
                 } @else {
-                  <i class="bi bi-eye"></i>
+                  <i class="bi bi-eye" aria-hidden="true"></i>
                 }
               </button>
             </div>

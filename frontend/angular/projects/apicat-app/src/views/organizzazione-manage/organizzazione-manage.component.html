@@ -18,7 +18,7 @@
 -->
 <div id="route-section" class="organizzazione-manage">
   <div class="alert-wrapper gp-force-block-formatting-context">
-    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [mainHeading]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
 
   <!-- Intestazione organizzazione (sola lettura) -->
@@ -26,7 +26,7 @@
     <div class="lnk-vetrina mt-3 mb-3 organization-manage-header">
       <div class="card card-pad-tight">
         <div class="d-flex align-items-center mb-2">
-          <h5 class="mb-0 flex-grow-1">{{ organizzazione.nome || '--' }}</h5>
+          <h2 class="h5 mb-0 flex-grow-1">{{ organizzazione.nome || '--' }}</h2>
           @if (organizzazione.referente) {
             <span class="chip chip-info ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</span>
           }

@@ -36,12 +36,20 @@ export const RATE_LIMITING_MOCK_QUOTE: RateLimiting[][] = [
     [{ periodo: 'giorno', quota: 20000, quota_fruitore: 4000 }, { periodo: 'minuto', quota_fruitore: 20 }]
 ];
 
-/** Finalita` PDND di esempio: una conforme, una condivisa e superata, una non trovata sulla PDND. */
-const MOCK_FINALITA: Array<{ purpose_id: string; titolo?: string; caso: 'conforme' | 'superata' | 'non_trovata' }> = [
+/**
+ * Finalita` PDND di esempio: una conforme, una condivisa e superata, una non trovata sulla PDND, una in
+ * attesa della prima approvazione e una rifiutata (lette, ma senza una quota concessa da confrontare).
+ */
+const MOCK_FINALITA: Array<{ purpose_id: string; titolo?: string; caso: 'conforme' | 'superata' | 'non_trovata' | 'non_approvata' | 'rifiutata' }> = [
     { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a01', titolo: 'Consultazione anagrafe comunale', caso: 'conforme' },
     { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a02', titolo: 'Verifica della residenza', caso: 'superata' },
-    { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a03', caso: 'non_trovata' }
+    { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a03', caso: 'non_trovata' },
+    { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a04', titolo: 'Accesso ai dati catastali', caso: 'non_approvata' },
+    { purpose_id: '7f3c2a10-5b1e-4c8d-9a64-0d2e5f8b1a05', titolo: 'Controllo delle autocertificazioni', caso: 'rifiutata' }
 ];
+
+/** Quota richiesta dalla finalita` di esempio in attesa della prima approvazione. */
+const MOCK_QUOTA_IN_ATTESA = 5000;
 
 /**
  * Quota di ciascun fruitore rispetto al massimo per fruitore (o a un quarto della quota totale); 0 = nessuna quota.
@@ -54,7 +62,9 @@ const MOCK_FRUITORI: Array<{ soggetto: string; id_logico: string | null; stato: 
     { soggetto: 'Provincia di Montebello', id_logico: null, stato: 'pubblicato_collaudo', autorizzata: true, fattore: 1, finalita: 1 },
     { soggetto: 'Città Metropolitana di Rivabella', id_logico: 'CMR', stato: 'autorizzato_collaudo', autorizzata: true, fattore: 0, finalita: 2 },
     { soggetto: 'Consorzio Servizi Digitali', id_logico: 'CSD', stato: 'bozza', autorizzata: false, fattore: 0.5 },
-    { soggetto: 'Comune di Pratoverde', id_logico: null, stato: 'bozza', autorizzata: false, fattore: 0 }
+    { soggetto: 'Comune di Pratoverde', id_logico: null, stato: 'bozza', autorizzata: false, fattore: 0 },
+    { soggetto: 'Comune di Colleverde', id_logico: 'CV', stato: 'autorizzato_collaudo', autorizzata: true, fattore: 0, finalita: 3 },
+    { soggetto: 'Comune di Acquachiara', id_logico: null, stato: 'autorizzato_collaudo', autorizzata: true, fattore: 0, finalita: 4 }
 ];
 
 /** Fruitori di esempio in tutto: oltre ai precedenti, adesioni senza quote (per mostrare la paginazione). */
@@ -129,6 +139,11 @@ export function assegnaFinalitaMock(fruitori: ItemRateLimitingFruitore[]): RateL
         const _finalita: RateLimitingFinalita = { purpose_id: m.purpose_id, quota_assegnata: _assegnata, numero_adesioni: _aderenti.length, superata: false };
         if (m.caso === 'non_trovata') {
             _finalita.errore = 'non_trovata';
+        } else if (m.caso === 'non_approvata' || m.caso === 'rifiutata') {
+            _finalita.errore = m.caso;
+            _finalita.titolo = m.titolo;
+            _finalita.stato = m.caso === 'rifiutata' ? 'REJECTED' : 'WAITING_FOR_APPROVAL';
+            if (m.caso === 'non_approvata') { _finalita.quota_in_attesa = MOCK_QUOTA_IN_ATTESA; }
         } else {
             _finalita.titolo = m.titolo;
             _finalita.stato = 'ACTIVE';

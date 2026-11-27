@@ -252,7 +252,14 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   multi: {name: string, series: {name: string, value: number}[]}[] = [];
   multi_bar_chart: {name: string, series: {name: string, value: number}[]}[] = [];
 
+  // righe della tabella ricalcolate solo quando cambia la serie: un array nuovo a ogni
+  // ciclo di change detection fa ridisegnare la tabella e la lascia vuota
+  private _multiTableRowsCache: { src: any; rows: any[] } | null = null;
+
   get multi_table_rows() {
+    if (this._multiTableRowsCache?.src === this.multi) {
+      return this._multiTableRowsCache.rows;
+    }
     let rows:any = [];
 
     // map this.multi.series to rows
@@ -269,6 +276,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
       });
     });
 
+    this._multiTableRowsCache = { src: this.multi, rows };
     return rows;
   }
 

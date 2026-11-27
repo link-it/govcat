@@ -791,6 +791,17 @@ $tagColorHover: #dbdbdb;
   color: var(--dropdown-item-color-hover, #303030);
 }
 
+// Legenda dei grafici (ngx-charts): il grigio predefinito (#afb7c8) non raggiunge il contrasto AA
+.chart-legend .legend-labels .legend-label {
+  color: #4b5563;
+}
+
+// Dialog della specifica API: intestazione e barra degli ambienti restano fisse in alto (57 + 57 px);
+// lo scorrimento verso l'elemento col focus ne tiene conto, cosi' non resta coperto (WCAG 2.4.11)
+.modal:has(#open-api-info-title) {
+  scroll-padding-top: 120px;
+}
+
 // Swagger
 
 .swagger-ui {
@@ -814,7 +825,31 @@ $tagColorHover: #dbdbdb;
   .model-box-control,
   .models-control,
   .opblock-summary-control {
-    overflow: hidden; 
+    overflow: hidden;
+  }
+
+  // contrasto AA del testo bianco sui badge di versione e del pulsante Authorize
+  .info .title small {
+    background: #434b4f;
+
+    &.version-stamp {
+      background-color: #1d632e;
+    }
+  }
+
+  .btn.authorize {
+    border-color: #1d7a4e;
+    color: #1d7a4e;
+
+    svg {
+      color: #1d7a4e;
+    }
+  }
+
+  // pulsante "copia percorso" visibile anche col fuoco da tastiera, non solo al passaggio del mouse
+  .opblock .opblock-summary:focus-within .view-line-link.copy-to-clipboard {
+    margin: 0 5px;
+    width: 24px;
   }
 
   .model-box {
@@ -869,6 +904,12 @@ $tagColorHover: #dbdbdb;
   background-color: var(--bs-list-group-action-hover-bg) !important;
 }
 
+// icona Material dal nome in data-icon: la ligatura non entra nel testo del comando
+.material-icons[data-icon]::before,
+.material-icons-outlined[data-icon]::before {
+  content: attr(data-icon);
+}
+
 // input icon
 
 .input-post-icon {
@@ -877,6 +918,15 @@ $tagColorHover: #dbdbdb;
     bottom: 10px;
     right: 10px;
     margin-top: 0;
+}
+
+button.input-post-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  right: 6px;
 }
 
 // scroll-shadow

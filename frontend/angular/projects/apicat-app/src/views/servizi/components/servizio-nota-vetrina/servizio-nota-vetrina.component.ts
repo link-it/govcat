@@ -18,7 +18,7 @@
  */
 import { ChangeDetectionStrategy, Component, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TooltipDirective, TooltipModule } from 'ngx-bootstrap/tooltip';
 
 let _progressivo = 0;
 
@@ -29,7 +29,8 @@ const LARGHEZZA = 480;
 
 /**
  * Nota del servizio nella vetrina: pulsante accanto alle azioni della pagina che apre la nota in un
- * pannello. Chi lo usa decide se mostrarlo (configurazione, ruoli, nota valorizzata).
+ * pannello a tendina; il fuoco resta sul pulsante, che lo richiude come Esc o un clic fuori. Chi lo
+ * usa decide se mostrarlo (configurazione, ruoli, nota valorizzata).
  */
 @Component({
     selector: 'app-servizio-nota-vetrina',
@@ -51,11 +52,11 @@ export class ServizioNotaVetrinaComponent {
     /** Posizione del pannello (fixed) e della freccia, calcolate dal pulsante. */
     readonly posizione = signal({ top: 0, right: MARGINE, freccia: 16 });
     readonly idPannello = `servizio-nota-vetrina-${++_progressivo}`;
-    readonly idTitolo = `${this.idPannello}-titolo`;
 
     private readonly host = inject(ElementRef<HTMLElement>);
     private readonly pulsante = viewChild.required<ElementRef<HTMLButtonElement>>('pulsante');
-    private readonly chiudiEl = viewChild<ElementRef<HTMLButtonElement>>('chiudiEl');
+    // il tooltip ripete il titolo del pannello e lo coprirebbe
+    private readonly suggerimento = viewChild(TooltipDirective);
 
     toggle() {
         if (this.aperta()) {
@@ -67,8 +68,8 @@ export class ServizioNotaVetrinaComponent {
 
     apri() {
         this.posiziona();
+        this.suggerimento()?.hide();
         this.aperta.set(true);
-        setTimeout(() => this.chiudiEl()?.nativeElement.focus());
     }
 
     chiudi(restituisciFuoco: boolean = true) {

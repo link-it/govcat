@@ -48,27 +48,26 @@ describe('ServizioNotaVetrinaComponent', () => {
     expect(popover()).toBeNull();
   });
 
-  it('should open the note as plain text, keeping the line breaks, and move the focus on the close button', () => {
+  it('should open the note as plain text, keeping the line breaks, with the focus left on the button', () => {
+    pulsante().focus();
     pulsante().click();
     fixture.detectChanges();
     vi.runAllTimers();
     const testo = popover()!.querySelector('.snv-testo')!;
     expect(testo.textContent).toBe('Prima riga\n<b>seconda</b> riga');
     expect(testo.querySelector('b')).toBeNull();
-    expect(popover()!.getAttribute('role')).toBe('dialog');
-    expect(popover()!.getAttribute('aria-labelledby')).toBe(fixture.componentInstance.idTitolo);
+    expect(popover()!.getAttribute('role')).toBeNull();
+    expect(popover()!.querySelector('button')).toBeNull();
     expect(pulsante().getAttribute('aria-controls')).toBe(popover()!.id);
     expect(pulsante().getAttribute('aria-expanded')).toBe('true');
-    expect(document.activeElement?.classList.contains('snv-chiudi')).toBe(true);
+    expect(document.activeElement).toBe(pulsante());
   });
 
-  it('should close with the close button and give the focus back to the button', () => {
+  it('should close with a second click on the button', () => {
     pulsante().click();
     fixture.detectChanges();
-    vi.runAllTimers();
-    (popover()!.querySelector('.snv-chiudi') as HTMLButtonElement).click();
+    pulsante().click();
     fixture.detectChanges();
-    vi.runAllTimers();
     expect(popover()).toBeNull();
     expect(pulsante().getAttribute('aria-expanded')).toBe('false');
     expect(document.activeElement).toBe(pulsante());

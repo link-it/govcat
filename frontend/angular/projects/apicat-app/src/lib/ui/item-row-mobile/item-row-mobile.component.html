@@ -65,9 +65,10 @@
 
     @if (hasAction) {
       <div class="mobile-action">
-        <button class="btn btn-default btn-sm gl-button btn-icon" [tooltip]="actionTooltip" (click)="__actionlick($event)">
+        <button type="button" class="btn btn-default btn-sm gl-button btn-icon" [tooltip]="actionTooltip"
+          [attr.aria-label]="iconAction ? (actionTooltip || actionText) : null" (click)="__actionlick($event)">
           @if (iconAction) {
-            <i class="bi bi-{{ iconAction }}"></i>
+            <i class="bi bi-{{ iconAction }}" aria-hidden="true"></i>
           }
           @if (!iconAction) {
             <span>{{ actionText }}</span>

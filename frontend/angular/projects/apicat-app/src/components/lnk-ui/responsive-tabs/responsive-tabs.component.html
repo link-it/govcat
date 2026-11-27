@@ -55,7 +55,6 @@
             class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle lnk-responsive-tabs__toggle"
             data-bs-toggle="dropdown"
             data-bs-display="static"
-            aria-haspopup="true"
             aria-expanded="false">
       <span class="lnk-responsive-tabs__toggle-label">
         <span>{{ (_activeItem()?.label || '') | translate }}</span>
@@ -69,9 +68,9 @@
         <i class="bi bi-chevron-down ms-2"></i>
       </span>
     </button>
-    <ul class="dropdown-menu lnk-responsive-tabs__menu" role="menu">
+    <ul class="dropdown-menu lnk-responsive-tabs__menu">
       @for (tab of items; track tab.key) {
-        <li role="menuitem">
+        <li>
           <button type="button"
                   class="dropdown-item lnk-responsive-tabs__item"
                   [class.active]="active === tab.key"

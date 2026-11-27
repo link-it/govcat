@@ -19,7 +19,8 @@
 import { AfterViewInit, Directive, ElementRef, NgZone, OnDestroy } from '@angular/core';
 
 /**
- * Rende operabile da tastiera il contenitore lista `section.container-scroller`.
+ * Rende operabile da tastiera il contenitore lista `section.container-scroller` e ogni altra
+ * regione scorrevole marcata con l'attributo `lnkScrollableRegion`.
  * Quando il contenuto va in overflow la regione diventa scorrevole ma, senza discendenti
  * focusabili, chi naviga da tastiera non può raggiungerla né scorrerla (WCAG 2.1.1,
  * axe scrollable-region-focusable). La direttiva assegna `tabindex="0"` solo quando la
@@ -31,7 +32,7 @@ const FOCUSABILI = 'a[href], button:not([disabled]), input:not([disabled]):not([
   + 'textarea:not([disabled]), [contenteditable="true"], [tabindex]:not([tabindex="-1"])';
 
 @Directive({
-  selector: 'section.container-scroller',
+  selector: 'section.container-scroller, [lnkScrollableRegion]',
   standalone: true
 })
 export class ScrollableRegionFocusableDirective implements AfterViewInit, OnDestroy {

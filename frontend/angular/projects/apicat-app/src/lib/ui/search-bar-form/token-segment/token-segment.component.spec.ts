@@ -22,6 +22,7 @@ import { TokenSegmentComponent } from './token-segment.component';
 import { ConfigService } from '../../../services';
 import { UtilsLib } from '../../../utils/utils.lib';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('TokenSegmentComponent', () => {
     let component: TokenSegmentComponent;
@@ -34,7 +35,7 @@ describe('TokenSegmentComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-    imports: [TokenSegmentComponent],
+    imports: [TokenSegmentComponent, TranslateModule.forRoot()],
     providers: [
         { provide: ConfigService, useValue: mockConfigService },
         UtilsLib,

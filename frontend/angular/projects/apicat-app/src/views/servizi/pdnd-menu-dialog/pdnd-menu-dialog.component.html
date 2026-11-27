@@ -21,24 +21,24 @@
     <h5 class="modal-title mb-0">{{ titleKey | translate }}</h5>
     @if (apis.length > 1) {
       <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="pdnd-api-select">
-        <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+        <button aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
           <span>{{ apiLabel(selectedApi) }}</span> <i class="bi bi-chevron-down ms-2"></i>
         </button>
-        <ul tabindex="-1" class="dropdown-menu">
+        <div tabindex="-1" class="dropdown-menu">
           <div class="gl-new-dropdown-inner">
-            <div class="gl-new-dropdown-contents">
+            <ul class="gl-new-dropdown-contents">
               @for (api of apis; track api.id_api) {
                 <li class="gl-new-dropdown-item">
-                  <button role="menuitem" type="button" class="dropdown-item" [class.active]="api.id_api === selectedApiId" (click)="selectApi(api)">
+                  <button type="button" class="dropdown-item" [class.active]="api.id_api === selectedApiId" (click)="selectApi(api)">
                     <div class="gl-new-dropdown-item-text-wrapper">
                       <p class="gl-new-dropdown-item-text-primary">{{ apiLabel(api) }}</p>
                     </div>
                   </button>
                 </li>
               }
-            </div>
+            </ul>
           </div>
-        </ul>
+        </div>
       </div>
     } @else if (apis.length === 1) {
       <span class="text-muted">{{ apiLabel(selectedApi) }}</span>

@@ -43,12 +43,12 @@
           @if (!_isEdit && !_spin) {
             <div class="btn-group- ms-1">
               <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-                <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+                <button aria-label="Altre azioni" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
                   <i class="bi bi-three-dots-vertical"></i>
                 </button>
-                <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+                <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
                   <div class="gl-new-dropdown-inner">
-                    <div class="gl-new-dropdown-contents">
+                    <ul class="gl-new-dropdown-contents" aria-labelledby="sort_toggle">
                       <li class="gl-new-dropdown-item">
                         <button type="button" class="dropdown-item" (click)="_deleteDominio()">
                           <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
@@ -59,9 +59,9 @@
                           </div>
                         </button>
                       </li>
-                    </div>
+                    </ul>
                   </div>
-                </ul>
+                </div>
               </div>
             </div>
           }
@@ -356,9 +356,10 @@
                 <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.multi_adesione' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
+                    <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" aria-describedby="multi_adesione-help">
                     <label class="custom-control-label" for="multi_adesione"><span class="visually-hidden">{{ 'APP.LABEL.multi_adesione' | translate }}</span></label>
                   </div>
+                  <p class="form-text text-muted mb-0" id="multi_adesione-help">{{ 'APP.DOMINI.MESSAGE.MultiAdesioneHelp' | translate }}</p>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="multi_adesione" [checked]="dominio.multi_adesione" disabled>

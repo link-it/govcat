@@ -17,7 +17,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-  <button aria-haspopup="true" aria-expanded="false" type="button" [tooltip]="(showStatus ? 'APP.TOOLTIP.ChangeStatus' : '') | translate" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="workflow_actions" [style.background-color]="showStatus ? _configStatus.background : ''" [style.color]="showStatus ? _configStatus.color : ''" [disabled]="!_hasActions() && !_storicoAttivo">
+  <button aria-expanded="false" type="button" [tooltip]="(showStatus ? 'APP.TOOLTIP.ChangeStatus' : '') | translate" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="workflow_actions" [style.background-color]="showStatus ? _configStatus.background : ''" [style.color]="showStatus ? _configStatus.color : ''" [disabled]="!_hasActions() && !_storicoAttivo">
     <i class="bi bi-node-plus"></i>
     @if (showStatus) {
       <span class="ms-2 d-none d-md-block">{{ 'APP.WORKFLOW.STATUS.' + _currentStatus | translate }}</span>
@@ -27,13 +27,13 @@
     }
     <i class="bi bi-chevron-down ms-2"></i>
   </button>
-  <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+  <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
     <div class="gl-new-dropdown-inner">
       @if (_currentStatus !== _statoArchiviato.nome && _cambioStato) {
-        <div class="gl-new-dropdown-contents">
+        <ul class="gl-new-dropdown-contents">
           @if (_cambioStato.stato_precedente) {
             <li class="gl-new-dropdown-item">
-              <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_precedente);" [disabled]="!('stato_precedente' | mapper:_isActionEnabledMapper)">
+              <button type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_precedente);" [disabled]="!('stato_precedente' | mapper:_isActionEnabledMapper)">
                 <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                   <i class="bi bi-backspace"></i>
                 </div>
@@ -50,7 +50,7 @@
               </li>
             }
             <li class="gl-new-dropdown-item">
-              <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_successivo);" [disabled]="!('stato_successivo' | mapper:_isActionEnabledMapper)">
+              <button type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_successivo);" [disabled]="!('stato_successivo' | mapper:_isActionEnabledMapper)">
                 <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                   <i class="bi bi-arrow-right-square"></i>
                 </div>
@@ -68,7 +68,7 @@
             }
             @for (status of _visibleStatiUlteriori; track status) {
               <li class="gl-new-dropdown-item">
-                <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', status);" [disabled]="!('stati_ulteriori' | mapper:_isActionEnabledMapper:status.nome)">
+                <button type="button" class="dropdown-item" (click)="onAction('change', status);" [disabled]="!('stati_ulteriori' | mapper:_isActionEnabledMapper:status.nome)">
                   <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                     @if (status.nome == _statoArchiviato.nome) {
                       <i class="bi bi-archive"></i>
@@ -88,7 +88,7 @@
             <hr class="dropdown-divider">
           </li>
           <li class="gl-new-dropdown-item archiviato d-flex align-items-center">
-            <button role="menuitem" type="button" class="dropdown-item"
+            <button type="button" class="dropdown-item"
               (click)="onAction('change', _statoArchiviato);"
               [disabled]="!canArchiviare()">
               <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
@@ -104,12 +104,12 @@
               [tooltip]="'APP.TOOLTIP.CannotArchive' | translate"></i>
             }
           </li>
-        </div>
+        </ul>
       }
       @if (_currentStatus === _statoArchiviato.nome) {
-        <div class="gl-new-dropdown-contents">
+        <ul class="gl-new-dropdown-contents">
           <li class="gl-new-dropdown-item archiviato">
-            <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _previousStatus);" [disabled]="!('' | mapper:_isGestoreMapper)">
+            <button type="button" class="dropdown-item" (click)="onAction('change', _previousStatus);" [disabled]="!('' | mapper:_isGestoreMapper)">
               <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                 <i class="bi bi-arrow-left-square"></i>
               </div>
@@ -118,17 +118,17 @@
               </div>
             </button>
           </li>
-        </div>
+        </ul>
       }
       @if (_storicoAttivo) {
-        <div class="gl-new-dropdown-contents">
+        <ul class="gl-new-dropdown-contents">
           @if (_haCambiStato) {
             <li class="gl-new-dropdown-divider">
               <hr class="dropdown-divider">
             </li>
           }
           <li class="gl-new-dropdown-item">
-            <button role="menuitem" type="button" class="dropdown-item" (click)="apriStorico()">
+            <button type="button" class="dropdown-item" (click)="apriStorico()">
               <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                 <i class="bi bi-clock-history"></i>
               </div>
@@ -137,8 +137,8 @@
               </div>
             </button>
           </li>
-        </div>
+        </ul>
       }
     </div>
-  </ul>
+  </div>
 </div>

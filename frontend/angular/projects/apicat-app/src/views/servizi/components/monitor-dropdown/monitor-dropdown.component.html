@@ -17,12 +17,12 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-  <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="monitor_actions">
+  <button aria-label="Altre azioni" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="monitor_actions">
     <i class="bi bi-three-dots-vertical"></i>
   </button>
-  <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+  <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
     <div class="gl-new-dropdown-inner">
-      <div class="gl-new-dropdown-contents">
+      <ul class="gl-new-dropdown-contents">
         @if (_menuActions.length) {
           @for (menu of _menuActions; track menu) {
             @if (menu.enabled) {
@@ -39,7 +39,7 @@
                   @for (submenu of menu.submenus; track submenu) {
                     @if (submenu.enabled) {
                       <li class="gl-new-dropdown-item">
-                        <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(submenu);">
+                        <button type="button" class="dropdown-item" (click)="onAction(submenu);">
                           @if (submenu.icon) {
                             <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                               <i class="bi bi-{{ submenu.icon }}" [class.text-danger]="submenu.danger"></i>
@@ -60,7 +60,7 @@
                 }
                 @default {
                   <li class="gl-new-dropdown-item">
-                    <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(menu);">
+                    <button type="button" class="dropdown-item" (click)="onAction(menu);">
                       @if (menu.icon) {
                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                           <i class="bi bi-{{ menu.icon }}" [class.text-danger]="menu.danger"></i>
@@ -76,7 +76,7 @@
             }
           }
         }
-      </div>
+      </ul>
     </div>
-  </ul>
+  </div>
 </div>

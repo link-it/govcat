@@ -512,9 +512,9 @@
                       <div class="input-group mb-3">
                         <input type="text" class="form-control form-control-sm cursor-pointer" id="id_gruppo_padre_label" formControlName="id_gruppo_padre_label" readonly (click)="openChoiceGroupModal($event)">
                         @if (_formGroup.controls['id_gruppo_padre'].value) {
-                          <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="clearGroup($event)"><i class="bi bi-x-lg"></i></button>
+                          <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" [attr.aria-label]="'APP.BUTTON.RemoveGroup' | translate" (click)="clearGroup($event)"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
                         }
-                        <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceGroupModal($event)"><i class="bi bi-collection"></i></button>
+                        <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" [attr.aria-label]="'APP.BUTTON.ChooseGroup' | translate" (click)="openChoiceGroupModal($event)"><i class="bi bi-collection" aria-hidden="true"></i></button>
                       </div>
                     </div>
                   </div>
@@ -533,7 +533,7 @@
                               ></ui-tassonomia-token>
                             }
                           </div>
-                          <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceCategoriesModal($event)"><i class="bi bi-tag"></i></button>
+                          <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" [attr.aria-label]="'APP.TITLE.ChooseCategory' | translate" (click)="openChoiceCategoriesModal($event)"><i class="bi bi-tag" aria-hidden="true"></i></button>
                         </div>
                       </div>
                     </div>
@@ -549,7 +549,7 @@
                           <div class="input-group mb-3">
                             <input type="text" class="form-control form-control-sm cursor-pointer" id="categoriaLabel" formControlName="categoriaLabel" readonly (click)="openChoiceCategoriesModal($event)">
                             <input type="text" class="form-control form-control-sm cursor-pointer" id="categoria" formControlName="categoria" [placeholder]="'APP.PLACEHOLDER.SelectCategoria' | translate" hidden (click)="openChoiceCategoriesModal($event)">
-                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceCategoriesModal($event)"><i class="bi bi-tag"></i></button>
+                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" [attr.aria-label]="'APP.TITLE.ChooseCategory' | translate" (click)="openChoiceCategoriesModal($event)"><i class="bi bi-tag" aria-hidden="true"></i></button>
                           </div>
                         </div>
                       </div>

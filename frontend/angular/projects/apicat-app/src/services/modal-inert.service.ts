@@ -27,12 +27,15 @@ import { BsModalService } from 'ngx-bootstrap/modal';
  * quando l'ultima modale è chiusa.
  * Basta l'attributo inert, che toglie lo sfondo anche dall'albero di accessibilità:
  * aria-hidden sarebbe ridondante e fa risultare vuote le label con testo visually-hidden.
+ * Dà anche un nome accessibile alle modali che non ce l'hanno (ariaLabelledBy non passato
+ * a show()): aria-labelledby punta al titolo della modale (WCAG 4.1.2).
  */
 @Injectable({ providedIn: 'root' })
 export class ModalInertService {
 
   private openCount = 0;
   private initialized = false;
+  private titleSeq = 0;
 
   constructor(private readonly modalService: BsModalService) {}
 
@@ -43,6 +46,25 @@ export class ModalInertService {
     this.initialized = true;
     this.modalService.onShow.subscribe(() => this.onModalOpen());
     this.modalService.onHidden.subscribe(() => this.onModalClose());
+    // il titolo si valorizza al ciclo di change detection successivo all'apertura
+    this.modalService.onShown.subscribe(() => setTimeout(() => this.nameDialogs()));
+  }
+
+  /** Collega ogni modale aperta senza nome al suo titolo. */
+  nameDialogs(): void {
+    document.querySelectorAll('modal-container[role="dialog"]').forEach((dialog: Element) => {
+      if (dialog.hasAttribute('aria-labelledby') || dialog.hasAttribute('aria-label')) {
+        return;
+      }
+      const title = dialog.querySelector('.modal-title, .modal-header h1, .modal-header h2, .modal-header h3, .modal-header h4, .modal-header h5, .modal-header h6');
+      if (!title || !title.textContent?.trim()) {
+        return;
+      }
+      if (!title.id) {
+        title.id = `lnk-modal-title-${++this.titleSeq}`;
+      }
+      dialog.setAttribute('aria-labelledby', title.id);
+    });
   }
 
   private get appRoot(): HTMLElement | null {

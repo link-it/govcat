@@ -133,7 +133,7 @@
                     <section class="card card-pad-tight mb-4">
                       <div class="card-body px-2 pt-2 pb-0">
                         <header class="mb-3">
-                          <h3 class="m-0">{{ 'APP.PROFILE.SECTION.IdentitaTitle' | translate }}</h3>
+                          <h2 class="h3 m-0">{{ 'APP.PROFILE.SECTION.IdentitaTitle' | translate }}</h2>
                           <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.IdentitaDesc' | translate }}</p>
                         </header>
                         <div class="row">
@@ -164,7 +164,7 @@
                     <section class="card card-pad-tight mb-4">
                       <div class="card-body px-2 pt-2 pb-0">
                         <header class="mb-3">
-                          <h3 class="m-0">{{ 'APP.PROFILE.SECTION.PersonaliTitle' | translate }}</h3>
+                          <h2 class="h3 m-0">{{ 'APP.PROFILE.SECTION.PersonaliTitle' | translate }}</h2>
                           <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.PersonaliDesc' | translate }}</p>
                         </header>
                         <div class="row">
@@ -205,7 +205,7 @@
                     <section class="card card-pad-tight mb-4">
                       <div class="card-body px-2 pt-2 pb-0">
                         <header class="mb-3">
-                          <h3 class="m-0">{{ ((mostraTelefono || mostraEmail) ? 'APP.PROFILE.SECTION.ContattiCorporateTitle' : 'APP.PROFILE.SECTION.ContattiTitle') | translate }}</h3>
+                          <h2 class="h3 m-0">{{ ((mostraTelefono || mostraEmail) ? 'APP.PROFILE.SECTION.ContattiCorporateTitle' : 'APP.PROFILE.SECTION.ContattiTitle') | translate }}</h2>
                           <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.ContattiDesc' | translate }}</p>
                         </header>
                         <div class="row">
@@ -227,12 +227,13 @@
                               <div class="form-group mb-3">
                                 <label for="email_aziendale" class="label-bold">{{ (mostraEmail ? 'APP.USERS.LABEL.CorporateEmail' : 'APP.USERS.LABEL.Email') | translate }} *</label>
                                 <div class="input-group">
-                                  <input type="email" class="form-control" formControlName="email_aziendale" readonly>
+                                  <input type="email" id="email_aziendale" class="form-control" formControlName="email_aziendale" readonly>
                                   <div class="input-group-append">
                                     <button class="btn btn-sm gl-button btn-confirm" type="button"
                                       [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyCorporateEmail' | translate"
+                                      [attr.aria-label]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyCorporateEmail' | translate"
                                       (click)="openEmailModificationDialog('email_aziendale')">
-                                      <i class="bi bi-pencil"></i>
+                                      <i class="bi bi-pencil" aria-hidden="true"></i>
                                     </button>
                                   </div>
                                 </div>
@@ -271,11 +272,12 @@
                                 <div class="form-group mb-3">
                                   <label for="email" class="label-bold">{{ 'APP.USERS.LABEL.Email' | translate }}</label>
                                   <div class="input-group">
-                                    <input type="email" class="form-control" formControlName="email" readonly>
+                                    <input type="email" id="email" class="form-control" formControlName="email" readonly>
                                     <button class="btn btn-sm btn-primary" type="button"
                                       [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail' | translate"
+                                      [attr.aria-label]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail' | translate"
                                       (click)="openEmailModificationDialog('email')">
-                                      <i class="bi bi-pencil"></i>
+                                      <i class="bi bi-pencil" aria-hidden="true"></i>
                                     </button>
                                   </div>
                                 </div>
@@ -325,7 +327,7 @@
                 <section class="pref-card">
                   <header class="pref-card-head d-flex align-items-center justify-content-between mb-4">
                     <div>
-                      <h3 class="m-0">{{ 'APP.PROFILE.ORGANIZATION.YourOrganizations' | translate }}</h3>
+                      <h2 class="h3 m-0">{{ 'APP.PROFILE.ORGANIZATION.YourOrganizations' | translate }}</h2>
                       <p>{{ 'APP.PROFILE.ORGANIZATION.YourOrganizationsDesc' | translate }}</p>
                     </div>
                     <lnk-button
@@ -367,7 +369,7 @@
                     @if (_orgFormMode === 'add') {
                       <div class="card card-pad-tight mb-3 border-primary">
                         <div class="card-body px-2 pt-2 pb-0">
-                          <h6 class="card-title">{{ 'APP.PROFILE.ORGANIZATION.AddTitle' | translate }}</h6>
+                          <h3 class="h6 card-title">{{ 'APP.PROFILE.ORGANIZATION.AddTitle' | translate }}</h3>
                           <div class="form-group">
                             <label for="add_org" class="form-label">{{ 'APP.PROFILE.ORGANIZATION.SelectNewOrg' | translate }}</label>
                             <ng-select labelForId="add_org"
@@ -416,7 +418,7 @@
                                   <i class="bi bi-buildings"></i>
                                 </div>
                                 <div class="flex-grow-1 d-flex flex-column">
-                                  <h6 class="m-0">{{ assoc.nome }}</h6>
+                                  <h3 class="h6 m-0">{{ assoc.nome }}</h3>
                                   <div class="d-flex align-items-start justify-content-between">
                                     <div class="flex-grow-1 me-2">
                                       @if (assoc.ruolo_organizzazione) {
@@ -510,7 +512,7 @@
                   <section class="pref-card">
                     <header class="pref-card-head">
                       <div>
-                        <h3>{{ 'APP.PROFILE.PREFERENCES.ServiziTitle' | translate }}</h3>
+                        <h2 class="h3">{{ 'APP.PROFILE.PREFERENCES.ServiziTitle' | translate }}</h2>
                         <p>{{ 'APP.PROFILE.PREFERENCES.ServiziDesc' | translate }}</p>
                       </div>
                     </header>
@@ -665,7 +667,7 @@
                   <section class="pref-card">
                     <header class="pref-card-head">
                       <div>
-                        <h3>{{ 'APP.PROFILE.PREFERENCES.NotificheTitle' | translate }}</h3>
+                        <h2 class="h3">{{ 'APP.PROFILE.PREFERENCES.NotificheTitle' | translate }}</h2>
                         <p>{{ 'APP.PROFILE.PREFERENCES.NotificheDesc' | translate }}</p>
                       </div>
                       <div class="bulk">
@@ -692,7 +694,7 @@
                         <header>
                           <span class="ico"><i class="bi bi-envelope"></i></span>
                           <div>
-                            <h4>{{ 'APP.PROFILE.PREFERENCES.GroupCommTitle' | translate }}</h4>
+                            <h3 class="h4">{{ 'APP.PROFILE.PREFERENCES.GroupCommTitle' | translate }}</h3>
                             <p>{{ 'APP.PROFILE.PREFERENCES.GroupCommDesc' | translate }}</p>
                           </div>
                         </header>
@@ -725,7 +727,7 @@
                         <header>
                           <span class="ico"><i class="bi bi-arrow-repeat"></i></span>
                           <div>
-                            <h4>{{ 'APP.PROFILE.PREFERENCES.GroupStatusTitle' | translate }}</h4>
+                            <h3 class="h4">{{ 'APP.PROFILE.PREFERENCES.GroupStatusTitle' | translate }}</h3>
                             <p>{{ 'APP.PROFILE.PREFERENCES.GroupStatusDesc' | translate }}</p>
                           </div>
                         </header>

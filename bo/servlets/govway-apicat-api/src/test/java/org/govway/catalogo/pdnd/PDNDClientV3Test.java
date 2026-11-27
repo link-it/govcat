@@ -40,7 +40,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.govway.catalogo.exception.ClientApiException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.pdnd.controllers.FinalitaRifiutataException;
 import org.govway.catalogo.pdnd.controllers.PDNDClientV3;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.AttributeKind;
@@ -572,6 +574,62 @@ class PDNDClientV3Test {
 				new PDNDClientV3(api).getPurpose(PURPOSE_ID).getBody();
 
 		assertNull(response.getWaitingForApproval());
+	}
+
+	@Test
+	void laFinalitaInAttesaDellaPrimaApprovazioneRiportaLaVersioneInAttesa() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Purpose finalita = purpose(PurposeVersionState.WAITING_FOR_APPROVAL, 5000);
+		finalita.setWaitingForApprovalVersion(finalita.getCurrentVersion());
+		finalita.setCurrentVersion(null);
+		when(api.getPurpose(PURPOSE_ID)).thenReturn(finalita);
+
+		org.govway.catalogo.servlets.pdnd.model.Purpose response =
+				new PDNDClientV3(api).getPurpose(PURPOSE_ID).getBody();
+
+		// senza versione corrente lo stato dice che la quota non e' ancora concessa (Issue 486)
+		assertEquals(PurposeState.WAITING_FOR_APPROVAL, response.getState());
+		assertEquals(5000, response.getThroughput());
+		assertEquals(5000, response.getWaitingForApproval().getThroughput());
+	}
+
+	@Test
+	void laFinalitaRifiutataSiRiconosceERestaUnErroreInterno() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Purpose finalita = purpose(PurposeVersionState.REJECTED, 2000);
+		finalita.setTitle("Finalita' rifiutata");
+		finalita.setRejectedVersion(finalita.getCurrentVersion());
+		finalita.setCurrentVersion(null);
+		when(api.getPurpose(PURPOSE_ID)).thenReturn(finalita);
+
+		PDNDClientV3 client = new PDNDClientV3(api);
+		FinalitaRifiutataException e = assertThrows(FinalitaRifiutataException.class, () -> client.getPurpose(PURPOSE_ID));
+
+		// per l'API PDND esposta resta INT.500.PDND, come prima (Issue 486)
+		assertEquals(ErrorCode.INT_500_PDND, e.getErrorCode());
+		assertEquals(PURPOSE_ID, e.getPurposeId());
+		assertEquals("Finalita' rifiutata", e.getTitolo());
+		assertEquals("REJECTED", e.getStato());
+	}
+
+	@Test
+	void unAumentoRifiutatoNonRendeRifiutataLaFinalita() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Purpose finalita = purpose(PurposeVersionState.ACTIVE, 1000);
+		finalita.setRejectedVersion(new PurposeVersion()
+				.id(UUID.randomUUID())
+				.state(PurposeVersionState.REJECTED)
+				.dailyCalls(50000));
+		when(api.getPurpose(PURPOSE_ID)).thenReturn(finalita);
+
+		org.govway.catalogo.servlets.pdnd.model.Purpose response =
+				new PDNDClientV3(api).getPurpose(PURPOSE_ID).getBody();
+
+		assertEquals(PurposeState.ACTIVE, response.getState());
+		assertEquals(1000, response.getThroughput());
 	}
 
 	@Test

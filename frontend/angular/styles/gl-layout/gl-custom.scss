@@ -50,6 +50,13 @@ label.label-bold {
   max-height: calc(100vh - 120px);
 }
 
+// voci dei menu a tendina in un elenco <ul>: niente marcatori ne' rientro
+ul.gl-new-dropdown-contents {
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 0;
+}
+
 .gl-button.gl-button.btn-icon.btn-sm{
   padding: .25rem .5rem;
 }

@@ -43,31 +43,33 @@
     </div>
     <div class="nav-control align-self-center d-flex">
       <div class="btn-group-">
-        <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleFilter();">
+        <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleFilter();"
+          [attr.aria-label]="'APP.BUTTON.ToggleFilters' | translate" [tooltip]="'APP.BUTTON.ToggleFilters' | translate" [attr.aria-expanded]="_showFilter">
           @if (_showFilter) {
-            <i class="bi bi-funnel-fill"></i>
+            <i class="bi bi-funnel-fill" aria-hidden="true"></i>
           }
           @if (!_showFilter) {
-            <i class="bi bi-funnel"></i>
+            <i class="bi bi-funnel" aria-hidden="true"></i>
           }
         </button>
       </div>
       <div class="btn-group- ms-2">
         <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)">
+          <button aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)"
+            [attr.aria-label]="'APP.MENU.Export' | translate">
             <div class="d-flex flex-row gap-2">
-              <i class="bi bi-download"></i>
-              <span class="">{{ 'APP.MENU.Export' | translate }}</span>
-              <i class="bi bi-chevron-down ms-2"></i>
+              <i class="bi bi-download" aria-hidden="true"></i>
+              <span class="d-none d-md-inline">{{ 'APP.MENU.Export' | translate }}</span>
+              <i class="bi bi-chevron-down ms-md-2" aria-hidden="true"></i>
             </div>
           </button>
-          <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+          <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
             <div class="gl-new-dropdown-inner">
-              <div class="gl-new-dropdown-contents">
+              <ul class="gl-new-dropdown-contents">
                 @for (item of exportList; track item) {
                   <li class="gl-new-dropdown-item">
                     @if (tipoGrafico !== 'table' || item.action !== 'export-png') {
-                      <button role="menuitem" type="button" class="dropdown-item" (click)="onExport(item)">
+                      <button type="button" class="dropdown-item" (click)="onExport(item)">
                         @if (item.icon) {
                           <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                             <i class="bi bi-{{ item.icon }}"></i>
@@ -80,26 +82,26 @@
                     }
                   </li>
                 }
-              </div>
+              </ul>
             </div>
-          </ul>
+          </div>
         </div>
       </div>
       <div class="btn-group- ms-1">
         <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-          <button [disabled]="!colorSchemeChangeEnabled" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="themes">
+          <button [disabled]="!colorSchemeChangeEnabled" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="themes" aria-label="Color Scheme">
             <div class="d-flex flex-row gap-2">
-              <i class="bi bi-palette"></i>
-              <span class="">{{ 'Color Scheme' }}</span>
-              <i class="bi bi-chevron-down ms-2"></i>
+              <i class="bi bi-palette" aria-hidden="true"></i>
+              <span class="d-none d-md-inline">{{ 'Color Scheme' }}</span>
+              <i class="bi bi-chevron-down ms-md-2" aria-hidden="true"></i>
             </div>
           </button>
-          <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="theme">
+          <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
             <div class="gl-new-dropdown-inner">
-              <div class="gl-new-dropdown-contents">
+              <ul class="gl-new-dropdown-contents" aria-labelledby="themes">
                 @for (item of colorSets; track item) {
                   <li class="gl-new-dropdown-item">
-                    <button role="menuitem" type="button" class="dropdown-item" (click)="setColorScheme(item.name)">
+                    <button type="button" class="dropdown-item" (click)="setColorScheme(item.name)">
                       <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                         @if (selectedColorScheme == item.name) {
                           <i class="bi bi-check2"></i>
@@ -111,9 +113,9 @@
                     </button>
                   </li>
                 }
-              </div>
+              </ul>
             </div>
-          </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -240,15 +242,15 @@
                           <div class="form-group">
                             <span class="label label-bold">{{ 'APP.LABEL.ReportType' | translate }}</span>
                             <div class="text-center">
-                              <div class="btn-group w-100" aria-label="Chart type">
+                              <div class="btn-group w-100" role="group" [attr.aria-label]="'APP.LABEL.ReportType' | translate">
                                 @if (_formGroup.get('distribution_type')?.value?.trendReport) {
-                                  <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('line')" [class.btn-confirm]="tipoGrafico === 'line'"><i class="bi bi-graph-up"></i></button>
+                                  <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('line')" [class.btn-confirm]="tipoGrafico === 'line'" [attr.aria-pressed]="tipoGrafico === 'line'" [attr.aria-label]="'APP.LABEL.ChartLine' | translate" [tooltip]="'APP.LABEL.ChartLine' | translate"><i class="bi bi-graph-up" aria-hidden="true"></i></button>
                                 }
-                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('bar')" [class.btn-confirm]="tipoGrafico === 'bar'"><i class="bi bi-bar-chart"></i></button>
+                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('bar')" [class.btn-confirm]="tipoGrafico === 'bar'" [attr.aria-pressed]="tipoGrafico === 'bar'" [attr.aria-label]="'APP.LABEL.ChartBar' | translate" [tooltip]="'APP.LABEL.ChartBar' | translate"><i class="bi bi-bar-chart" aria-hidden="true"></i></button>
                                 @if (!_formGroup.get('distribution_type')?.value?.trendReport) {
-                                  <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('pie')" [class.btn-confirm]="tipoGrafico === 'pie'"><i class="bi bi-pie-chart"></i></button>
+                                  <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('pie')" [class.btn-confirm]="tipoGrafico === 'pie'" [attr.aria-pressed]="tipoGrafico === 'pie'" [attr.aria-label]="'APP.LABEL.ChartPie' | translate" [tooltip]="'APP.LABEL.ChartPie' | translate"><i class="bi bi-pie-chart" aria-hidden="true"></i></button>
                                 }
-                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('table')" [class.btn-confirm]="tipoGrafico === 'table'"><i class="bi bi-table"></i></button>
+                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('table')" [class.btn-confirm]="tipoGrafico === 'table'" [attr.aria-pressed]="tipoGrafico === 'table'" [attr.aria-label]="'APP.LABEL.ChartTable' | translate" [tooltip]="'APP.LABEL.ChartTable' | translate"><i class="bi bi-table" aria-hidden="true"></i></button>
                               </div>
                             </div>
                           </div>
@@ -459,9 +461,10 @@
                   </div>
                 </div>
               </div>
-              <div class="content-chart main flex-grow-1 mb-5" [class.border-start]="_showFilter" #captureGraphArea>
+              <div class="content-chart main flex-grow-1 mb-5" [class.border-start]="_showFilter" #captureGraphArea lnkScrollableRegion role="region" [attr.aria-label]="'APP.LABEL.Grafico' | translate">
 
                 @if (_spin) {
+                  <h1 class="visually-hidden">{{ _formGroup.get('distribution_type')?.value?.label || ('APP.TITLE.Statistics' | translate) }}</h1>
                   <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
                 }
 
@@ -660,7 +663,7 @@
                               </tr>
                             </thead>
                             <tbody>
-                              @for (row of multi_table_rows; track row) {
+                              @for (row of multi_table_rows; track row.name) {
                                 <tr>
                                   <th scope="row">{{row.name}}</th>
                                   @for (column of multi; track column) {

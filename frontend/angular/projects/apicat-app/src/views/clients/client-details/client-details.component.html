@@ -37,15 +37,15 @@
             {{ 'APP.CLIENT.BUTTON.Adesioni' | translate }}
           </button>
           <div class="dropdown b-dropdown gl-new-dropdown btn-group me-2" id="status_change">
-            <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle  dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="another_actions">
+            <button aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle  dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="another_actions">
               <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.CLIENT.BUTTON.ChangeStatus' | translate}}</span>
             </button>
-            <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+            <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
               <div class="gl-new-dropdown-inner">
-                <div class="gl-new-dropdown-contents">
+                <ul class="gl-new-dropdown-contents" aria-labelledby="sort_toggle">
                   @if (client?.stato != _statoEnum[0]) {
                     <li class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[0])">
+                      <button type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[0])">
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.CLIENT.LABEL.NotConfigured' | translate }}</p>
                         </div>
@@ -54,16 +54,16 @@
                   }
                   @if (client?.stato != _statoEnum[1]) {
                     <li class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[1])">
+                      <button type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[1])">
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.CLIENT.LABEL.Configured' | translate }}</p>
                         </div>
                       </button>
                     </li>
                   }
-                </div>
+                </ul>
               </div>
-            </ul>
+            </div>
           </div>
           <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditClient' | translate" [attr.aria-label]="'APP.TOOLTIP.EditClient' | translate" (click)="_editClient()">
             <i class="bi bi-pencil" aria-hidden="true"></i>
@@ -73,14 +73,14 @@
       @if (!_isEdit && !_spin) {
         <div class="btn-group- ms-1">
           <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-            <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+            <button aria-label="Altre azioni" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
               <i class="bi bi-three-dots-vertical"></i>
             </button>
-            <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+            <div tabindex="-1" class="dropdown-menu dropdown-menu-end">
               <div class="gl-new-dropdown-inner">
-                <div class="gl-new-dropdown-contents">
+                <ul class="gl-new-dropdown-contents" aria-labelledby="sort_toggle">
                   <li class="gl-new-dropdown-item">
-                    <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteClient()">
+                    <button type="button" class="dropdown-item" (click)="_deleteClient()">
                       <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                         <i class="bi bi-trash text-danger"></i>
                       </div>
@@ -89,9 +89,9 @@
                       </div>
                     </button>
                   </li>
-                </div>
+                </ul>
               </div>
-            </ul>
+            </div>
           </div>
         </div>
       }

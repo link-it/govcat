@@ -18,7 +18,7 @@
 -->
 @switch (_elem.type) {
   @case ('text') {
-    <div class="{{ _elem.class || '' }} overflow-auto" [style.max-height]="_elem.height">{{ _value || '-' }}</div>
+    <div class="{{ _elem.class || '' }} overflow-auto" lnkScrollableRegion [style.max-height]="_elem.height">{{ _value || '-' }}</div>
   }
   @case ('html') {
     <div class="{{ _elem.class || '' }}" [innerHTML]="_value"></div>
@@ -100,7 +100,7 @@
     <span class="bi bi-{{ _value }} {{ _class }}" [tooltip]="(_elem.tooltip || '') | translate" container="body" [delay]="500"></span>
   }
   @case ('json') {
-    <div class="{{ _class }} overflow-auto" [style.max-height]="_elem.height" [innerHtml]="_value"></div>
+    <div class="{{ _class }} overflow-auto" lnkScrollableRegion [style.max-height]="_elem.height" [innerHtml]="_value"></div>
   }
   @case ('tags') {
     <div class="{{ _class }}">

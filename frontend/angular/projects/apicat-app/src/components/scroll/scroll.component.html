@@ -16,6 +16,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<button class="btn float float-sm" (click)="onScrollToTop()">
-  <div class="scroll-icon"><i class="bi bi-chevron-up"></i></div>
+<button type="button" class="btn float float-sm" [attr.aria-label]="'APP.BUTTON.ScrollToTop' | translate" (click)="onScrollToTop()">
+  <div class="scroll-icon" aria-hidden="true"><i class="bi bi-chevron-up"></i></div>
 </button>

@@ -449,8 +449,8 @@
                             </ui-collapse-row>
                             <div class="button-delete-wrapper mt-3 pe-3">
                               @if ((updateMapper | mapper:canAddMapper) || isEdit) {
-                                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body" (click)="confirmDeleteReferente(referent)">
-                                  <i class="bi bi-trash text-danger"></i>
+                                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" [attr.aria-label]="'APP.TOOLTIP.Remove' | translate" container="body" (click)="confirmDeleteReferente(referent)">
+                                  <i class="bi bi-trash text-danger" aria-hidden="true"></i>
                                 </button>
                               }
                             </div>
@@ -903,7 +903,7 @@
                 [loading]="loadingCheckDati"
                 [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
               ></lnk-icon-toggle>
-              <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
+              <h3 class="h5 gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h3>
             </div>
           </div>
           <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
@@ -986,7 +986,7 @@
                 [loading]="loadingCheckDati"
                 [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
               ></lnk-icon-toggle>
-              <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
+              <h3 class="h5 gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h3>
             </div>
           </div>
           <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
@@ -1356,9 +1356,9 @@
     }
     @if (deletable) {
       <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-              [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body"
+              [tooltip]="'APP.TOOLTIP.Remove' | translate" [attr.aria-label]="'APP.TOOLTIP.Remove' | translate" container="body"
               (click)="confirmDeleteReferente(referent)">
-        <i class="bi bi-trash text-danger"></i>
+        <i class="bi bi-trash text-danger" aria-hidden="true"></i>
       </button>
     }
   </div>

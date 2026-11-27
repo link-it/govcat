@@ -22,6 +22,8 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { TranslateModule } from '@ngx-translate/core';
+
 import { UtilsLib } from '../../../utils/utils.lib';
 import { ConfigService } from '../../../services';
 import { MapperPipe } from '../../../pipes/mapper.pipe';
@@ -33,7 +35,7 @@ import { MapperPipe } from '../../../pipes/mapper.pipe';
         './token-segment.component.scss'
     ],
     standalone: true,
-    imports: [CommonModule, MapperPipe]
+    imports: [CommonModule, TranslateModule, MapperPipe]
 })
 export class TokenSegmentComponent implements OnInit {
 

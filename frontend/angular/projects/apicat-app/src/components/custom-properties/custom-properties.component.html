@@ -38,10 +38,10 @@
                       aria-expanded="false"
                       type="button"
                       class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-                      [tooltip]="'APP.TOOLTIP.Edit' | translate"  [container]="'body'" [delay]="500"
+                      [tooltip]="'APP.TOOLTIP.Edit' | translate" [attr.aria-label]="'APP.TOOLTIP.Edit' | translate"  [container]="'body'" [delay]="500"
                       (click)="_onEdit()"
                       >
-                      <i class="bi bi-pencil"></i>
+                      <i class="bi bi-pencil" aria-hidden="true"></i>
                     </button>
                   </div>
                 }
@@ -51,10 +51,10 @@
                       aria-expanded="false"
                       type="button"
                       class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon ms-2"
-                      [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" [container]="'body'" [delay]="500"
+                      [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" [attr.aria-label]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" [container]="'body'" [delay]="500"
                       (click)="_onCancelEdit()"
                       >
-                      <i class="bi bi-x-lg"></i>
+                      <i class="bi bi-x-lg" aria-hidden="true"></i>
                     </button>
                   </div>
                 }

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, ElementRef, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 
@@ -40,7 +40,7 @@ import { firstValueFrom } from 'rxjs';
   standalone: true,
   imports: [CommonModule, TooltipModule, TranslateModule]
 })
-export class SwaggerComponent implements OnInit {
+export class SwaggerComponent implements OnInit, OnDestroy {
 
   @Input('url') url: any = null;
   @Input('standaloneLayout') standaloneLayout: boolean = false;
@@ -57,6 +57,8 @@ export class SwaggerComponent implements OnInit {
   error: boolean = false;
   message: string = '';
 
+  private _observer: MutationObserver | null = null;
+
   constructor(
     private http: HttpClient,
     private elementRef: ElementRef,
@@ -64,6 +66,10 @@ export class SwaggerComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+  }
+
+  ngOnDestroy(): void {
+    this._observer?.disconnect();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -108,7 +114,8 @@ export class SwaggerComponent implements OnInit {
         url: this.url,
         // dom_id: '#swaggerui',
         domNode: this.elementRef.nativeElement, // this.swaggerDom.nativeElement
-        deepLinking: true,
+        // i collegamenti profondi mettono un link dentro il pulsante dell'operazione (controlli annidati)
+        deepLinking: false,
         filter: true,
         plugins: pins
       };
@@ -117,7 +124,27 @@ export class SwaggerComponent implements OnInit {
         _config.layout = 'StandaloneLayout';
       }
       SwaggerUIBundle(_config);
+      this._completaAccessibilita();
     // }
+  }
+
+  /** Swagger UI ridisegna il proprio DOM: i nomi mancanti si aggiungono a ogni modifica. */
+  private _completaAccessibilita(): void {
+    this._observer?.disconnect();
+    const root: HTMLElement = this.elementRef.nativeElement;
+    const applica = () => {
+      // lo sprite delle icone e' decorativo
+      root.querySelectorAll('svg.svg-assets:not([aria-hidden])').forEach((svg: Element) => svg.setAttribute('aria-hidden', 'true'));
+      root.querySelectorAll('select#servers:not([aria-label])').forEach((select: Element) => {
+        const titolo = root.querySelector('.servers-title')?.textContent?.trim();
+        select.setAttribute('aria-label', titolo || 'Servers');
+      });
+      // il titolo della specifica sta sotto il titolo della pagina: livello 2, prima dei tag (h3)
+      root.querySelectorAll('.info h1:not([aria-level])').forEach((h: Element) => h.setAttribute('aria-level', '2'));
+    };
+    applica();
+    this._observer = new MutationObserver(applica);
+    this._observer.observe(root, { childList: true, subtree: true });
   }
 
   async getApiSpec(url: string) {

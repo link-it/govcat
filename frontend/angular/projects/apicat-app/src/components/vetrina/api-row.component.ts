@@ -19,6 +19,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PopoverModule } from 'ngx-bootstrap/popover';
+import { TranslateModule } from '@ngx-translate/core';
 
 /**
  * Tag visualizzato accanto al nome dell'API. Il `variant` mappa una
@@ -49,6 +50,9 @@ export interface LnkApiTag {
  * Riga di una API nella lista vetrina. Layout grid 4-col:
  * `[avatar | body | tags | chevron]`.
  *
+ * L'azione e` un pulsante sul nome esteso a tutta la riga (pseudo-elemento): il `+n` resta un
+ * pulsante separato sopra di esso, non annidato in un elemento interattivo.
+ *
  * Overflow tags: se `tags.length > maxTags` (default 3, disabilita con
  * `null`), i tag extra vengono raccolti in un bottone `+n` con
  * popover. Il tag con `variant: 'profilo'` resta SEMPRE visibile —
@@ -69,24 +73,21 @@ export interface LnkApiTag {
 @Component({
   selector: 'lnk-api-row',
   standalone: true,
-  imports: [CommonModule, PopoverModule],
+  imports: [CommonModule, PopoverModule, TranslateModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="api"
-         role="button"
-         [attr.tabindex]="0"
-         (click)="action.emit($event)"
-         (keydown.enter)="action.emit($event)"
-         (keydown.space)="action.emit($event); $event.preventDefault()">
-      <div class="av">
+    <div class="api">
+      <div class="av" aria-hidden="true">
         <i class="bi" [ngClass]="iconClass"></i>
       </div>
       <div class="body">
         <div class="name">
-          <span class="text-break">{{ nome }}</span>
-          @if (versione) {
-            <span class="ver">v.{{ versione }}</span>
-          }
+          <button type="button" class="api-link" (click)="action.emit($event)">
+            <span class="text-break">{{ nome }}</span>
+            @if (versione) {
+              &ngsp;<span class="ver">v.{{ versione }}</span>
+            }
+          </button>
         </div>
         @if (descrizione) {
           <div class="desc">{{ descrizione }}</div>
@@ -110,9 +111,8 @@ export interface LnkApiTag {
                   containerClass="lnk-api-row-overflow-pop"
                   placement="bottom"
                   container="body"
-                  (click)="$event.stopPropagation()"
-                  [attr.aria-label]="'+' + _hiddenTags().length">
-            +{{ _hiddenTags().length }}
+                  (click)="$event.stopPropagation()">
+            +{{ _hiddenTags().length }}<span class="visually-hidden"> {{ 'APP.LABEL.TagNascosti' | translate }}</span>
           </button>
           <ng-template #overflowPopTpl>
             <div class="lnk-api-row-overflow-list">
@@ -129,7 +129,7 @@ export interface LnkApiTag {
           </ng-template>
         }
       </div>
-      <div class="api-chev"><i class="bi bi-chevron-right"></i></div>
+      <div class="api-chev" aria-hidden="true"><i class="bi bi-chevron-right"></i></div>
     </div>
   `,
 })
@@ -153,7 +153,7 @@ export class ApiRowComponent {
   @Input() set maxTags(v: number | null | undefined) { this._maxTagsSig.set(v ?? null); }
   get maxTags(): number | null { return this._maxTagsSig(); }
 
-  /** Emessa al click/Enter/Space sulla riga. */
+  /** Emessa al click sulla riga o all'attivazione del pulsante del nome. */
   @Output() action = new EventEmitter<Event>();
 
   /**
