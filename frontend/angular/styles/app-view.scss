@@ -598,7 +598,18 @@ small, .small {
     width: 100%;
     transition: border-color .12s, box-shadow .12s, transform .12s;
   }
+  .api { position: relative; }
   .api:hover { border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
+  /* Pulsante del nome esteso a tutta la riga: il fuoco si vede sulla riga. */
+  .api .api-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0; border: 0; background: none;
+    font: inherit; color: inherit; text-align: left;
+    cursor: pointer;
+  }
+  .api .api-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+  .api .api-link:focus-visible { outline: none; text-decoration: underline; text-underline-offset: 3px; }
+  .api:has(.api-link:focus-visible) { outline: 2px solid var(--focus-ring-color, #428fdc); outline-offset: 2px; }
   .api:active { transform: translateY(1px); }
   .api .api-chev { color: var(--ink-4); display: grid; place-items: center; }
   .api .api-chev svg { width: 18px; height: 18px; transform: rotate(-90deg); }
@@ -666,6 +677,8 @@ small, .small {
 
   /* Bottone "+n" — apre il popover con i tag in overflow. */
   .api .tag.tag-more {
+    position: relative; z-index: 1;
+    min-width: 24px; min-height: 24px;
     background: var(--surface-2);
     color: var(--ink-2);
     border: 1px solid var(--line-strong);

@@ -18,6 +18,7 @@
  */
 import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-scroll',
@@ -25,7 +26,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./scroll.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, TranslateModule]
 })
 export class ScrollComponent {
 

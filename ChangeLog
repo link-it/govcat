@@ -9,6 +9,8 @@
 	Issue 487: vetrina, "Scarica descrittore eService" e "Rate limiting" in alto a destra accanto alle
 	  azioni, con la sola icona e il titolo nel tooltip (alla chiusura del rate limiting il fuoco torna
 	  sul pulsante); tolto il pulsante "Referenti del dominio".
+	Accessibilità: righe delle API in vetrina con il pulsante sul nome esteso alla riga e il "+n" dei
+	  tag separato (non annidato), nominato e di almeno 24px; pulsante "torna su" con il nome.
 
 2026-11-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

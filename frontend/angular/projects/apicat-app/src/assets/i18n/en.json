@@ -431,6 +431,7 @@
 			"Yes": "Yes"
 		},
 		"BUTTON": {
+			"ScrollToTop": "Back to the top of the page",
 			"ChooseFile": "Choose file",
 			"RemoveFile": "Remove file",
 			"Reset": "Reset",
@@ -1324,6 +1325,7 @@
 			"SubscriptionKey": "Subscription Key",
 			"SubscriptionRequest": "Subscription registered on {{date}} by {{name}} {{surname}}",
 			"tags": "Tags",
+			"TagNascosti": "more tags",
 			"Tassonomia": "Taxonomy",
 			"Tassonomie": "Taxonomies",
 			"Taxcode": "Taxcode",
