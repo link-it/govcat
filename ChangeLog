@@ -1,3 +1,8 @@
+2026-11-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilità: statistiche del servizio con il titolo di livello 1 anche durante il caricamento.
+
 2026-11-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

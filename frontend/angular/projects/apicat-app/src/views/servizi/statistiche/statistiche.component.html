@@ -464,6 +464,7 @@
               <div class="content-chart main flex-grow-1 mb-5" [class.border-start]="_showFilter" #captureGraphArea lnkScrollableRegion role="region" [attr.aria-label]="'APP.LABEL.Grafico' | translate">
 
                 @if (_spin) {
+                  <h1 class="visually-hidden">{{ _formGroup.get('distribution_type')?.value?.label || ('APP.TITLE.Statistics' | translate) }}</h1>
                   <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
                 }
 
