@@ -18,15 +18,15 @@
 -->
 <div id="route-section" class="">
   <div class="breadcrumbs-area container-fluid px-0">
-    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [mainHeading]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
   <div class="top-area container-fluid px-0">
     <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
       <div class="">
         <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Tutte" (click)="_setCurrentTab(notificationState.Tutte)" [attr.aria-label]="_allElements">
-              <span title="Notifications found">{{ 'APP.FILTER.All' | translate }}</span>
+            <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Tutte" [attr.aria-pressed]="currentTab === notificationState.Tutte" (click)="_setCurrentTab(notificationState.Tutte)">
+              <span>{{ 'APP.FILTER.All' | translate }}</span>
               @if (currentTab === notificationState.Tutte) {
                 <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">
                   @if (_spin) {
@@ -39,8 +39,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Nuova" (click)="_setCurrentTab(notificationState.Nuova)" [attr.aria-label]="_allElements">
-            <span title="Notifications found">{{ 'APP.FILTER.Unread' | translate }}</span>
+          <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Nuova" [attr.aria-pressed]="currentTab === notificationState.Nuova" (click)="_setCurrentTab(notificationState.Nuova)">
+            <span>{{ 'APP.FILTER.Unread' | translate }}</span>
             @if (currentTab === notificationState.Nuova) {
               <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">
                 @if (_spin) {
@@ -53,8 +53,8 @@
         </a>
       </li>
       <li class="nav-item">
-        <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Archiviata" (click)="_setCurrentTab(notificationState.Archiviata)" [attr.aria-label]="_allElements">
-          <span title="Notifications found">{{ 'APP.FILTER.Archived' | translate }}</span>
+        <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Archiviata" [attr.aria-pressed]="currentTab === notificationState.Archiviata" (click)="_setCurrentTab(notificationState.Archiviata)">
+          <span>{{ 'APP.FILTER.Archived' | translate }}</span>
           @if (currentTab === notificationState.Archiviata) {
             <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">
               @if (_spin) {

@@ -2,6 +2,8 @@
 
 	* [Frontend]
 	Accessibilità: statistiche del servizio con il titolo di livello 1 anche durante il caricamento.
+	Accessibilità: vista Notifiche, schede annunciate con il nome visibile e lo stato della scheda
+	  attiva; titolo di livello 1 nella pagina.
 
 2026-11-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
