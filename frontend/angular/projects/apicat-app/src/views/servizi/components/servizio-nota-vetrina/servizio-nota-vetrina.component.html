@@ -19,19 +19,18 @@
 <button #pulsante type="button" class="btn btn-default btn-md gl-button snv-btn" (click)="toggle()" (keydown.escape)="chiudi()"
         [attr.aria-expanded]="aperta()" [attr.aria-controls]="aperta() ? idPannello : null"
         [attr.aria-label]="'APP.SERVICES.NOTA_VETRINA.Mostra' | translate"
-        [tooltip]="'APP.SERVICES.NOTA_VETRINA.Titolo' | translate" placement="bottom" container="body">
+        [tooltip]="'APP.SERVICES.NOTA_VETRINA.Titolo' | translate" [isDisabled]="aperta()" placement="bottom" container="body">
   <i class="bi bi-chat-left-text" aria-hidden="true"></i>
 </button>
 
 @if (aperta()) {
   @let p = posizione();
-  <div class="snv-pannello" role="dialog" [id]="idPannello" [attr.aria-labelledby]="idTitolo"
+  <div class="snv-pannello" [id]="idPannello"
        [style.top.px]="p.top" [style.right.px]="p.right" (keydown.escape)="chiudi()">
     <span class="snv-freccia" [style.right.px]="p.freccia" aria-hidden="true"></span>
     <div class="snv-hd">
       <i class="bi bi-chat-left-text" aria-hidden="true"></i>
-      <h2 class="snv-titolo" [id]="idTitolo">{{ 'APP.SERVICES.NOTA_VETRINA.Titolo' | translate }}</h2>
-      <button #chiudiEl type="button" class="btn-close snv-chiudi" [attr.aria-label]="'APP.BUTTON.Close' | translate" (click)="chiudi()"></button>
+      <h2 class="snv-titolo">{{ 'APP.SERVICES.NOTA_VETRINA.Titolo' | translate }}</h2>
     </div>
     <p class="snv-testo">{{ nota() }}</p>
   </div>

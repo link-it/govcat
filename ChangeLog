@@ -4,6 +4,8 @@
 	Accessibilità: statistiche del servizio con il titolo di livello 1 anche durante il caricamento.
 	Accessibilità: vista Notifiche, schede annunciate con il nome visibile e lo stato della scheda
 	  attiva; titolo di livello 1 nella pagina.
+	Vetrina: la nota del servizio si apre come pannello a tendina senza pulsante di chiusura (si chiude
+	  dal pulsante, con Esc o con un clic fuori); tooltip nascosto a pannello aperto.
 
 2026-11-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
